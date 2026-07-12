@@ -1,0 +1,54 @@
+{
+  "app": {
+    "passenger": "أمانة",
+    "driver": "أمانة | سائقة",
+    "admin": "أمانة | الإدارة"
+  },
+  "common": {
+    "continue": "متابعة",
+    "cancel": "إلغاء",
+    "back": "رجوع",
+    "loading": "جارٍ التحميل…",
+    "language": "اللغة",
+    "arabic": "العربية",
+    "english": "الإنجليزية",
+    "theme": "المظهر",
+    "light": "فاتح",
+    "dark": "داكن",
+    "system": "تلقائي"
+  },
+  "auth": {
+    "signInTitle": "تسجيل الدخول",
+    "signUpTitle": "إنشاء حساب",
+    "forgotPasswordTitle": "نسيت كلمة المرور",
+    "verifyEmailTitle": "تحقّق من بريدك",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "confirmPassword": "تأكيد كلمة المرور",
+    "fullName": "الاسم الكامل",
+    "signInButton": "دخول",
+    "signUpButton": "إنشاء الحساب",
+    "sendResetLink": "إرسال رابط الاستعادة",
+    "noAccount": "ليس لديك حساب؟",
+    "haveAccount": "لديك حساب بالفعل؟",
+    "forgotPasswordLink": "نسيت كلمة المرور؟",
+    "verifyEmailBody": "أرسلنا رابط تأكيد إلى بريدك. افتح الرابط لتفعيل حسابك.",
+    "resendEmail": "إعادة إرسال البريد",
+    "backToSignIn": "العودة لتسجيل الدخول"
+  },
+  "payment": {
+    "title": "تفاصيل الدفع",
+    "totalLabel": "المبلغ الإجمالي",
+    "currency": "ريال",
+    "methodTitle": "وسيلة الدفع",
+    "defaultCard": "البطاقة الافتراضية",
+    "addCard": "إضافة بطاقة جديدة",
+    "invoiceTitle": "تفاصيل الفاتورة",
+    "baseFare": "رسوم الخدمة الأساسية",
+    "distance": "المسافة (12.4 كم)",
+    "vat": "ضريبة القيمة المضافة (15%)",
+    "total": "الإجمالي",
+    "safety": "جميع معاملاتك مشفرة وآمنة وفق أعلى معايير الأمان العالمية. أمانة تضمن لك الخصوصية التامة.",
+    "confirm": "تأكيد الدفع"
+  }
+}

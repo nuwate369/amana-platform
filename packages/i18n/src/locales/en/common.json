@@ -1,0 +1,54 @@
+{
+  "app": {
+    "passenger": "Amana",
+    "driver": "Amana | Driver",
+    "admin": "Amana | Admin"
+  },
+  "common": {
+    "continue": "Continue",
+    "cancel": "Cancel",
+    "back": "Back",
+    "loading": "Loading…",
+    "language": "Language",
+    "arabic": "Arabic",
+    "english": "English",
+    "theme": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "auth": {
+    "signInTitle": "Sign in",
+    "signUpTitle": "Create account",
+    "forgotPasswordTitle": "Forgot password",
+    "verifyEmailTitle": "Verify your email",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm password",
+    "fullName": "Full name",
+    "signInButton": "Sign in",
+    "signUpButton": "Create account",
+    "sendResetLink": "Send reset link",
+    "noAccount": "Don't have an account?",
+    "haveAccount": "Already have an account?",
+    "forgotPasswordLink": "Forgot password?",
+    "verifyEmailBody": "We sent a confirmation link to your email. Open it to activate your account.",
+    "resendEmail": "Resend email",
+    "backToSignIn": "Back to sign in"
+  },
+  "payment": {
+    "title": "Payment details",
+    "totalLabel": "Total amount",
+    "currency": "SAR",
+    "methodTitle": "Payment method",
+    "defaultCard": "Default card",
+    "addCard": "Add new card",
+    "invoiceTitle": "Invoice details",
+    "baseFare": "Base service fee",
+    "distance": "Distance (12.4 km)",
+    "vat": "VAT (15%)",
+    "total": "Total",
+    "safety": "All your transactions are encrypted and secure to the highest international standards. Amana guarantees your full privacy.",
+    "confirm": "Confirm payment"
+  }
+}

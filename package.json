@@ -1,0 +1,28 @@
+{
+  "name": "amana-platform",
+  "version": "0.1.0",
+  "private": true,
+  "description": "منصة أمانة — منصة تنقّل ذكية للمرأة في السعودية (Monorepo)",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "scripts": {
+    "passenger": "npm run start --workspace=@amana/passenger",
+    "driver": "npm run start --workspace=@amana/driver",
+    "admin": "npm run dev --workspace=@amana/admin",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\""
+  },
+  "devDependencies": {
+    "ajv": "^8.17.1",
+    "prettier": "^3.3.3",
+    "typescript": "^5.6.3"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "target": "ESNext",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "declaration": true,
+    "paths": {
+      "@amana/shared-types": ["./packages/shared-types/src"],
+      "@amana/shared-ui": ["./packages/shared-ui/src"],
+      "@amana/supabase-client": ["./packages/supabase-client/src"],
+      "@amana/i18n": ["./packages/i18n/src"]
+    }
+  }
+}

@@ -1,0 +1,55 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Builds
+dist/
+build/
+.next/
+out/
+.expo/
+.expo-shared/
+web-build/
+
+# Environment (never commit real secrets)
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Native
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+ios/
+android/
+
+# Logs
+*.log
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# Caches / tooling
+.turbo/
+.cache/
+coverage/
+.eslintcache
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Expo export test bundles
+_exporttest/
+**/_exporttest/
+
+# MCP config holds an API key — keep local
+.mcp.json

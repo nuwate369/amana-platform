@@ -1,0 +1,10 @@
+node_modules
+dist
+build
+.next
+out
+.expo
+web-build
+coverage
+package-lock.json
+*.lock

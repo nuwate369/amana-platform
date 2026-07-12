@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light dark;
+}
+
+body {
+  @apply bg-brand-50 text-brand-900 antialiased dark:bg-brand-900 dark:text-brand-50;
+}

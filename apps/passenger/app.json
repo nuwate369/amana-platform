@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "أمانة",
+    "slug": "amana-passenger",
+    "scheme": "amana-passenger",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#3f2065"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "sa.amana.passenger"
+    },
+    "android": {
+      "package": "sa.amana.passenger",
+      "adaptiveIcon": {
+        "backgroundColor": "#3f2065"
+      }
+    },
+    "plugins": ["expo-router"],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "appName": "passenger"
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "أمانة سائقة",
+    "slug": "amana-driver",
+    "scheme": "amana-driver",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#0f1e3d"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "sa.amana.driver"
+    },
+    "android": {
+      "package": "sa.amana.driver",
+      "adaptiveIcon": {
+        "backgroundColor": "#0f1e3d"
+      }
+    },
+    "plugins": ["expo-router"],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "appName": "driver"
+    }
+  }
+}

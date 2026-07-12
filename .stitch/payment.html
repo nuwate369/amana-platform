@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>تفاصيل الدفع - Amana</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed": "#ffd9e0",
+                    "surface-bright": "#f8f9fa",
+                    "primary": "#000666",
+                    "on-primary-fixed": "#000767",
+                    "surface-dim": "#d9dadb",
+                    "surface-container-low": "#f3f4f5",
+                    "on-background": "#191c1d",
+                    "secondary": "#5e604d",
+                    "primary-container": "#1a237e",
+                    "surface-tint": "#4c56af",
+                    "secondary-fixed-dim": "#c8c8b0",
+                    "surface-container-highest": "#e1e3e4",
+                    "surface-container-high": "#e7e8e9",
+                    "on-primary": "#ffffff",
+                    "outline-variant": "#c6c5d4",
+                    "surface-variant": "#e1e3e4",
+                    "on-tertiary-fixed-variant": "#5f3d45",
+                    "surface-container-lowest": "#ffffff",
+                    "tertiary": "#2d131a",
+                    "on-secondary-container": "#636451",
+                    "error": "#ba1a1a",
+                    "on-tertiary-fixed": "#2e131a",
+                    "inverse-surface": "#2e3132",
+                    "on-tertiary-container": "#b78c95",
+                    "on-secondary": "#ffffff",
+                    "primary-fixed-dim": "#bdc2ff",
+                    "error-container": "#ffdad6",
+                    "on-secondary-fixed-variant": "#474836",
+                    "secondary-fixed": "#e4e4cc",
+                    "on-error-container": "#93000a",
+                    "surface": "#f8f9fa",
+                    "primary-fixed": "#e0e0ff",
+                    "on-primary-container": "#8690ee",
+                    "secondary-container": "#e1e1c9",
+                    "inverse-on-surface": "#f0f1f2",
+                    "outline": "#767683",
+                    "on-surface": "#191c1d",
+                    "inverse-primary": "#bdc2ff",
+                    "tertiary-container": "#45272e",
+                    "tertiary-fixed-dim": "#e9bbc4",
+                    "on-surface-variant": "#454652",
+                    "on-secondary-fixed": "#1b1d0e",
+                    "on-primary-fixed-variant": "#343d96",
+                    "surface-container": "#edeeef",
+                    "on-tertiary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "background": "#f8f9fa"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "md": "16px",
+                    "margin-desktop": "64px",
+                    "xs": "4px",
+                    "lg": "24px",
+                    "gutter": "16px",
+                    "sm": "12px",
+                    "margin-mobile": "20px",
+                    "xl": "40px",
+                    "base": "8px"
+            },
+            "fontFamily": {
+                    "body-md": ["IBM Plex Sans Arabic"],
+                    "display-lg-mobile": ["IBM Plex Sans Arabic"],
+                    "label-sm": ["IBM Plex Sans Arabic"],
+                    "body-lg": ["IBM Plex Sans Arabic"],
+                    "headline-md": ["IBM Plex Sans Arabic"],
+                    "display-lg": ["IBM Plex Sans Arabic"]
+            },
+            "fontSize": {
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "display-lg-mobile": ["26px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .safe-area-bottom {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        .card-shadow {
+            box-shadow: 0 4px 12px rgba(26, 35, 126, 0.05);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen flex flex-col">
+<!-- Top App Bar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile h-14 bg-surface shadow-sm">
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-primary">arrow_forward</span>
+</button>
+<h1 class="font-headline-md text-headline-md-mobile text-primary">تفاصيل الدفع</h1>
+<div class="w-10"></div> <!-- Spacer for symmetry -->
+</header>
+<main class="flex-1 mt-14 mb-20 px-margin-mobile py-lg">
+<!-- Visual Atmosphere / Decorative Element -->
+<div class="relative w-full h-32 mb-lg rounded-xl overflow-hidden shadow-lg">
+
+<div class="absolute inset-0 bg-gradient-to-l from-primary/80 to-transparent flex flex-col justify-center px-md text-white">
+<p class="font-label-sm text-label-sm opacity-80">المبلغ الإجمالي</p>
+<div class="flex items-baseline gap-xs">
+<span class="font-display-lg-mobile text-display-lg-mobile">84.50</span>
+<span class="font-body-md text-body-md">ريال</span>
+</div>
+</div>
+</div>
+<!-- Section: Payment Method -->
+<section class="mb-xl">
+<h2 class="font-headline-md text-headline-md-mobile mb-md text-on-surface">وسيلة الدفع</h2>
+<div class="space-y-md">
+<!-- Active Card -->
+<div class="bg-surface-container-lowest border border-primary/10 rounded-xl p-md flex items-center gap-md card-shadow border-2 border-primary">
+<div class="w-12 h-8 bg-surface-container-high rounded flex items-center justify-center">
+<img class="w-8 h-auto" data-alt="A clean, minimalist representation of a credit card logo with subtle metallic texture and deep blue tones, high-end finance aesthetic for a Saudi Arabian market." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD01QCWItPdBy9qESbdODDVkEEkkTzGgPfiUE2kEfFAQTd4zrXGeg0AAbbZ4d7L1e5Vg8BNFrITp96m7I9LmZwodMU5NkKEou19pHmS0rGXBTf0UYvLFu8onbf2BhkOtwvgyNCy9vN7jR_w_dfxGUshPyklx-Sy7rsQxbxugsQyqteMQwJf7PO0hsTI4JYZX-RL-L0dYesfGtM17BJXU1JQH_0uPemGseWD17BzqbqOjgFS07jEZCGrh_qslAHwzrUeSmsMGavqO7Qr"/>
+</div>
+<div class="flex-1">
+<p class="font-body-lg text-body-lg text-on-surface">Visa •••• 9432</p>
+<p class="font-label-sm text-label-sm text-outline">البطاقة الافتراضية</p>
+</div>
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<!-- Add New Card Option -->
+<button class="w-full bg-surface-container-low border border-dashed border-outline-variant rounded-xl p-md flex items-center justify-center gap-sm text-on-surface-variant hover:bg-surface-container-high transition-all">
+<span class="material-symbols-outlined">add_card</span>
+<span class="font-body-md text-body-md">إضافة بطاقة جديدة</span>
+</button>
+</div>
+</section>
+<!-- Section: Price Breakdown -->
+<section class="mb-xl">
+<h2 class="font-headline-md text-headline-md-mobile mb-md text-on-surface">تفاصيل الفاتورة</h2>
+<div class="bg-surface-container-lowest rounded-xl p-md card-shadow divide-y divide-surface-container-highest">
+<div class="flex justify-between py-sm">
+<span class="font-body-md text-body-md text-on-surface-variant">رسوم الخدمة الأساسية</span>
+<span class="font-body-md text-body-md text-on-surface">15.00 ريال</span>
+</div>
+<div class="flex justify-between py-sm">
+<span class="font-body-md text-body-md text-on-surface-variant">المسافة (12.4 كم)</span>
+<span class="font-body-md text-body-md text-on-surface">58.48 ريال</span>
+</div>
+<div class="flex justify-between py-sm">
+<span class="font-body-md text-body-md text-on-surface-variant">ضريبة القيمة المضافة (15%)</span>
+<span class="font-body-md text-body-md text-on-surface">11.02 ريال</span>
+</div>
+<div class="flex justify-between pt-md mt-sm border-t-2 border-primary/5">
+<span class="font-headline-md text-headline-md-mobile text-primary">الإجمالي</span>
+<span class="font-headline-md text-headline-md-mobile text-primary">84.50 ريال</span>
+</div>
+</div>
+</section>
+<!-- Safety Badge -->
+<div class="flex items-center gap-sm bg-secondary-container/30 p-md rounded-lg mb-lg">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">security</span>
+<p class="font-label-sm text-label-sm text-on-secondary-fixed-variant leading-relaxed">جميع معاملاتك مشفرة وآمنة وفق أعلى معايير الأمان العالمية. أمانة تضمن لك الخصوصية التامة.</p>
+</div>
+</main>
+<!-- Bottom Action Area -->
+<div class="fixed bottom-0 left-0 w-full bg-surface-container-lowest px-margin-mobile py-md safe-area-bottom shadow-[0_-4px_12px_rgba(26,35,126,0.08)] z-50 rounded-t-xl">
+<button class="w-full h-14 bg-primary text-on-primary rounded-xl font-headline-md text-headline-md-mobile flex items-center justify-center gap-sm active:scale-[0.98] transition-transform">
+<span>تأكيد الدفع</span>
+<span class="material-symbols-outlined">payments</span>
+</button>
+</div>
+<!-- Script for subtle interaction -->
+<script>
+        // Subtle haptic-like feedback or button state transitions
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('mousedown', () => {
+                button.style.transform = 'scale(0.98)';
+            });
+            button.addEventListener('mouseup', () => {
+                button.style.transform = 'scale(1)';
+            });
+            button.addEventListener('mouseleave', () => {
+                button.style.transform = 'scale(1)';
+            });
+        });
+    </script>
+</body></html>
