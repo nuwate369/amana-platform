@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-primary-fixed-variant": "#3a4859",
+                    "inverse-on-surface": "#e9f1ff",
+                    "on-surface-variant": "#44474c",
+                    "surface-bright": "#f8f9ff",
+                    "outline-variant": "#c4c6cc",
+                    "on-secondary": "#ffffff",
+                    "on-secondary-container": "#5a647c",
+                    "surface-container": "#e5efff",
+                    "inverse-surface": "#1b324a",
+                    "surface-container-high": "#dbe9ff",
+                    "surface-container-low": "#eef4ff",
+                    "on-surface": "#031d34",
+                    "secondary-fixed": "#d7e2ff",
+                    "on-primary-fixed": "#0f1c2c",
+                    "on-tertiary-fixed-variant": "#454745",
+                    "tertiary-fixed-dim": "#c6c7c3",
+                    "on-error-container": "#93000a",
+                    "on-background": "#031d34",
+                    "surface-variant": "#d1e4ff",
+                    "surface-tint": "#525f71",
+                    "outline": "#74777d",
+                    "surface-container-highest": "#d1e4ff",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary": "#ffffff",
+                    "primary-fixed-dim": "#bac8dc",
+                    "on-tertiary-fixed": "#1a1c1a",
+                    "tertiary-fixed": "#e2e3df",
+                    "tertiary-container": "#1a1c1a",
+                    "on-primary-container": "#778598",
+                    "background": "#f8f9ff",
+                    "on-tertiary-container": "#828481",
+                    "surface-dim": "#c5dcfb",
+                    "primary-fixed": "#d6e4f9",
+                    "secondary-container": "#d7e2ff",
+                    "primary-container": "#0f1c2c",
+                    "on-secondary-fixed": "#101b30",
+                    "error": "#ba1a1a",
+                    "tertiary": "#000000",
+                    "on-primary": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "secondary-fixed-dim": "#bbc6e2",
+                    "primary": "#000000",
+                    "on-error": "#ffffff",
+                    "secondary": "#545e76",
+                    "on-secondary-fixed-variant": "#3c475d",
+                    "inverse-primary": "#bac8dc",
+                    "surface": "#f8f9ff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "xl": "32px",
+                    "margin-mobile": "20px",
+                    "lg": "24px",
+                    "md": "16px",
+                    "sm": "8px",
+                    "unit": "4px",
+                    "xs": "4px",
+                    "gutter": "16px"
+            },
+            "fontFamily": {
+                    "body-lg": ["IBM Plex Sans Arabic"],
+                    "label-md": ["IBM Plex Sans Arabic"],
+                    "caption": ["IBM Plex Sans Arabic"],
+                    "body-md": ["IBM Plex Sans Arabic"],
+                    "headline-sm": ["IBM Plex Sans Arabic"],
+                    "display-lg": ["IBM Plex Sans Arabic"],
+                    "headline-md": ["IBM Plex Sans Arabic"]
+            },
+            "fontSize": {
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                    "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "display-lg": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            background-color: #f8f9ff;
+            overflow-x: hidden;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid #E0E1DD;
+        }
+        .shimmer {
+            background: linear-gradient(90deg, transparent, rgba(13, 27, 42, 0.05), transparent);
+            background-size: 200% 100%;
+            animation: shimmer 2s infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen flex flex-col text-on-surface">
+<!-- TopAppBar Segment -->
+<header class="bg-surface dark:bg-inverse-surface border-b border-outline-variant dark:border-outline docked full-width top-0 z-50">
+<div class="flex flex-row-reverse justify-between items-center w-full px-margin-mobile h-16 max-w-5xl mx-auto">
+<div class="flex items-center gap-md">
+<span class="text-headline-md font-headline-md font-bold text-on-surface dark:text-inverse-on-surface">أمانة</span>
+</div>
+<div class="flex items-center gap-md">
+<button class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-surface-container-high transition-colors text-on-surface-variant dark:text-surface-variant">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow flex flex-col items-center justify-center px-margin-mobile py-xl relative overflow-hidden">
+<!-- Background Atmospheric Element -->
+<div class="absolute inset-0 pointer-events-none opacity-20 overflow-hidden">
+<div class="absolute -top-20 -right-20 w-96 h-96 bg-primary-container rounded-full blur-[100px]"></div>
+<div class="absolute bottom-20 left-10 w-64 h-64 bg-surface-dim rounded-full blur-[80px]"></div>
+</div>
+<!-- Verification Illustration Container -->
+<div class="relative w-full max-w-sm mx-auto flex flex-col items-center mb-xl">
+<div class="floating relative w-48 h-48 md:w-56 md:h-56 flex items-center justify-center mb-lg">
+<!-- Large Decorative Ring -->
+<div class="absolute inset-0 border-4 border-dashed border-primary-fixed-dim rounded-full animate-[spin_20s_linear_infinite]"></div>
+<!-- Main Illustration Card -->
+<div class="w-40 h-40 md:w-48 md:h-48 glass-card rounded-full flex items-center justify-center shadow-xl relative z-10">
+<div class="w-32 h-32 md:w-40 md:h-40 bg-cover bg-center rounded-full" data-alt="A sophisticated digital 3D illustration of a secure verification shield featuring a soft glowing clock face integrated into the design. The aesthetic is corporate modern with a dark navy blue and silver palette, set against a clean, professional studio lighting. The style is minimalist yet highly detailed with metallic textures and soft ambient occlusion shadows, conveying reliability and security for a professional driver application." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAJTcCUFnB6BA3b9jmd4YSkZxGAWIUqzzCobk8XPhNoFVX204u5VkpSsUMDRQ7N0w1lAupUHs6s37c4kNmANcap0xSfm5sAjEjzsFwOHoi1QI11_D4elwr-xo42GVjaqMdK_3eB60KAJSGZOubvQq_2niRu5HEdfg58xqVGJP559cdQovaKUQN08Bq-_GDkgNO1IMEYa_cC7SweSzwW31nhSXbiRjNd1myYu_CrQ8PGf1xUWfbnc1n1jr9OcfDq1I2WyLGg6PlukN3m')"></div>
+<!-- Pulsing Badge -->
+<div class="absolute -bottom-2 -right-2 bg-on-primary-fixed-variant text-white p-3 rounded-full shadow-lg flex items-center justify-center border-4 border-surface">
+<span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Text Content -->
+<div class="text-center max-w-md mx-auto space-y-md z-10">
+<h1 class="font-display-lg text-display-lg text-primary tracking-tight">طلبك قيد المراجعة</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
+                شكراً لانضمامك إلى <span class="font-bold text-primary">أمانة</span>. 
+                نقوم حالياً بالتحقق من بياناتك ومستنداتك لضمان أعلى معايير الأمان والاحترافية.
+            </p>
+</div>
+<!-- Status Cards Bento Style -->
+<div class="mt-xl grid grid-cols-1 md:grid-cols-2 gap-md w-full max-w-2xl z-10">
+<!-- Step 1 -->
+<div class="glass-card p-md rounded-xl flex items-center gap-md border-r-4 border-r-on-primary-fixed-variant">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">assignment_turned_in</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-primary">اكتمال البيانات</h3>
+<p class="font-caption text-caption text-on-surface-variant">تم استلام جميع المستندات المطلوبة بنجاح</p>
+</div>
+</div>
+<!-- Step 2 (Active/Current) -->
+<div class="bg-primary-container p-md rounded-xl flex items-center gap-md relative overflow-hidden group">
+<div class="shimmer absolute inset-0 opacity-10"></div>
+<div class="w-10 h-10 rounded-full bg-on-primary text-primary-container flex items-center justify-center relative z-10">
+<span class="material-symbols-outlined animate-pulse" style="font-variation-settings: 'FILL' 1;">manage_search</span>
+</div>
+<div class="relative z-10">
+<h3 class="font-headline-sm text-headline-sm text-on-primary">التدقيق الإداري</h3>
+<p class="font-caption text-caption text-on-primary-container">المراجعة جارية من قبل الإدارة المختصة</p>
+</div>
+</div>
+</div>
+<!-- Progress Indicator -->
+<div class="w-full max-w-2xl mt-xl px-md">
+<div class="h-1.5 w-full bg-outline-variant rounded-full overflow-hidden">
+<div class="h-full bg-on-primary-fixed-variant rounded-full" style="width: 75%; transition: width 1s ease-out;"></div>
+</div>
+<div class="flex justify-between mt-sm">
+<span class="font-caption text-caption text-on-surface-variant">تم التقديم</span>
+<span class="font-caption text-caption text-on-primary-fixed-variant font-bold">في المراجعة النهائية</span>
+<span class="font-caption text-caption text-on-surface-variant">بدء العمل</span>
+</div>
+</div>
+<!-- Action Area -->
+<div class="mt-xl flex flex-col gap-md w-full max-w-xs mx-auto">
+<button class="bg-[#0D1B2A] text-white h-[56px] px-xl rounded-xl font-headline-sm flex items-center justify-center gap-sm shadow-md hover:opacity-90 active:scale-[0.98] transition-all">
+<span class="material-symbols-outlined" data-icon="support_agent">support_agent</span>
+                تواصل مع الدعم
+            </button>
+<p class="text-center font-caption text-caption text-on-surface-variant px-md">
+                عادةً ما تستغرق عملية المراجعة من 24 إلى 48 ساعة عمل.
+            </p>
+</div>
+</main>
+<!-- Bottom Navigation Suppressed as per Task-Focused/Linear Journey Rule -->
+<!-- (We show a focused footer instead) -->
+<footer class="py-md text-center text-on-surface-variant border-t border-outline-variant/30 bg-surface">
+<p class="font-label-md text-label-md">© 2024 منصة أمانة - رؤية 2030</p>
+</footer>
+<script>
+        // Micro-interaction: Update time on footer if needed, or simple status pulse
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Amana Driver App - Pending Review State Loaded');
+        });
+    </script>
+</body></html>

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+
+<html class="light" dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-primary-fixed-variant": "#3a4859",
+                    "inverse-on-surface": "#e9f1ff",
+                    "on-surface-variant": "#44474c",
+                    "surface-bright": "#f8f9ff",
+                    "outline-variant": "#c4c6cc",
+                    "on-secondary": "#ffffff",
+                    "on-secondary-container": "#5a647c",
+                    "surface-container": "#e5efff",
+                    "inverse-surface": "#1b324a",
+                    "surface-container-high": "#dbe9ff",
+                    "surface-container-low": "#eef4ff",
+                    "on-surface": "#031d34",
+                    "secondary-fixed": "#d7e2ff",
+                    "on-primary-fixed": "#0f1c2c",
+                    "on-tertiary-fixed-variant": "#454745",
+                    "tertiary-fixed-dim": "#c6c7c3",
+                    "on-error-container": "#93000a",
+                    "on-background": "#031d34",
+                    "surface-variant": "#d1e4ff",
+                    "surface-tint": "#525f71",
+                    "outline": "#74777d",
+                    "surface-container-highest": "#d1e4ff",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary": "#ffffff",
+                    "primary-fixed-dim": "#bac8dc",
+                    "on-tertiary-fixed": "#1a1c1a",
+                    "tertiary-fixed": "#e2e3df",
+                    "tertiary-container": "#1a1c1a",
+                    "on-primary-container": "#778598",
+                    "background": "#f8f9ff",
+                    "on-tertiary-container": "#828481",
+                    "surface-dim": "#c5dcfb",
+                    "primary-fixed": "#d6e4f9",
+                    "secondary-container": "#d7e2ff",
+                    "primary-container": "#0f1c2c",
+                    "on-secondary-fixed": "#101b30",
+                    "error": "#ba1a1a",
+                    "tertiary": "#000000",
+                    "on-primary": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "secondary-fixed-dim": "#bbc6e2",
+                    "primary": "#000000",
+                    "on-error": "#ffffff",
+                    "secondary": "#545e76",
+                    "on-secondary-fixed-variant": "#3c475d",
+                    "inverse-primary": "#bac8dc",
+                    "surface": "#f8f9ff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "xl": "32px",
+                    "margin-mobile": "20px",
+                    "lg": "24px",
+                    "md": "16px",
+                    "sm": "8px",
+                    "unit": "4px",
+                    "xs": "4px",
+                    "gutter": "16px"
+            },
+            "fontFamily": {
+                    "body-lg": ["IBM Plex Sans Arabic"],
+                    "label-md": ["IBM Plex Sans Arabic"],
+                    "caption": ["IBM Plex Sans Arabic"],
+                    "body-md": ["IBM Plex Sans Arabic"],
+                    "headline-sm": ["IBM Plex Sans Arabic"],
+                    "display-lg": ["IBM Plex Sans Arabic"],
+                    "headline-md": ["IBM Plex Sans Arabic"]
+            },
+            "fontSize": {
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                    "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "display-lg": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        body {
+            background-color: #f8f9ff;
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            overflow: hidden;
+        }
+        .map-gradient-overlay {
+            background: linear-gradient(to bottom, rgba(248,249,255,1) 0%, rgba(248,249,255,0) 15%, rgba(248,249,255,0) 85%, rgba(248,249,255,1) 100%);
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(224, 225, 221, 0.5);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="h-screen w-screen flex flex-col font-body-md text-on-surface">
+<!-- Top Navigation Bar (Shared Component Anchor) -->
+<header class="bg-surface dark:bg-inverse-surface border-b border-outline-variant dark:border-outline docked full-width top-0 z-50 flex flex-row-reverse justify-between items-center w-full px-margin-mobile h-16">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a Saudi male driver in his 30s wearing a clean corporate uniform, smiling confidently. The lighting is crisp and professional, set against a blurred corporate background with high-end vehicle details. The aesthetic is clean, corporate, and secure, reflecting the reliability and professionalism of the Amana platform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCzF6_cPWklqz9-fhNpgC_I392ZyskDCiPVY9iVKYLi3bGhWiBMm7sez5t4jH9401oUsJBF1NzaLsDl4lo5OHgMZqaXtGlNuuUTLwt5bByyQF_WkAOWZWbjnKWYBr14gX1-8DhHg5192ZLr6Xn_O4FQKD4t5MN_kg77znBOg4ouz3W68XyXSDu97U6nxDrNZuivnkusXIS8eEXghs56Lfk0a34nCEfnpgw_y7GWSGJ-aNBcQiQp0ny5J0Dd99qMuLDFeUDyNk6Vlw_H"/>
+</div>
+<h1 class="text-headline-md font-headline-md font-bold text-on-surface dark:text-inverse-on-surface">أمانة</h1>
+</div>
+<div class="flex items-center gap-sm">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors text-on-surface-variant dark:text-surface-variant">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</div>
+</header>
+<!-- Main Content Canvas (Map Layer) -->
+<main class="relative flex-1 overflow-hidden">
+<!-- Interactive Map Background -->
+<div class="absolute inset-0 z-0">
+<div class="w-full h-full bg-cover bg-center grayscale-[20%] brightness-[95%]" data-alt="A detailed high-angle map view of Riyadh's urban center showing organized street grids and modern architecture like the Kingdom Centre. A bold navy blue route line with glowing directional arrows cuts through the streets, indicating a path from a pickup point to a destination. The lighting is bright daylight, emphasizing clarity, security, and professional navigation software aesthetics." data-location="Riyadh, Saudi Arabia" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBVtiqBQOszbqDzGAL6h80KZVVC9vdmgmhKEVbxSlc10r-eVSA-_rNMBuZ1dwbZckf-Bu4iLqtn_nUJpUDoYHVzz-wJyz_Wtyh_YQcdU9ihErW-0mg758w1fY3MBAyVsf5-tJ9EgMEn_-iZpcR0-U01k5dsMFL6ajjziYDa565iq0b-48w5PWrVqQhHljBpULHUxPdngQN4_XblbHuyUjnf0hCaNBesOod-MHyq4rejZbQZCgJv4lwxCJkvCycMPPFiW8sfaCzZtmW8')"></div>
+<div class="absolute inset-0 map-gradient-overlay pointer-events-none"></div>
+</div>
+<!-- Floating Status Indicator -->
+<div class="absolute top-4 left-1/2 -translate-x-1/2 z-20 w-auto px-lg py-sm glass-panel rounded-full shadow-md flex items-center gap-sm">
+<span class="relative flex h-3 w-3">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-3 w-3 bg-secondary"></span>
+</span>
+<span class="font-label-md text-label-md text-primary font-bold">في الطريق إلى العميل</span>
+</div>
+<!-- Professional SOS Button -->
+<div class="absolute top-4 right-4 z-20">
+<button class="w-12 h-12 glass-panel rounded-full flex items-center justify-center border-error text-error shadow-lg hover:bg-error-container transition-all active:scale-95">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">emergency_home</span>
+</button>
+</div>
+<!-- Navigation Direction Card (Asymmetric Layout) -->
+<div class="absolute top-20 right-4 z-20 w-72 glass-panel p-md rounded-xl shadow-md">
+<div class="flex items-center justify-between mb-sm">
+<div class="flex flex-col">
+<span class="text-caption text-on-surface-variant">المسافة المتبقية</span>
+<span class="font-headline-sm text-headline-sm text-primary">1.2 كم</span>
+</div>
+<div class="w-12 h-12 bg-primary-container text-on-primary-fixed-variant rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl">turn_right</span>
+</div>
+</div>
+<div class="border-t border-outline-variant pt-sm">
+<p class="font-body-md text-body-md text-on-surface">انعطف يميناً إلى شارع العليا</p>
+</div>
+</div>
+<!-- Passenger Detail Floating Card -->
+<div class="absolute bottom-32 right-margin-mobile left-margin-mobile z-20">
+<div class="glass-panel p-md rounded-xl shadow-lg flex items-center gap-md">
+<div class="w-14 h-14 rounded-full overflow-hidden border-2 border-surface-container-high bg-surface-container-low">
+<img class="w-full h-full object-cover" data-alt="A friendly, high-quality portrait of a professional corporate passenger in a crisp white thobe, looking towards the camera with a subtle smile. The background is a soft-focus modern office lobby with warm, natural lighting. The image style is polished and high-end, fitting for a premium ride-hailing service branding." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAq7sK87ZdkXQ2RKxXBOF6nE-7_sUATo-Qda7xl50j7lpJtNbHDh-ubGXMJ3rFLYF05HcHfW33rbmQlN6ZfHGcI7TobGdGY5KoKBf0XODIB5z-7kLMXpCDIIP7iR-AS9sPyKcKFdGJGDikD6eMrcqj1joInZ0qqnTDe-oArQT6lUjFy-JM3e0uTzJxxFwj7YobwaWC7vSWIoCEGDvkUmt2NVmKRmpw7-oTNO4E5ooqjQiB4DgpzPqie2psfoC4LuBSCUw0bXZp9ZGd0"/>
+</div>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<h2 class="font-headline-sm text-headline-sm text-on-surface">عبدالله محمد</h2>
+<div class="flex items-center gap-xs bg-surface-container-high px-sm py-1 rounded-full">
+<span class="material-symbols-outlined text-sm text-on-secondary-container" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-label-md text-label-md text-on-secondary-container">4.9</span>
+</div>
+</div>
+<p class="text-caption text-on-surface-variant">نقطة الالتقاء: فندق ريتز كارلتون</p>
+</div>
+<div class="flex flex-col gap-sm">
+<button class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-primary hover:bg-primary-container hover:text-white transition-all">
+<span class="material-symbols-outlined">chat_bubble</span>
+</button>
+<button class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-primary hover:bg-primary-container hover:text-white transition-all">
+<span class="material-symbols-outlined">call</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Main Action Control Bar -->
+<div class="absolute bottom-0 left-0 w-full glass-panel pt-lg pb-10 px-margin-mobile z-30 rounded-t-[32px] shadow-[0_-4px_20px_rgba(13,27,42,0.1)]">
+<div class="flex flex-col gap-md">
+<div class="flex justify-between items-center px-sm mb-sm">
+<div class="flex flex-col">
+<span class="text-caption text-on-surface-variant">الوقت المقدر</span>
+<span class="font-body-lg text-body-lg font-bold">4 دقائق</span>
+</div>
+<div class="flex flex-col items-end">
+<span class="text-caption text-on-surface-variant">إجمالي الرحلة</span>
+<span class="font-body-lg text-body-lg font-bold text-secondary">45.00 ر.س</span>
+</div>
+</div>
+<!-- Complete Trip Interaction (Slide to finish UI logic) -->
+<button class="relative w-full h-16 bg-primary text-white rounded-full flex items-center justify-center overflow-hidden group hover:bg-on-primary-fixed transition-all active:scale-[0.98] duration-150">
+<span class="font-headline-sm text-headline-sm z-10">إتمام الرحلة</span>
+<div class="absolute right-2 top-2 bottom-2 w-12 bg-white/20 rounded-full flex items-center justify-center group-hover:translate-x-[-4px] transition-transform">
+<span class="material-symbols-outlined">chevron_left</span>
+</div>
+</button>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar (Hidden on this focused screen per shell filter rule) -->
+<!-- The prompt implies a focused task-oriented journey (Active Ride), so we suppress the main global tabs to focus on the map and safety controls -->
+<script>
+        // Micro-interaction for SOS button
+        const sosBtn = document.querySelector('.border-error');
+        if (sosBtn) {
+            sosBtn.addEventListener('click', () => {
+                const confirmed = confirm('هل تريد الاتصال بالطوارئ؟');
+                if (confirmed) {
+                    console.log('Emergency alerted');
+                }
+            });
+        }
+
+        // Simulate real-time movement (minor map shift)
+        let pos = 0;
+        const map = document.querySelector('[data-location]');
+        if (map) {
+            setInterval(() => {
+                pos += 0.01;
+                map.style.backgroundPosition = `calc(50% + ${Math.sin(pos)}px) calc(50% + ${Math.cos(pos)}px)`;
+            }, 50);
+        }
+
+        // Status pulsation handling
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Amana Driver Navigation Active');
+        });
+    </script>
+</body></html>

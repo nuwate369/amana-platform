@@ -11,7 +11,15 @@ module.exports = {
   ],
   presets: [require('nativewind/preset'), createPreset('driver')],
   theme: {
-    extend: {},
+    extend: {
+      // خط IBM Plex Sans Arabic — مطابق لتصميم Stitch.
+      fontFamily: {
+        plex: ['IBMPlexSansArabic_400Regular'],
+        'plex-medium': ['IBMPlexSansArabic_500Medium'],
+        'plex-semibold': ['IBMPlexSansArabic_600SemiBold'],
+        'plex-bold': ['IBMPlexSansArabic_700Bold'],
+      },
+    },
   },
   plugins: [],
 };

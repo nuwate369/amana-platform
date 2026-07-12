@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(8px);
+            border: 1px solid #E0E1DD;
+        }
+        .status-pulse {
+            position: relative;
+        }
+        .status-pulse::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(2.5); opacity: 0; }
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed-variant": "#3a4859",
+                        "inverse-on-surface": "#e9f1ff",
+                        "on-surface-variant": "#44474c",
+                        "surface-bright": "#f8f9ff",
+                        "outline-variant": "#c4c6cc",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-container": "#5a647c",
+                        "surface-container": "#e5efff",
+                        "inverse-surface": "#1b324a",
+                        "surface-container-high": "#dbe9ff",
+                        "surface-container-low": "#eef4ff",
+                        "on-surface": "#031d34",
+                        "secondary-fixed": "#d7e2ff",
+                        "on-primary-fixed": "#0f1c2c",
+                        "on-tertiary-fixed-variant": "#454745",
+                        "tertiary-fixed-dim": "#c6c7c3",
+                        "on-error-container": "#93000a",
+                        "on-background": "#031d34",
+                        "surface-variant": "#d1e4ff",
+                        "surface-tint": "#525f71",
+                        "outline": "#74777d",
+                        "surface-container-highest": "#d1e4ff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "primary-fixed-dim": "#bac8dc",
+                        "on-tertiary-fixed": "#1a1c1a",
+                        "tertiary-fixed": "#e2e3df",
+                        "tertiary-container": "#1a1c1a",
+                        "on-primary-container": "#778598",
+                        "background": "#f8f9ff",
+                        "on-tertiary-container": "#828481",
+                        "surface-dim": "#c5dcfb",
+                        "primary-fixed": "#d6e4f9",
+                        "secondary-container": "#d7e2ff",
+                        "primary-container": "#0f1c2c",
+                        "on-secondary-fixed": "#101b30",
+                        "error": "#ba1a1a",
+                        "tertiary": "#000000",
+                        "on-primary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed-dim": "#bbc6e2",
+                        "primary": "#0D1B2A",
+                        "on-error": "#ffffff",
+                        "secondary": "#545e76",
+                        "on-secondary-fixed-variant": "#3c475d",
+                        "inverse-primary": "#bac8dc",
+                        "surface": "#f8f9ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "xl": "32px",
+                        "margin-mobile": "20px",
+                        "lg": "24px",
+                        "md": "16px",
+                        "sm": "8px",
+                        "unit": "4px",
+                        "xs": "4px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["IBM Plex Sans Arabic"],
+                        "label-md": ["IBM Plex Sans Arabic"],
+                        "caption": ["IBM Plex Sans Arabic"],
+                        "body-md": ["IBM Plex Sans Arabic"],
+                        "headline-sm": ["IBM Plex Sans Arabic"],
+                        "display-lg": ["IBM Plex Sans Arabic"],
+                        "headline-md": ["IBM Plex Sans Arabic"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                        "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "display-lg": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface min-h-screen pb-32">
+<!-- Top App Bar -->
+<header class="bg-surface docked full-width top-0 border-b border-outline-variant flex flex-row-reverse justify-between items-center w-full px-margin-mobile h-16 sticky z-50">
+<div class="flex items-center gap-md">
+<span class="text-headline-md font-bold text-primary">أمانة</span>
+</div>
+<div class="flex items-center gap-md">
+<button class="material-symbols-outlined text-primary p-2 hover:bg-surface-container-high transition-colors rounded-full">arrow_forward</button>
+<h1 class="text-headline-sm font-headline-sm">حالة الوثائق</h1>
+</div>
+</header>
+<main class="px-margin-mobile pt-lg space-y-md">
+<!-- Verification Overview Card (Bento Style) -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-md">
+<div class="md:col-span-2 glass-card rounded-xl p-md flex flex-col justify-between h-48 relative overflow-hidden">
+
+<div class="relative z-10">
+<div class="flex justify-between items-start">
+<div>
+<p class="text-label-md font-label-md text-on-surface-variant">حالة الحساب</p>
+<h2 class="text-headline-md font-headline-md text-primary mt-xs">نشط جزئياً</h2>
+</div>
+<div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-secondary-container">verified_user</span>
+</div>
+</div>
+<p class="text-body-md font-body-md text-on-surface-variant mt-sm max-w-xs">يرجى تحديث الوثائق المنتهية لضمان استمرار استقبال الطلبات.</p>
+</div>
+<div class="relative z-10 flex items-center gap-sm">
+<div class="h-2 flex-1 bg-outline-variant rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[75%]"></div>
+</div>
+<span class="text-label-md font-label-md text-primary">75%</span>
+</div>
+</div>
+<div class="bg-primary-container text-on-primary-container rounded-xl p-md flex flex-col justify-center items-center text-center space-y-sm">
+<span class="material-symbols-outlined text-[48px] text-inverse-primary">warning</span>
+<p class="text-headline-sm font-headline-sm">وثيقة واحدة</p>
+<p class="text-label-md font-label-md opacity-80">تحتاج إلى إجراء فوري</p>
+</div>
+</div>
+<!-- Document List Section -->
+<div class="space-y-sm pt-md">
+<h3 class="text-label-md font-label-md text-on-surface-variant uppercase tracking-wider px-sm">قائمة الوثائق الرسمية</h3>
+<!-- Document Card: Valid -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md flex items-center gap-md hover:bg-surface-container-low transition-colors group">
+<div class="w-12 h-12 bg-surface-container-high rounded-lg flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">badge</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<h4 class="text-body-lg font-bold">الهوية الوطنية</h4>
+<span class="px-sm py-0.5 rounded-full bg-green-100 text-green-800 text-[10px] font-bold border border-green-200">سارية</span>
+</div>
+<p class="text-caption font-caption text-on-surface-variant">تنتهي في: 12 ديسمبر 2025</p>
+</div>
+<button class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">visibility</button>
+</div>
+<!-- Document Card: Expiring Soon -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md flex flex-col gap-md">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 bg-surface-container-high rounded-lg flex items-center justify-center text-primary relative">
+<span class="material-symbols-outlined">directions_car</span>
+<div class="absolute -top-1 -right-1 w-3 h-3 bg-error rounded-full status-pulse after:bg-error"></div>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<h4 class="text-body-lg font-bold">رخصة القيادة</h4>
+<span class="px-sm py-0.5 rounded-full bg-error-container text-on-error-container text-[10px] font-bold border border-error">تنتهي قريباً</span>
+</div>
+<p class="text-caption font-caption text-error font-medium">تنتهي بعد 3 أيام (14 أكتوبر 2023)</p>
+</div>
+</div>
+<div class="flex gap-sm">
+<button class="flex-1 bg-primary text-white py-sm rounded-lg font-label-md flex items-center justify-center gap-sm active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-sm">upload_file</span>
+                        تحديث الوثيقة
+                    </button>
+</div>
+</div>
+<!-- Document Card: Valid -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md flex items-center gap-md hover:bg-surface-container-low transition-colors group">
+<div class="w-12 h-12 bg-surface-container-high rounded-lg flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">description</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<h4 class="text-body-lg font-bold">استمارة السيارة</h4>
+<span class="px-sm py-0.5 rounded-full bg-green-100 text-green-800 text-[10px] font-bold border border-green-200">سارية</span>
+</div>
+<p class="text-caption font-caption text-on-surface-variant">تنتهي في: 05 مايو 2024</p>
+</div>
+<button class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">visibility</button>
+</div>
+<!-- Document Card: Expired -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md flex flex-col gap-md opacity-80">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 bg-surface-container-high rounded-lg flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined">policy</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<h4 class="text-body-lg font-bold">وثيقة التأمين</h4>
+<span class="px-sm py-0.5 rounded-full bg-on-surface-variant text-white text-[10px] font-bold">منتهية</span>
+</div>
+<p class="text-caption font-caption text-error">انتهت في 01 أكتوبر 2023</p>
+</div>
+</div>
+<button class="w-full border-2 border-primary text-primary py-sm rounded-lg font-label-md flex items-center justify-center gap-sm active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-sm">sync</span>
+                    تجديد الوثيقة
+                </button>
+</div>
+</div>
+<!-- Security Badge Card -->
+<div class="bg-surface-container rounded-2xl p-lg mt-xl flex flex-col items-center text-center border border-outline-variant relative overflow-hidden">
+<div class="absolute -right-12 -top-12 w-32 h-32 bg-primary/5 rounded-full"></div>
+<span class="material-symbols-outlined text-[64px] text-primary mb-md" style="font-variation-settings: 'FILL' 1;">security</span>
+<h4 class="text-headline-sm font-headline-sm text-on-surface">بياناتك في أمان</h4>
+<p class="text-body-md font-body-md text-on-surface-variant mt-sm">نحن نستخدم أعلى معايير التشفير لحماية وثائقك ومعلوماتك الشخصية وفقاً للأنظمة المحلية.</p>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex flex-row-reverse justify-around items-center px-4 py-2 pb-safe bg-surface border-t border-outline-variant shadow-md rounded-t-xl">
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-low p-2 transition-colors" href="#">
+<span class="material-symbols-outlined">home_work</span>
+<span class="text-label-md font-label-md">الرئيسية</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-low p-2 transition-colors" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="text-label-md font-label-md">الأرباح</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-low p-2 transition-colors" href="#">
+<span class="material-symbols-outlined">history</span>
+<span class="text-label-md font-label-md">الرحلات</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary font-bold hover:bg-surface-container-low p-2 transition-colors" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="text-label-md font-label-md">الملف</span>
+</a>
+</nav>
+<!-- Success Toast (Hidden by default) -->
+<div class="fixed bottom-24 left-1/2 -translate-x-1/2 bg-inverse-surface text-inverse-on-surface px-lg py-md rounded-full shadow-lg opacity-0 transition-opacity pointer-events-none z-[100] flex items-center gap-sm" id="toast">
+<span class="material-symbols-outlined text-green-400">check_circle</span>
+<span class="text-label-md font-label-md">تم رفع الوثيقة بنجاح</span>
+</div>
+<script>
+        // Simple Interaction logic
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if(btn.innerText.includes('تحديث') || btn.innerText.includes('تجديد')) {
+                    const toast = document.getElementById('toast');
+                    toast.classList.remove('opacity-0');
+                    toast.classList.add('opacity-100');
+                    setTimeout(() => {
+                        toast.classList.remove('opacity-100');
+                        toast.classList.add('opacity-0');
+                    }, 3000);
+                }
+            });
+        });
+    </script>
+</body></html>
