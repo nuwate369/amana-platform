@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Amana - Welcome</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-low": "#f3f4f5",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary-fixed": "#2e131a",
+                    "error-container": "#ffdad6",
+                    "surface-variant": "#e1e3e4",
+                    "on-surface": "#191c1d",
+                    "on-primary": "#ffffff",
+                    "on-secondary": "#ffffff",
+                    "primary-container": "#1a237e",
+                    "secondary": "#5e604d",
+                    "surface-dim": "#d9dadb",
+                    "tertiary-container": "#45272e",
+                    "surface-container-highest": "#e1e3e4",
+                    "secondary-fixed-dim": "#c8c8b0",
+                    "outline": "#767683",
+                    "secondary-container": "#e1e1c9",
+                    "surface-tint": "#4c56af",
+                    "on-tertiary": "#ffffff",
+                    "surface": "#f8f9fa",
+                    "on-error-container": "#93000a",
+                    "on-primary-fixed-variant": "#343d96",
+                    "tertiary": "#2d131a",
+                    "inverse-surface": "#2e3132",
+                    "background": "#f8f9fa",
+                    "inverse-primary": "#bdc2ff",
+                    "surface-container-high": "#e7e8e9",
+                    "secondary-fixed": "#e4e4cc",
+                    "on-background": "#191c1d",
+                    "primary-fixed": "#e0e0ff",
+                    "on-secondary-container": "#636451",
+                    "on-secondary-fixed": "#1b1d0e",
+                    "on-tertiary-fixed-variant": "#5f3d45",
+                    "surface-container": "#edeeef",
+                    "on-error": "#ffffff",
+                    "tertiary-fixed": "#ffd9e0",
+                    "surface-bright": "#f8f9fa",
+                    "on-primary-fixed": "#000767",
+                    "primary": "#000666",
+                    "on-secondary-fixed-variant": "#474836",
+                    "primary-fixed-dim": "#bdc2ff",
+                    "tertiary-fixed-dim": "#e9bbc4",
+                    "on-surface-variant": "#454652",
+                    "error": "#ba1a1a",
+                    "on-tertiary-container": "#b78c95",
+                    "on-primary-container": "#8690ee",
+                    "outline-variant": "#c6c5d4",
+                    "inverse-on-surface": "#f0f1f2"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "16px",
+                    "margin-mobile": "20px",
+                    "md": "16px",
+                    "margin-desktop": "64px",
+                    "lg": "24px",
+                    "sm": "12px",
+                    "xs": "4px",
+                    "base": "8px",
+                    "xl": "40px"
+            },
+            "fontFamily": {
+                    "body-lg": ["IBM Plex Sans Arabic"],
+                    "display-lg": ["IBM Plex Sans Arabic"],
+                    "label-sm": ["IBM Plex Sans Arabic"],
+                    "body-md": ["IBM Plex Sans Arabic"],
+                    "display-lg-mobile": ["IBM Plex Sans Arabic"],
+                    "headline-md": ["IBM Plex Sans Arabic"]
+            },
+            "fontSize": {
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "display-lg-mobile": ["26px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        /* Subtle Geometric Background Pattern */
+        .bg-pattern {
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(#1a237e 0.5px, transparent 0.5px);
+            background-size: 32px 32px;
+            opacity: 0.03;
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,1), rgba(0,0,0,0.4));
+        }
+
+        /* Fade-in animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .animate-fade-up {
+            animation: fadeInUp 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        .animate-scale-in {
+            animation: scaleIn 1.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        /* Loading indicator shimmer */
+        .shimmer {
+            position: relative;
+            overflow: hidden;
+            background-color: #e0e0ff;
+        }
+        .shimmer::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            transform: translateX(-100%);
+            background-image: linear-gradient(
+                90deg,
+                rgba(255, 255, 255, 0) 0,
+                rgba(255, 255, 255, 0.4) 20%,
+                rgba(255, 255, 255, 0.6) 60%,
+                rgba(255, 255, 255, 0)
+            );
+            animation: shimmer 2s infinite;
+        }
+        @keyframes shimmer {
+            100% {
+                transform: translateX(100%);
+            }
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface">
+<!-- Background Layer -->
+<div class="bg-pattern"></div>
+<!-- Decorative Soft Gradients -->
+<div class="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-primary-fixed opacity-10 blur-[120px] rounded-full"></div>
+<div class="absolute bottom-[-5%] left-[-5%] w-[40%] h-[40%] bg-secondary opacity-5 blur-[100px] rounded-full"></div>
+<!-- Main Content Container -->
+<main class="relative z-10 flex flex-col items-center justify-between h-full py-xl px-margin-mobile w-full max-w-md">
+<!-- Spacer for center alignment -->
+<div class="flex-1"></div>
+<!-- Minimalist Centered Logo Section -->
+<div class="flex flex-col items-center gap-md animate-scale-in">
+<div class="relative w-24 h-24 mb-xs flex items-center justify-center">
+<!-- Outer Ring -->
+<div class="absolute inset-0 rounded-full border-2 border-primary opacity-10 scale-125"></div>
+<!-- Inner Shield/Logo Container -->
+<div class="w-20 h-20 bg-primary shadow-lg rounded-2xl flex items-center justify-center transform rotate-3">
+<div class="transform -rotate-3 text-on-primary">
+<span class="material-symbols-outlined text-[48px]" style="font-variation-settings: 'FILL' 1;">
+                            security
+                        </span>
+</div>
+</div>
+</div>
+<div class="text-center">
+<h1 class="font-display-lg-mobile text-display-lg-mobile text-primary tracking-tight">أمانة</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-xs opacity-80">نقل آمن.. بخصوصية تامة</p>
+</div>
+</div>
+<!-- Bottom Content -->
+<div class="flex-1 flex flex-col items-center justify-end w-full animate-fade-up" style="animation-delay: 0.5s;">
+<!-- Loading Indicator -->
+<div class="w-12 h-1.5 bg-surface-container-high rounded-full overflow-hidden mb-xl">
+<div class="h-full w-1/2 bg-primary rounded-full shimmer"></div>
+</div>
+<!-- Tagline Section -->
+<div class="flex flex-col items-center gap-sm">
+<div class="flex items-center gap-xs grayscale opacity-60">
+<img class="h-8 object-contain" data-alt="Official minimalist emblem of Saudi Vision 2030, clean lines, professional corporate style, rendered in a soft monochromatic palette to match a premium luxury UI. The lighting is soft and ambient, emphasizing national pride and technological advancement in a modern Saudi Arabian context." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnXnqsyC9oAMp96aNe3M3MiUZrSKye3fADx-22cb8n3n6lLfS7_1uyS0ZGGrAW3eZHHn8PPAhag7omVscG4qjo1mftsjhGRQ6E4O-fcRrzz1-Uabyqt2gqaw9F_3Lcxr6pVQMErGx7eRA5t43wJUtoE05IaQIzF1kipeLshr9o_tGlqLuZ568gvbad1YewS1uMUErRFy6IpWL3TstvxlsSlt7noAgV452xE46fK_DNkEQsGwlt9MFDkv6EAnKCnomwiBH_jzuZG95O"/>
+</div>
+<div class="text-center">
+<span class="font-label-sm text-label-sm text-outline-variant tracking-widest">
+                        POWERED BY VISION 2030
+                    </span>
+</div>
+</div>
+</div>
+</main>
+<!-- Micro-interaction Script -->
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Subtle parallax effect on mouse move or device tilt
+            const pattern = document.querySelector('.bg-pattern');
+            
+            if (window.DeviceOrientationEvent) {
+                window.addEventListener('deviceorientation', (event) => {
+                    const x = event.beta / 10;
+                    const y = event.gamma / 10;
+                    pattern.style.transform = `translate(${y}px, ${x}px)`;
+                });
+            }
+
+            // Redirect simulation (logic for splash screen behavior)
+            // setTimeout(() => {
+            //     console.log('Transition to Login/Home');
+            // }, 3000);
+        });
+    </script>
+</body></html>

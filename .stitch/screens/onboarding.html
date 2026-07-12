@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-low": "#f3f4f5",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary-fixed": "#2e131a",
+                    "error-container": "#ffdad6",
+                    "surface-variant": "#e1e3e4",
+                    "on-surface": "#191c1d",
+                    "on-primary": "#ffffff",
+                    "on-secondary": "#ffffff",
+                    "primary-container": "#1a237e",
+                    "secondary": "#5e604d",
+                    "surface-dim": "#d9dadb",
+                    "tertiary-container": "#45272e",
+                    "surface-container-highest": "#e1e3e4",
+                    "secondary-fixed-dim": "#c8c8b0",
+                    "outline": "#767683",
+                    "secondary-container": "#e1e1c9",
+                    "surface-tint": "#4c56af",
+                    "on-tertiary": "#ffffff",
+                    "surface": "#f8f9fa",
+                    "on-error-container": "#93000a",
+                    "on-primary-fixed-variant": "#343d96",
+                    "tertiary": "#2d131a",
+                    "inverse-surface": "#2e3132",
+                    "background": "#f8f9fa",
+                    "inverse-primary": "#bdc2ff",
+                    "surface-container-high": "#e7e8e9",
+                    "secondary-fixed": "#e4e4cc",
+                    "on-background": "#191c1d",
+                    "primary-fixed": "#e0e0ff",
+                    "on-secondary-container": "#636451",
+                    "on-secondary-fixed": "#1b1d0e",
+                    "on-tertiary-fixed-variant": "#5f3d45",
+                    "surface-container": "#edeeef",
+                    "on-error": "#ffffff",
+                    "tertiary-fixed": "#ffd9e0",
+                    "surface-bright": "#f8f9fa",
+                    "on-primary-fixed": "#000767",
+                    "primary": "#000666",
+                    "on-secondary-fixed-variant": "#474836",
+                    "primary-fixed-dim": "#bdc2ff",
+                    "tertiary-fixed-dim": "#e9bbc4",
+                    "on-surface-variant": "#454652",
+                    "error": "#ba1a1a",
+                    "on-tertiary-container": "#b78c95",
+                    "on-primary-container": "#8690ee",
+                    "outline-variant": "#c6c5d4",
+                    "inverse-on-surface": "#f0f1f2"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "16px",
+                    "margin-mobile": "20px",
+                    "md": "16px",
+                    "margin-desktop": "64px",
+                    "lg": "24px",
+                    "sm": "12px",
+                    "xs": "4px",
+                    "base": "8px",
+                    "xl": "40px"
+            },
+            "fontFamily": {
+                    "body-lg": ["IBM Plex Sans Arabic"],
+                    "display-lg": ["IBM Plex Sans Arabic"],
+                    "label-sm": ["IBM Plex Sans Arabic"],
+                    "body-md": ["IBM Plex Sans Arabic"],
+                    "display-lg-mobile": ["IBM Plex Sans Arabic"],
+                    "headline-md": ["IBM Plex Sans Arabic"]
+            },
+            "fontSize": {
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "display-lg-mobile": ["26px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            background-color: #f8f9fa;
+            overflow: hidden;
+        }
+        .carousel-container {
+            display: flex;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 300%;
+        }
+        .carousel-slide {
+            width: 33.333%;
+            flex-shrink: 0;
+        }
+        .dot {
+            transition: all 0.3s ease;
+        }
+        .dot.active {
+            width: 24px;
+            background-color: #000666;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom scroll behavior suppression */
+        ::-webkit-scrollbar { display: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="flex flex-col h-screen max-w-md mx-auto relative bg-surface">
+<!-- Top Bar: Skip -->
+<div class="px-margin-mobile pt-10 flex justify-between items-center z-20">
+<div class="text-primary font-display-lg-mobile text-display-lg-mobile font-bold tracking-tight">أمانة</div>
+<button class="text-on-surface-variant font-label-sm text-label-sm hover:text-primary transition-colors py-2 px-4" onclick="goToLastSlide()">تخطي</button>
+</div>
+<!-- Main Carousel Content -->
+<div class="flex-1 overflow-hidden mt-8">
+<div class="carousel-container h-full" id="carousel">
+<!-- Step 1: Safety -->
+<div class="carousel-slide flex flex-col items-center px-margin-mobile">
+<div class="w-full aspect-square relative mb-12 flex items-center justify-center">
+<div class="absolute inset-0 bg-primary/5 rounded-full scale-90 blur-3xl"></div>
+<div class="relative w-full h-full rounded-3xl overflow-hidden shadow-xl border border-white/20">
+<img class="w-full h-full object-cover" data-alt="A warm, professional digital illustration of a safe premium car interior in Saudi Arabia. A female Saudi driver is visible from a respectful side profile, smiling confidently. The lighting is golden hour, soft and warm, evoking trust and security. The color palette features deep navy blues, soft beiges, and gold accents, matching a high-end corporate modern aesthetic for a women-only transport service." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBOsGbzxe3W3OzQh8-MAFFHFe34UcSzlX9YW3Xs03VRvHTM4x-jAnV4IvgcRxBj-AR92pHeHmqOILShI76gaXxF1AbzZDqtPRDkxAtC_GYYKSFPYOrSdUeMh2P_FViNo11rJAK3N9ZdzHEKjILDQPljh-c8cfkqf9AW5g79gRcUYwtZI-wtzhqUl-sZIrMUuztJK1eDnERawJeMwgmN-B5WcQFnzxHz8g7D8fSQlWG2a_i1AX7Ffr8s6gh24zKtREK_7RRmh7eO9YZN"/>
+</div>
+<!-- Decorative Badge -->
+<div class="absolute -bottom-4 right-4 bg-primary-container text-on-primary-container px-4 py-2 rounded-full shadow-lg flex items-center gap-2 border border-primary/20">
+<span class="material-symbols-outlined text-sm">verified_user</span>
+<span class="text-label-sm font-label-sm">أمانك أولويتنا</span>
+</div>
+</div>
+<div class="text-center space-y-4">
+<h1 class="text-primary font-display-lg-mobile text-display-lg-mobile">أمانك أولويتنا</h1>
+<p class="text-on-surface-variant font-body-lg text-body-lg px-4">استمتعي برحلات آمنة وموثوقة مع نخبة من السائقات السعوديات المؤهلات.</p>
+</div>
+</div>
+<!-- Step 2: Privacy -->
+<div class="carousel-slide flex flex-col items-center px-margin-mobile">
+<div class="w-full aspect-square relative mb-12 flex items-center justify-center">
+<div class="absolute inset-0 bg-secondary/10 rounded-full scale-90 blur-3xl"></div>
+<div class="relative w-full h-full rounded-3xl overflow-hidden shadow-xl border border-white/20">
+<img class="w-full h-full object-cover" data-alt="An elegant illustration showing a woman sitting comfortably in the backseat of a luxury car, looking out of the window with a peaceful expression. The scene emphasizes privacy with tinted windows effect and a serene atmosphere. Soft light reflects off polished surfaces, using a palette of calm neutrals, cream, and deep blue, creating a sense of total tranquility and empowerment in a private space." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUNGit1LamITwyVrpq_6g90IskxNXWXPEcAUOu-VXx9Dme-PwV9BiqD56fpmpPd-IK0aFc1tsxneJthuwOnhXgN8oxRy5FRR4iZ5bpy7Joq6vZc4Y4CKt3RAz8PvhG5bK9w8eAhbQE0QXuistB9FBWQ2Qx7Bt_hhT1udiL8IetdADBmum1OX340mIpfwflIYpKnm3bh0gyaDOrMVlGifEXmcD4jAJedlsJ0TRvtfm-nLLCt9xZ68pT0rgfK-ruptz4qw24gYEzJcHc"/>
+</div>
+<div class="absolute -bottom-4 left-4 bg-surface-container-highest text-primary px-4 py-2 rounded-full shadow-lg flex items-center gap-2 border border-outline-variant">
+<span class="material-symbols-outlined text-sm">lock_person</span>
+<span class="text-label-sm font-label-sm">خصوصية تامة</span>
+</div>
+</div>
+<div class="text-center space-y-4">
+<h1 class="text-primary font-display-lg-mobile text-display-lg-mobile">خصوصية تامة</h1>
+<p class="text-on-surface-variant font-body-lg text-body-lg px-4">تنقلي بكل راحة وطمأنينة في بيئة مخصصة تحترم خصوصيتك في كل وقت.</p>
+</div>
+</div>
+<!-- Step 3: Smart Planning -->
+<div class="carousel-slide flex flex-col items-center px-margin-mobile">
+<div class="w-full aspect-square relative mb-12 flex items-center justify-center">
+<div class="absolute inset-0 bg-primary-container/10 rounded-full scale-90 blur-3xl"></div>
+<div class="relative w-full h-full rounded-3xl overflow-hidden shadow-xl border border-white/20">
+<img class="w-full h-full object-cover" data-alt="A sophisticated futuristic UI interface overlaying a stylized map of a Saudi city like Riyadh. Glowing data paths and smart icons represent AI-driven route optimization. The style is clean and high-tech but approachable, using a palette of deep navy, electric blue, and soft white. It visualizes organization and efficiency through a corporate modern lens with elegant line art." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-65Kuv7Qx3FdqtVPQfkoy6Rn6pRWEsC4KyR_z1bYopG4Vf1WIQE8TZtbKxlSLreuthAEw2UI-EtnRLwuYR6zDRyd8TfiKtfulUmt_RsbTc4OJ3EnSRRMu0z9_R02oydW3kMqcJnsmoqUlq76pqTA1NvBsqtlwRY3HFufSOKZ8ySbP729PE-sEw2qFkBOtzCF5CVlBSg5R8kbczm656KcHtrldOqR8f1yT_VTQ3U5_JiwPEFRDVKrxnJpv4pQ_sBFxM2fT_D-sB0CJ"/>
+</div>
+<div class="absolute -bottom-4 right-1/2 translate-x-1/2 bg-primary text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">auto_awesome</span>
+<span class="text-label-sm font-label-sm">المخطط الذكي</span>
+</div>
+</div>
+<div class="text-center space-y-4">
+<h1 class="text-primary font-display-lg-mobile text-display-lg-mobile">المخطط الذكي</h1>
+<p class="text-on-surface-variant font-body-lg text-body-lg px-4">رحلات منظمة ومدارة بذكاء اصطناعي لضمان وصولك في الوقت المحدد دائماً.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Controls -->
+<div class="px-margin-mobile pb-16 pt-8 space-y-10 z-20">
+<!-- Pagination Dots -->
+<div class="flex justify-center gap-2">
+<div class="dot active h-2 rounded-full bg-primary/20" id="dot-0"></div>
+<div class="dot h-2 w-2 rounded-full bg-primary/20" id="dot-1"></div>
+<div class="dot h-2 w-2 rounded-full bg-primary/20" id="dot-2"></div>
+</div>
+<!-- Action Button -->
+<div class="flex gap-4">
+<button class="flex-1 bg-primary text-white h-14 rounded-xl font-headline-md text-headline-md-mobile flex items-center justify-center shadow-lg active:scale-95 transition-transform" id="mainBtn" onclick="nextSlide()">
+<span>التالي</span>
+<span class="material-symbols-outlined mr-2">arrow_back</span>
+</button>
+</div>
+</div>
+<!-- Atmosphere Background Decoration -->
+<div class="absolute top-0 right-0 w-full h-full pointer-events-none -z-10 opacity-30">
+
+</div>
+<script>
+        let currentSlide = 0;
+        const totalSlides = 3;
+        const carousel = document.getElementById('carousel');
+        const mainBtn = document.getElementById('mainBtn');
+        const dots = [document.getElementById('dot-0'), document.getElementById('dot-1'), document.getElementById('dot-2')];
+
+        function updateCarousel() {
+            carousel.style.transform = `translateX(${currentSlide * 33.333}%)`;
+            
+            // Update dots
+            dots.forEach((dot, index) => {
+                if (index === currentSlide) {
+                    dot.classList.add('active', 'bg-primary');
+                    dot.classList.remove('bg-primary/20', 'w-2');
+                } else {
+                    dot.classList.remove('active', 'bg-primary');
+                    dot.classList.add('bg-primary/20', 'w-2');
+                }
+            });
+
+            // Update Button Text
+            if (currentSlide === totalSlides - 1) {
+                mainBtn.innerHTML = `<span>ابدأ الآن</span><span class="material-symbols-outlined mr-2">login</span>`;
+                mainBtn.classList.add('bg-primary-container');
+            } else {
+                mainBtn.innerHTML = `<span>التالي</span><span class="material-symbols-outlined mr-2">arrow_back</span>`;
+                mainBtn.classList.remove('bg-primary-container');
+            }
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides - 1) {
+                currentSlide++;
+                updateCarousel();
+            } else {
+                // Final Action Logic
+                mainBtn.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    alert('أهلاً بك في أمانة!');
+                }, 150);
+            }
+        }
+
+        function goToLastSlide() {
+            currentSlide = totalSlides - 1;
+            updateCarousel();
+        }
+
+        // Handle simple swipe gestures
+        let touchstartX = 0;
+        let touchendX = 0;
+
+        document.addEventListener('touchstart', e => {
+            touchstartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', e => {
+            touchendX = e.changedTouches[0].screenX;
+            handleGesture();
+        });
+
+        function handleGesture() {
+            if (touchendX < touchstartX - 50) { // Swipe Left (in RTL, goes to next)
+                if (currentSlide < totalSlides - 1) {
+                    currentSlide++;
+                    updateCarousel();
+                }
+            }
+            if (touchendX > touchstartX + 50) { // Swipe Right (in RTL, goes back)
+                if (currentSlide > 0) {
+                    currentSlide--;
+                    updateCarousel();
+                }
+            }
+        }
+    </script>
+</body></html>

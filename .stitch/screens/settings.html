@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed": "#ffd9e0",
+                    "surface-bright": "#f8f9fa",
+                    "primary": "#000666",
+                    "on-primary-fixed": "#000767",
+                    "surface-dim": "#d9dadb",
+                    "surface-container-low": "#f3f4f5",
+                    "on-background": "#191c1d",
+                    "secondary": "#5e604d",
+                    "primary-container": "#1a237e",
+                    "surface-tint": "#4c56af",
+                    "secondary-fixed-dim": "#c8c8b0",
+                    "surface-container-highest": "#e1e3e4",
+                    "surface-container-high": "#e7e8e9",
+                    "on-primary": "#ffffff",
+                    "outline-variant": "#c6c5d4",
+                    "surface-variant": "#e1e3e4",
+                    "on-tertiary-fixed-variant": "#5f3d45",
+                    "surface-container-lowest": "#ffffff",
+                    "tertiary": "#2d131a",
+                    "on-secondary-container": "#636451",
+                    "error": "#ba1a1a",
+                    "on-tertiary-fixed": "#2e131a",
+                    "inverse-surface": "#2e3132",
+                    "on-tertiary-container": "#b78c95",
+                    "on-secondary": "#ffffff",
+                    "primary-fixed-dim": "#bdc2ff",
+                    "error-container": "#ffdad6",
+                    "on-secondary-fixed-variant": "#474836",
+                    "secondary-fixed": "#e4e4cc",
+                    "on-error-container": "#93000a",
+                    "surface": "#f8f9fa",
+                    "primary-fixed": "#e0e0ff",
+                    "on-primary-container": "#8690ee",
+                    "secondary-container": "#e1e1c9",
+                    "inverse-on-surface": "#f0f1f2",
+                    "outline": "#767683",
+                    "on-surface": "#191c1d",
+                    "inverse-primary": "#bdc2ff",
+                    "tertiary-container": "#45272e",
+                    "tertiary-fixed-dim": "#e9bbc4",
+                    "on-surface-variant": "#454652",
+                    "on-secondary-fixed": "#1b1d0e",
+                    "on-primary-fixed-variant": "#343d96",
+                    "surface-container": "#edeeef",
+                    "on-tertiary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "background": "#f8f9fa"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "md": "16px",
+                    "margin-desktop": "64px",
+                    "xs": "4px",
+                    "lg": "24px",
+                    "gutter": "16px",
+                    "sm": "12px",
+                    "margin-mobile": "20px",
+                    "xl": "40px",
+                    "base": "8px"
+            },
+            "fontFamily": {
+                    "body-md": ["IBM Plex Sans Arabic"],
+                    "display-lg-mobile": ["IBM Plex Sans Arabic"],
+                    "label-sm": ["IBM Plex Sans Arabic"],
+                    "body-lg": ["IBM Plex Sans Arabic"],
+                    "headline-md": ["IBM Plex Sans Arabic"],
+                    "display-lg": ["IBM Plex Sans Arabic"]
+            },
+            "fontSize": {
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "display-lg-mobile": ["26px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #1a237e;
+        }
+        .toggle-checkbox:checked + .toggle-label .toggle-dot {
+            transform: translateX(-100%);
+            background-color: white;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface min-h-screen pb-24">
+<!-- Top Navigation Anchor (As sub-page, no global nav but maintaining identity) -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile h-14 bg-surface shadow-sm">
+<button class="p-2 hover:bg-surface-container-high rounded-full transition-colors duration-200">
+<span class="material-symbols-outlined text-primary">arrow_forward</span>
+</button>
+<h1 class="font-headline-md text-headline-md-mobile text-primary">الإعدادات</h1>
+<div class="w-10"></div> <!-- Spacer for balance -->
+</header>
+<main class="mt-20 px-margin-mobile max-w-lg mx-auto">
+<!-- Section: Account Identity -->
+<section class="mb-lg bg-surface-container-lowest rounded-xl p-md border border-outline-variant flex items-center gap-md">
+<div class="w-16 h-16 rounded-full overflow-hidden border-2 border-primary-container">
+<img class="w-full h-full object-cover" data-alt="A professional and elegant portrait of a Saudi woman with a warm, confident expression. She is wearing a modern, sophisticated abaya in deep navy blue. The background is a soft-focus minimalist interior with warm ambient lighting and neutral tones, evoking a sense of trust and premium quality. The overall aesthetic is refined and corporate modern." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBzfJ5L4FPXbIgtcGB2iUTucm6eQt305H9uJ8PiqgSEmkfsguQpavnYXaI7ZJvQaYx7Zvg3iY3QZpZVDJZwXv6j9tt-ljQLuhvHzPYhh2PTsGPxfkmE1mVz-cIdmgWRNB0zjxyHWDkr4tV8gKCl2DFljWaUE1LzIxVNj4JqP7vZF3XcrInuNLeezkm8KRflH6X0YvXD0KfCIX-LyJYuvBWAApd5AqhBmBJGlWfzHvCPcaIwYQ4dvO7bGx1YhKcqJujUp_IWH7XfUpTT"/>
+</div>
+<div>
+<h2 class="font-headline-md text-headline-md-mobile text-primary">سارة أحمد</h2>
+<p class="font-body-md text-on-surface-variant">sarah.a@amana.sa</p>
+</div>
+</section>
+<!-- Section: Notifications -->
+<section class="mb-lg">
+<h3 class="font-label-sm text-label-sm text-outline mb-md px-2">الإشعارات والتواصل</h3>
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden">
+<!-- Push Notifications -->
+<div class="flex items-center justify-between p-md hover:bg-surface-container-low transition-colors border-b border-outline-variant/30">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-primary-container">notifications_active</span>
+<span class="font-body-lg text-body-lg">تنبيهات التطبيق</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only toggle-checkbox" type="checkbox"/>
+<div class="toggle-label w-11 h-6 bg-outline-variant rounded-full transition-colors duration-300">
+<div class="toggle-dot absolute top-[2px] right-[2px] bg-white w-5 h-5 rounded-full transition-transform duration-300"></div>
+</div>
+</label>
+</div>
+<!-- Email Updates -->
+<div class="flex items-center justify-between p-md hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-primary-container">mail</span>
+<span class="font-body-lg text-body-lg">تحديثات البريد الإلكتروني</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only toggle-checkbox" type="checkbox"/>
+<div class="toggle-label w-11 h-6 bg-outline-variant rounded-full transition-colors duration-300">
+<div class="toggle-dot absolute top-[2px] right-[2px] bg-white w-5 h-5 rounded-full transition-transform duration-300"></div>
+</div>
+</label>
+</div>
+</div>
+</section>
+<!-- Section: Appearance & Locale -->
+<section class="mb-lg">
+<h3 class="font-label-sm text-label-sm text-outline mb-md px-2">المظهر واللغة</h3>
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden">
+<!-- Dark Mode -->
+<div class="flex items-center justify-between p-md hover:bg-surface-container-low transition-colors border-b border-outline-variant/30">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-primary-container">dark_mode</span>
+<span class="font-body-lg text-body-lg">الوضع الليلي</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only toggle-checkbox" id="darkModeToggle" type="checkbox"/>
+<div class="toggle-label w-11 h-6 bg-outline-variant rounded-full transition-colors duration-300">
+<div class="toggle-dot absolute top-[2px] right-[2px] bg-white w-5 h-5 rounded-full transition-transform duration-300"></div>
+</div>
+</label>
+</div>
+<!-- Language -->
+<button class="w-full flex items-center justify-between p-md hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-primary-container">language</span>
+<span class="font-body-lg text-body-lg">اختيار اللغة</span>
+</div>
+<div class="flex items-center gap-xs text-on-surface-variant">
+<span class="font-body-md">العربية</span>
+<span class="material-symbols-outlined text-outline-variant">chevron_left</span>
+</div>
+</button>
+</div>
+</section>
+<!-- Section: Security & Privacy -->
+<section class="mb-lg">
+<h3 class="font-label-sm text-label-sm text-outline mb-md px-2">الأمان والخصوصية</h3>
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden">
+<button class="w-full flex items-center justify-between p-md hover:bg-surface-container-low transition-colors border-b border-outline-variant/30">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-primary-container">lock</span>
+<span class="font-body-lg text-body-lg">تغيير كلمة المرور</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant">chevron_left</span>
+</button>
+<button class="w-full flex items-center justify-between p-md hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-primary-container">shield</span>
+<span class="font-body-lg text-body-lg">سياسة الخصوصية</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant">chevron_left</span>
+</button>
+</div>
+</section>
+<!-- Section: Critical Actions -->
+<section class="mb-xl pt-lg">
+<div class="space-y-md">
+<button class="w-full flex items-center justify-center gap-md p-md bg-surface-container-highest text-primary font-body-lg rounded-xl hover:opacity-90 transition-opacity active:scale-[0.98]">
+<span class="material-symbols-outlined">logout</span>
+<span>تسجيل الخروج</span>
+</button>
+<button class="w-full flex items-center justify-center gap-md p-md text-error font-body-lg rounded-xl border border-error/20 hover:bg-error-container/20 transition-colors active:scale-[0.98]">
+<span class="material-symbols-outlined">delete_forever</span>
+<span>حذف الحساب</span>
+</button>
+</div>
+</section>
+</main>
+<!-- Support Link Footer -->
+<footer class="px-margin-mobile text-center pb-lg">
+<p class="font-body-md text-on-surface-variant">نسخة التطبيق 2.4.0 (Amana)</p>
+<a class="text-primary-container font-label-sm text-label-sm hover:underline mt-base inline-block" href="#">تواصل مع الدعم الفني</a>
+</footer>
+<!-- Bottom Navigation Bar - From Shared Components Hierarchy (Active: Profile/Settings) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-3 pb-safe bg-surface-container-lowest shadow-[0_-4px_12px_rgba(26,35,126,0.08)] rounded-t-xl">
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:opacity-80 transition-transform duration-150 scale-95 active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-sm text-label-sm mt-1">الرئيسية</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:opacity-80 transition-transform duration-150 scale-95 active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="directions_car">directions_car</span>
+<span class="font-label-sm text-label-sm mt-1">رحلاتي</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:opacity-80 transition-transform duration-150 scale-95 active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="auto_awesome">auto_awesome</span>
+<span class="font-label-sm text-label-sm mt-1">المخطط الذكي</span>
+</a>
+<!-- Active Tab: Profile/Settings (Last item mapping) -->
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-5 py-1 transition-transform duration-150 scale-95 active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="person" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="font-label-sm text-label-sm mt-1">الملف الشخصي</span>
+</a>
+</nav>
+<script>
+        // Simple Dark Mode Toggle Logic for UI visualization
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        darkModeToggle.addEventListener('change', function() {
+            if (this.checked) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+
+        // Toggle state simulation for interaction
+        document.querySelectorAll('.toggle-checkbox').forEach(toggle => {
+            toggle.addEventListener('change', function() {
+                const parent = this.closest('.p-md');
+                if (this.checked) {
+                    parent.classList.add('bg-primary-container/5');
+                } else {
+                    parent.classList.remove('bg-primary-container/5');
+                }
+            });
+        });
+    </script>
+</body></html>

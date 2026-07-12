@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Amana - Passenger Home</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            overflow: hidden; /* Prevent scrolling on main home with map */
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .map-gradient-overlay {
+            background: linear-gradient(to bottom, rgba(248, 249, 250, 0.9) 0%, rgba(248, 249, 250, 0) 15%, rgba(248, 249, 250, 0) 85%, rgba(248, 249, 250, 1) 100%);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .shimmer {
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            background-size: 200% 100%;
+            animation: shimmer 2s infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+    </style>
+<!-- Shared Tailwind Config -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-low": "#f3f4f5",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary-fixed": "#2e131a",
+                    "error-container": "#ffdad6",
+                    "surface-variant": "#e1e3e4",
+                    "on-surface": "#191c1d",
+                    "on-primary": "#ffffff",
+                    "on-secondary": "#ffffff",
+                    "primary-container": "#1a237e",
+                    "secondary": "#5e604d",
+                    "surface-dim": "#d9dadb",
+                    "tertiary-container": "#45272e",
+                    "surface-container-highest": "#e1e3e4",
+                    "secondary-fixed-dim": "#c8c8b0",
+                    "outline": "#767683",
+                    "secondary-container": "#e1e1c9",
+                    "surface-tint": "#4c56af",
+                    "on-tertiary": "#ffffff",
+                    "surface": "#f8f9fa",
+                    "on-error-container": "#93000a",
+                    "on-primary-fixed-variant": "#343d96",
+                    "tertiary": "#2d131a",
+                    "inverse-surface": "#2e3132",
+                    "background": "#f8f9fa",
+                    "inverse-primary": "#bdc2ff",
+                    "surface-container-high": "#e7e8e9",
+                    "secondary-fixed": "#e4e4cc",
+                    "on-background": "#191c1d",
+                    "primary-fixed": "#e0e0ff",
+                    "on-secondary-container": "#636451",
+                    "on-secondary-fixed": "#1b1d0e",
+                    "on-tertiary-fixed-variant": "#5f3d45",
+                    "surface-container": "#edeeef",
+                    "on-error": "#ffffff",
+                    "tertiary-fixed": "#ffd9e0",
+                    "surface-bright": "#f8f9fa",
+                    "on-primary-fixed": "#000767",
+                    "primary": "#000666",
+                    "on-secondary-fixed-variant": "#474836",
+                    "primary-fixed-dim": "#bdc2ff",
+                    "tertiary-fixed-dim": "#e9bbc4",
+                    "on-surface-variant": "#454652",
+                    "error": "#ba1a1a",
+                    "on-tertiary-container": "#b78c95",
+                    "on-primary-container": "#8690ee",
+                    "outline-variant": "#c6c5d4",
+                    "inverse-on-surface": "#f0f1f2"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "16px",
+                    "margin-mobile": "20px",
+                    "md": "16px",
+                    "margin-desktop": "64px",
+                    "lg": "24px",
+                    "sm": "12px",
+                    "xs": "4px",
+                    "base": "8px",
+                    "xl": "40px"
+            },
+            "fontFamily": {
+                    "body-lg": ["IBM Plex Sans Arabic"],
+                    "display-lg": ["IBM Plex Sans Arabic"],
+                    "label-sm": ["IBM Plex Sans Arabic"],
+                    "body-md": ["IBM Plex Sans Arabic"],
+                    "display-lg-mobile": ["IBM Plex Sans Arabic"],
+                    "headline-md": ["IBM Plex Sans Arabic"]
+            },
+            "fontSize": {
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "display-lg-mobile": ["26px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface">
+<!-- TOP APP BAR -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile h-14 bg-surface shadow-sm">
+<button class="flex items-center justify-center p-2 rounded-full hover:bg-surface-container-high transition-colors duration-200">
+<span class="material-symbols-outlined text-primary">menu</span>
+</button>
+<h1 class="font-display-lg-mobile text-display-lg-mobile text-primary font-extrabold tracking-tight">Amana</h1>
+<div class="flex items-center gap-3">
+<button class="relative p-2 rounded-full hover:bg-surface-container-high transition-colors duration-200">
+<span class="material-symbols-outlined text-primary">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<div class="w-8 h-8 rounded-full border border-outline-variant bg-cover bg-center overflow-hidden" data-alt="A professional and elegant headshot of a Saudi woman wearing a modern, sophisticated abaya, looking friendly and confident. The photography is high-end, with soft studio lighting and a clean, neutral background that complements a premium corporate app interface. The image emphasizes trust, empowerment, and refined aesthetic quality." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB0TZNDWpkRkZiRvro-CT050ZwZ7nhAEDIgr-pjpdSx6Cy1uVs-urhlfonnLn6vScxAF4AALjQfVLA3cq6zsRi-Lq9OJf8XT-GL1PoK1rXBjIPUoBGBTCmmwzJyoamgC23hXDs7mtcXHKtaNBZ--f6LislcWind6SrRrVILC5wuIC34L8w-mUIp3tbdGRYgsEB2LkfP5HF8fyp48m8ppo498wb1kX7E_peKrVWB6ssCAEkjRMXmpHSXgwImUtCFFs3iR7fRoLCRzqIn')">
+</div>
+</div>
+</header>
+<!-- FULL SCREEN MAP CONTENT -->
+<main class="relative h-screen w-full pt-14 pb-20">
+<!-- Map Background -->
+<div class="absolute inset-0 z-0">
+<img class="w-full h-full object-cover grayscale-[20%] opacity-90" data-alt="A detailed, high-resolution satellite and street map view of Riyadh, Saudi Arabia, featuring iconic landmarks like the Kingdom Centre. The map style is clean and minimalist, using a light color palette of soft greys, beiges, and subtle blues to match a premium UI design. The visual is crisp, modern, and conveys a sense of high-technology urban navigation." data-location="Riyadh" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAL4f1lD5HTRNiXaUhbU3ZB3xaY-R6MQmdowcBIiCdGeMzMAMk1aLbhEoa5a4Rx1uN6Z4dk3-1pt8Oz7fh0SbfVzBfhd9ktRCdU7Hgl3g8KEAdUAS_aHIGyedtYOdP005evdYRpM1i9VKxtCAknwRChfGyYtztJzHxfPST45m2TBdIqR75fTdTr2XHPd3nka7xxbzaaLEF3r6y6vK327SXQll-dj10fpMF6KUXxFo-nMBAzQSBcZB6AMl8KQF4_06YnUatmwlZD7LyT"/>
+<div class="absolute inset-0 map-gradient-overlay pointer-events-none"></div>
+<!-- Animated Cars/Markers (Micro-interaction mockup) -->
+<div class="absolute top-[40%] right-[30%] animate-pulse">
+<span class="material-symbols-outlined text-primary-container drop-shadow-md" style="font-variation-settings: 'FILL' 1;">directions_car</span>
+</div>
+<div class="absolute top-[55%] left-[25%] opacity-70">
+<span class="material-symbols-outlined text-primary-fixed-dim drop-shadow-sm" style="font-variation-settings: 'FILL' 1;">directions_car</span>
+</div>
+</div>
+<!-- SOS Floating Button -->
+<div class="absolute left-margin-mobile top-24 z-30">
+<button class="flex items-center justify-center w-12 h-12 rounded-full bg-error text-on-error shadow-lg active:scale-95 transition-transform duration-150">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">emergency_home</span>
+</button>
+<p class="text-center text-[10px] font-bold text-error mt-1">SOS</p>
+</div>
+<!-- UI Overlay Layer -->
+<div class="absolute bottom-24 left-0 w-full px-margin-mobile z-20 space-y-4">
+<!-- SEARCH BAR -->
+<div class="glass-card rounded-xl p-3 shadow-lg flex items-center gap-3 border border-outline-variant/30">
+<span class="material-symbols-outlined text-primary">search</span>
+<input class="bg-transparent border-none focus:ring-0 w-full font-headline-md text-headline-md-mobile text-on-surface placeholder:text-on-surface-variant/60 outline-none" placeholder="إلى أين؟" type="text"/>
+<div class="h-6 w-[1px] bg-outline-variant mx-1"></div>
+<button class="flex items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-[20px]">schedule</span>
+<span class="text-label-sm font-label-sm">الآن</span>
+</button>
+</div>
+<!-- BENTO GRID CONTENT / SMART PLANNER CARD -->
+<div class="grid grid-cols-1 gap-4">
+<!-- Smart Planner Card -->
+<div class="relative overflow-hidden glass-card rounded-xl p-5 shadow-lg border border-primary-container/10 group cursor-pointer active:scale-[0.98] transition-all">
+<!-- Subtle Animated Glow -->
+<div class="absolute -top-12 -right-12 w-32 h-32 bg-primary-container/5 rounded-full blur-3xl group-hover:bg-primary-container/10 transition-colors"></div>
+<div class="flex items-start justify-between">
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-primary-container text-lg" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<span class="text-label-sm font-label-sm text-primary uppercase tracking-widest">المخطط الذكي</span>
+</div>
+<h3 class="font-headline-md text-headline-md-mobile text-on-surface mb-1">نقترح رحلة هادئة إلى مكتبك؟</h3>
+<p class="text-body-md font-body-md text-on-surface-variant">يستغرق الوصول ١٨ دقيقة في هذا الوقت.</p>
+</div>
+<div class="bg-primary-container/10 p-3 rounded-full">
+<span class="material-symbols-outlined text-primary-container">work</span>
+</div>
+</div>
+<div class="mt-4 flex items-center justify-end">
+<button class="bg-primary text-on-primary px-6 py-2 rounded-full font-label-sm text-label-sm shadow-md flex items-center gap-2 hover:opacity-90 transition-opacity">
+                            احجز الآن
+                            <span class="material-symbols-outlined text-sm">arrow_back</span>
+</button>
+</div>
+</div>
+<!-- Quick Destinations Small Row -->
+<div class="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+<div class="flex-shrink-0 glass-card p-3 rounded-xl border border-outline-variant/30 flex items-center gap-3 min-w-[140px]">
+<div class="bg-surface-container-high p-2 rounded-lg">
+<span class="material-symbols-outlined text-on-surface-variant">home</span>
+</div>
+<div>
+<p class="text-label-sm font-label-sm text-on-surface">المنزل</p>
+<p class="text-[10px] text-on-surface-variant">١٢ دقيقة</p>
+</div>
+</div>
+<div class="flex-shrink-0 glass-card p-3 rounded-xl border border-outline-variant/30 flex items-center gap-3 min-w-[140px]">
+<div class="bg-surface-container-high p-2 rounded-lg">
+<span class="material-symbols-outlined text-on-surface-variant">favorite</span>
+</div>
+<div>
+<p class="text-label-sm font-label-sm text-on-surface">النادي الرياضي</p>
+<p class="text-[10px] text-on-surface-variant">٢٥ دقيقة</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BOTTOM NAVIGATION BAR -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-3 pb-safe bg-surface-container-lowest shadow-[0_-4px_12px_rgba(26,35,126,0.08)] rounded-t-xl">
+<!-- Item 1: Home (Active) -->
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-5 py-1 scale-95 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="font-label-sm text-label-sm mt-0.5">الرئيسية</span>
+</a>
+<!-- Item 2: My Trips -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:opacity-80 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">directions_car</span>
+<span class="font-label-sm text-label-sm mt-0.5">رحلاتي</span>
+</a>
+<!-- Item 3: Smart Planner -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:opacity-80 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">auto_awesome</span>
+<span class="font-label-sm text-label-sm mt-0.5">المخطط الذكي</span>
+</a>
+<!-- Item 4: Profile -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:opacity-80 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm mt-0.5">الملف الشخصي</span>
+</a>
+</nav>
+<!-- Atmospheric Micro-interaction Script -->
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Simulate subtle map panning or interaction feel
+            const mapImage = document.querySelector('main img');
+            window.addEventListener('deviceorientation', (event) => {
+                const x = event.beta; 
+                const y = event.gamma;
+                if (x && y) {
+                    mapImage.style.transform = `scale(1.1) translate(${y/10}px, ${x/10}px)`;
+                }
+            });
+
+            // Touch interaction for cards
+            const cards = document.querySelectorAll('.glass-card');
+            cards.forEach(card => {
+                card.addEventListener('touchstart', () => {
+                    card.style.transform = 'scale(0.98)';
+                });
+                card.addEventListener('touchend', () => {
+                    card.style.transform = 'scale(1)';
+                });
+            });
+        });
+    </script>
+</body></html>

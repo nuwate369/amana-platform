@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>Amana - جاري البحث</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        @keyframes radar-pulse {
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(3); opacity: 0; }
+        }
+        .radar-ring {
+            animation: radar-pulse 3s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        .radar-ring:nth-child(2) { animation-delay: 1s; }
+        .radar-ring:nth-child(3) { animation-delay: 2s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .float-animation {
+            animation: float 4s ease-in-out infinite;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        body {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            overflow: hidden;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "tertiary-fixed": "#ffd9e0",
+                      "surface-bright": "#f8f9fa",
+                      "primary": "#000666",
+                      "on-primary-fixed": "#000767",
+                      "surface-dim": "#d9dadb",
+                      "surface-container-low": "#f3f4f5",
+                      "on-background": "#191c1d",
+                      "secondary": "#5e604d",
+                      "primary-container": "#1a237e",
+                      "surface-tint": "#4c56af",
+                      "secondary-fixed-dim": "#c8c8b0",
+                      "surface-container-highest": "#e1e3e4",
+                      "surface-container-high": "#e7e8e9",
+                      "on-primary": "#ffffff",
+                      "outline-variant": "#c6c5d4",
+                      "surface-variant": "#e1e3e4",
+                      "on-tertiary-fixed-variant": "#5f3d45",
+                      "surface-container-lowest": "#ffffff",
+                      "tertiary": "#2d131a",
+                      "on-secondary-container": "#636451",
+                      "error": "#ba1a1a",
+                      "on-tertiary-fixed": "#2e131a",
+                      "inverse-surface": "#2e3132",
+                      "on-tertiary-container": "#b78c95",
+                      "on-secondary": "#ffffff",
+                      "primary-fixed-dim": "#bdc2ff",
+                      "error-container": "#ffdad6",
+                      "on-secondary-fixed-variant": "#474836",
+                      "secondary-fixed": "#e4e4cc",
+                      "on-error-container": "#93000a",
+                      "surface": "#f8f9fa",
+                      "primary-fixed": "#e0e0ff",
+                      "on-primary-container": "#8690ee",
+                      "secondary-container": "#e1e1c9",
+                      "inverse-on-surface": "#f0f1f2",
+                      "outline": "#767683",
+                      "on-surface": "#191c1d",
+                      "inverse-primary": "#bdc2ff",
+                      "tertiary-container": "#45272e",
+                      "tertiary-fixed-dim": "#e9bbc4",
+                      "on-surface-variant": "#454652",
+                      "on-secondary-fixed": "#1b1d0e",
+                      "on-primary-fixed-variant": "#343d96",
+                      "surface-container": "#edeeef",
+                      "on-tertiary": "#ffffff",
+                      "on-error": "#ffffff",
+                      "background": "#f8f9fa"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "md": "16px",
+                      "margin-desktop": "64px",
+                      "xs": "4px",
+                      "lg": "24px",
+                      "gutter": "16px",
+                      "sm": "12px",
+                      "margin-mobile": "20px",
+                      "xl": "40px",
+                      "base": "8px"
+              },
+              "fontFamily": {
+                      "body-md": ["IBM Plex Sans Arabic"],
+                      "display-lg-mobile": ["IBM Plex Sans Arabic"],
+                      "label-sm": ["IBM Plex Sans Arabic"],
+                      "body-lg": ["IBM Plex Sans Arabic"],
+                      "headline-md": ["IBM Plex Sans Arabic"],
+                      "display-lg": ["IBM Plex Sans Arabic"]
+              },
+              "fontSize": {
+                      "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "display-lg-mobile": ["26px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                      "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                      "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface h-screen w-full flex flex-col overflow-hidden">
+<!-- Top App Bar (Shared Component Anchor) -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile h-14 bg-surface dark:bg-on-surface shadow-sm">
+<div class="flex items-center gap-4">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high dark:hover:bg-inverse-surface transition-colors duration-200">
+<span class="material-symbols-outlined text-primary dark:text-primary-fixed-dim" data-icon="menu">menu</span>
+</button>
+<h1 class="font-display-lg-mobile text-display-lg-mobile text-primary dark:text-primary-fixed-dim">Amana</h1>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high dark:hover:bg-inverse-surface transition-colors duration-200">
+<span class="material-symbols-outlined text-primary dark:text-primary-fixed-dim" data-icon="notifications">notifications</span>
+</button>
+</header>
+<!-- Main Canvas: Map & Radar Search -->
+<main class="relative flex-grow w-full mt-14 overflow-hidden">
+<!-- Map Background Layer -->
+<div class="absolute inset-0 z-0">
+<div class="w-full h-full bg-cover bg-center grayscale opacity-60 transition-opacity duration-1000" data-location="Riyadh, Saudi Arabia" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDegPimGKgyWjCJqk3EIgI9wgYhjnsJAYlLLoAeymxzEoq8G2aEcQqh_o0WNeYn25-ihj262AsryVhtDtM1nMsNi_Z44ckYfD3q2mMoEFscLqZJfjG1st28zcICDs5aHVj5DvIckWvmMxL0arUnzi5RVmyYzb_UEcJ2w7e5crdtNAasVdRTPGitgXbiBmu3LdluaTLCEYttKjhR0hlwdxDJICfSOvdO-N_xk6tDLg9avi7p0Nn8KRm4DXk-kRS9NhAZMta4NA_FazRQ')"></div>
+<!-- Overlay Gradient for better UI contrast -->
+<div class="absolute inset-0 bg-gradient-to-b from-surface/40 via-transparent to-surface-container-lowest"></div>
+</div>
+<!-- Radar Animation Layer -->
+<div class="absolute inset-0 z-10 flex items-center justify-center">
+<!-- Radar Rings -->
+<div class="absolute w-40 h-40 border-2 border-primary/20 rounded-full radar-ring"></div>
+<div class="absolute w-40 h-40 border-2 border-primary/15 rounded-full radar-ring"></div>
+<div class="absolute w-40 h-40 border-2 border-primary/10 rounded-full radar-ring"></div>
+<!-- User Location Indicator -->
+<div class="relative flex items-center justify-center">
+<div class="w-12 h-12 bg-primary text-on-primary rounded-full flex items-center justify-center shadow-lg z-20 border-4 border-white">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+</div>
+<!-- Scanning Effect Shader Container -->
+<div class="absolute -inset-24 flex items-center justify-center pointer-events-none opacity-40">
+<!-- Placeholder for the shader effect -->
+
+</div>
+</div>
+</div>
+<!-- Information & Status Panel (Bento-style layout) -->
+<div class="absolute bottom-0 left-0 w-full z-30 p-margin-mobile space-y-4">
+<!-- Status Card -->
+<div class="glass-panel p-lg rounded-xl shadow-xl border border-white/50 max-w-md mx-auto">
+<div class="flex items-center gap-4 mb-lg">
+<div class="w-12 h-12 bg-primary-container text-on-primary-container rounded-full flex items-center justify-center float-animation">
+<span class="material-symbols-outlined" data-icon="auto_awesome" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+<div>
+<h2 class="font-headline-md text-headline-md-mobile text-primary">جاري البحث عن سائقة</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">نقوم حالياً بالبحث عن أقرب رحلة آمنة لكِ...</p>
+</div>
+</div>
+<!-- Step Indicators -->
+<div class="flex justify-between items-center gap-2 mb-lg">
+<div class="flex-1 h-1.5 bg-primary rounded-full"></div>
+<div class="flex-1 h-1.5 bg-primary/20 rounded-full relative overflow-hidden">
+<div class="absolute inset-0 bg-primary w-1/2 animate-pulse"></div>
+</div>
+<div class="flex-1 h-1.5 bg-primary/10 rounded-full"></div>
+</div>
+<!-- Details Row -->
+<div class="grid grid-cols-2 gap-md">
+<div class="bg-surface-container-low p-md rounded-lg flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" data-icon="shield">shield</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">أمان عالي</span>
+</div>
+<div class="bg-surface-container-low p-md rounded-lg flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" data-icon="verified_user">verified_user</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">سائقات معتمدات</span>
+</div>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="flex flex-col gap-3 max-w-md mx-auto pb-10">
+<button class="w-full h-14 bg-primary text-on-primary font-body-lg text-body-lg rounded-xl shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" data-icon="share">share</span>
+                    مشاركة تفاصيل الرحلة مع العائلة
+                </button>
+<button class="w-full h-14 border border-error text-error font-body-lg text-body-lg rounded-xl hover:bg-error/5 active:scale-95 transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+                    إلغاء الطلب
+                </button>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar (Shared Component Anchor) -->
+<!-- Suppressed due to "Transactional/Task-Focused" screen logic: User is in an active 'Finding Ride' state -->
+<!-- Micro-interaction for Search Animation -->
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Subtle random movement for the map to simulate live scanning
+            const mapContainer = document.querySelector('[data-location]');
+            let xPos = 0;
+            let yPos = 0;
+            
+            function animateMap() {
+                xPos = Math.sin(Date.now() / 3000) * 10;
+                yPos = Math.cos(Date.now() / 2500) * 10;
+                mapContainer.style.transform = `scale(1.1) translate(${xPos}px, ${yPos}px)`;
+                requestAnimationFrame(animateMap);
+            }
+            animateMap();
+
+            // Simulate finding a match after 8 seconds (demo purposes)
+            /*
+            setTimeout(() => {
+                const title = document.querySelector('h2');
+                title.textContent = 'تم العثور على سائقة!';
+                title.classList.add('text-green-600');
+            }, 8000);
+            */
+        });
+    </script>
+<!-- Fallback Image for the placeholder -->
+<img class="hidden" data-alt="A premium high-fidelity map of Riyadh Saudi Arabia with a minimalist dark navy and soft purple color grade. The map shows elegant street lines and subtle topographical details under a soft moonlight glow. The overall atmosphere is secure, professional, and tranquil, reflecting a high-end service for women. The lighting is low-key with sophisticated purple highlights on major landmarks." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDc2M2GhB17RvsZeWd2ODZQ92rkYilLFWBZkZLd9l9sspnM_cfDSUibjvr_kwYIEDgfe4qo015OqrYls2xuIh8Y1OmqJ72QggbfBUe6YBXx14W3mwrwjZ48urg61mGvrfYFBcmcUIk-0XXsdw2__F_dQFRhbkRXJ4BgEPyWpGDfgI7-TYGf__dBa8ItlGTbjuoLmXZNQkAfiwDOKmUElNTHYZWNCFeSygZxBbHIGvdbxRbIhk4r9V-9ZC8deUoQWHtIT93uqm6CH9NQ"/>
+</body></html>

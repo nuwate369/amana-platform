@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Amana - Request Ride</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-low": "#f3f4f5",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary-fixed": "#2e131a",
+                    "error-container": "#ffdad6",
+                    "surface-variant": "#e1e3e4",
+                    "on-surface": "#191c1d",
+                    "on-primary": "#ffffff",
+                    "on-secondary": "#ffffff",
+                    "primary-container": "#1a237e",
+                    "secondary": "#5e604d",
+                    "surface-dim": "#d9dadb",
+                    "tertiary-container": "#45272e",
+                    "surface-container-highest": "#e1e3e4",
+                    "secondary-fixed-dim": "#c8c8b0",
+                    "outline": "#767683",
+                    "secondary-container": "#e1e1c9",
+                    "surface-tint": "#4c56af",
+                    "on-tertiary": "#ffffff",
+                    "surface": "#f8f9fa",
+                    "on-error-container": "#93000a",
+                    "on-primary-fixed-variant": "#343d96",
+                    "tertiary": "#2d131a",
+                    "inverse-surface": "#2e3132",
+                    "background": "#f8f9fa",
+                    "inverse-primary": "#bdc2ff",
+                    "surface-container-high": "#e7e8e9",
+                    "secondary-fixed": "#e4e4cc",
+                    "on-background": "#191c1d",
+                    "primary-fixed": "#e0e0ff",
+                    "on-secondary-container": "#636451",
+                    "on-secondary-fixed": "#1b1d0e",
+                    "on-tertiary-fixed-variant": "#5f3d45",
+                    "surface-container": "#edeeef",
+                    "on-error": "#ffffff",
+                    "tertiary-fixed": "#ffd9e0",
+                    "surface-bright": "#f8f9fa",
+                    "on-primary-fixed": "#000767",
+                    "primary": "#000666",
+                    "on-secondary-fixed-variant": "#474836",
+                    "primary-fixed-dim": "#bdc2ff",
+                    "tertiary-fixed-dim": "#e9bbc4",
+                    "on-surface-variant": "#454652",
+                    "error": "#ba1a1a",
+                    "on-tertiary-container": "#b78c95",
+                    "on-primary-container": "#8690ee",
+                    "outline-variant": "#c6c5d4",
+                    "inverse-on-surface": "#f0f1f2"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "16px",
+                    "margin-mobile": "20px",
+                    "md": "16px",
+                    "margin-desktop": "64px",
+                    "lg": "24px",
+                    "sm": "12px",
+                    "xs": "4px",
+                    "base": "8px",
+                    "xl": "40px"
+            },
+            "fontFamily": {
+                    "body-lg": ["IBM Plex Sans Arabic"],
+                    "display-lg": ["IBM Plex Sans Arabic"],
+                    "label-sm": ["IBM Plex Sans Arabic"],
+                    "body-md": ["IBM Plex Sans Arabic"],
+                    "display-lg-mobile": ["IBM Plex Sans Arabic"],
+                    "headline-md": ["IBM Plex Sans Arabic"]
+            },
+            "fontSize": {
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "display-lg-mobile": ["26px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            background-color: #f8f9fa;
+            overflow: hidden;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .map-container {
+            height: 100vh;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 0;
+        }
+        .bottom-sheet {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top-left-radius: 24px;
+            border-top-right-radius: 24px;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.1);
+            z-index: 50;
+            transition: transform 0.3s ease-out;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        .grab-handle {
+            width: 40px;
+            height: 4px;
+            background: #E0E0E0;
+            border-radius: 2px;
+            margin: 12px auto;
+        }
+        .ride-option-active {
+            border: 2px solid #1A237E;
+            background-color: #F0F2FF;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface">
+<!-- Top App Bar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile h-14 bg-surface/80 backdrop-blur-md">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-primary">arrow_forward</span>
+</button>
+<h1 class="font-headline-md text-headline-md-mobile text-primary font-bold">تحديد الرحلة</h1>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-primary">notifications</span>
+</button>
+</header>
+<!-- Map Area -->
+<main class="map-container overflow-hidden">
+<div class="relative w-full h-full">
+<!-- Simulated Map Image -->
+<div class="w-full h-full bg-surface-container-low" data-alt="A highly detailed 3D digital map of Riyadh city center at dusk. The view is from a high-angle perspective showing wide boulevards, modern architectural landmarks like the Kingdom Centre, and glowing streetlights. Soft purple and blue evening light washes over the urban grid, creating a premium and secure atmosphere. Navigation paths are highlighted in a subtle navy blue glow." data-location="Riyadh, Saudi Arabia" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDZWfy3H-iqOwTLIZDPHbn2Feuc-Ji_nOoBNXjDBoCVtYvLXM8C5WHJMfAoK12o-tf8JAxi25rJIk7fPp9Rfsel_SZRyq6WG03yzbdf0l6pjbZvVfN0rC3ruDQsp4wz52FzCK2ahKzg-BOCUp2D8NEA4qfkDtgqDY_wOscaGtfVpvyYAIhc5c2eZ2Cq79h9gbH7_jzN8ai2Vht5NvP__oU4E4rvBa2u0hUYzCshptR2lo6i4n_lkTAdz8tZ5tLAEM-LDKzRILr62XZQ')">
+</div>
+<!-- Route Overlay (Abstract SVG Representation for better UI feel) -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none" viewbox="0 0 400 800">
+<!-- Path -->
+<path class="fade-in" d="M 100 600 Q 200 450 300 300" fill="none" stroke="#1A237E" stroke-dasharray="8 4" stroke-width="4"></path>
+<!-- Start Marker -->
+<circle cx="100" cy="600" fill="white" r="8" stroke="#1A237E" stroke-width="3"></circle>
+<circle cx="100" cy="600" fill="#1A237E" r="3"></circle>
+<!-- End Marker -->
+<path d="M 300 270 L 310 295 L 290 295 Z" fill="#D32F2F"></path>
+<circle cx="300" cy="275" fill="#D32F2F" fill-opacity="0.2" r="10"></circle>
+</svg>
+<!-- Floating Search Boxes -->
+<div class="absolute top-20 left-margin-mobile right-margin-mobile flex flex-col gap-2 z-10">
+<div class="bg-white p-3 rounded-xl shadow-lg flex items-center gap-3 border border-outline-variant/30">
+<span class="material-symbols-outlined text-primary text-sm">radio_button_checked</span>
+<div class="flex flex-col">
+<span class="text-label-sm text-on-surface-variant">موقعي الحالي</span>
+<span class="text-body-md font-medium">حي النخيل، الرياض</span>
+</div>
+</div>
+<div class="bg-white p-3 rounded-xl shadow-lg flex items-center gap-3 border border-outline-variant/30">
+<span class="material-symbols-outlined text-error text-sm">location_on</span>
+<div class="flex flex-col">
+<span class="text-label-sm text-on-surface-variant">الوجهة</span>
+<span class="text-body-md font-medium">بوليفارد رياض سيتي</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Sheet Ride Options -->
+<div class="bottom-sheet pb-8 px-margin-mobile" id="bottomSheet">
+<div class="grab-handle"></div>
+<div class="flex justify-between items-center mb-6">
+<h2 class="font-headline-md text-headline-md-mobile text-on-surface">اختر نوع الرحلة</h2>
+<div class="flex items-center gap-1 bg-surface-container text-on-surface-variant px-3 py-1 rounded-full text-label-sm">
+<span class="material-symbols-outlined text-[16px]">schedule</span>
+<span>١٢ دقيقة وصول</span>
+</div>
+</div>
+<!-- Ride Options List -->
+<div class="flex flex-col gap-3 mb-8">
+<!-- Option 1: Standard -->
+<button class="ride-option flex items-center justify-between p-4 rounded-xl border border-outline-variant hover:bg-surface-container-low transition-all text-right group ride-option-active" onclick="selectRide(this)">
+<div class="flex items-center gap-4">
+<div class="w-16 h-12 bg-secondary-container rounded-lg flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A side view of a clean, modern white sedan car against a soft minimalist studio background. The lighting is elegant and soft, reflecting a premium corporate service. The car is sleek and represents high-standard maintenance and reliability." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvi4jBf4ijC1DhjoQA3j-4A5SoAOy_rjIAcKbpT0DCf9ilzm_n1G70zCPkIbOQobPCeGVotlHlt8C0ll0xERjjDMXG25GWHEiMCEd32yhWDH5hFK-0HQtR9I38JOPeNd1wGzvVZGZkwqV4YbsLNfImXwMDcomTiUz0kmOQhSlR3wotkdqDc9NvVqYBXhkmOBfAapNoUAnK-pwqueZ7k89vKQ_dYPTFjysESeePezM6iDPw5R0uUvUqlu1nXOA6tyNw3GgxFDhXaOwF"/>
+</div>
+<div class="flex flex-col">
+<span class="text-body-lg font-bold">أمانة أساسية</span>
+<span class="text-label-sm text-on-surface-variant">سيارة مريحة وحديثة</span>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="text-body-lg font-bold text-primary">٤٥.٠٠ ر.س</span>
+<span class="text-label-sm text-on-surface-variant">٤:٢٠ م</span>
+</div>
+</button>
+<!-- Option 2: Premium -->
+<button class="ride-option flex items-center justify-between p-4 rounded-xl border border-outline-variant hover:bg-surface-container-low transition-all text-right group" onclick="selectRide(this)">
+<div class="flex items-center gap-4">
+<div class="w-16 h-12 bg-primary-container/10 rounded-lg flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A luxury black SUV with tinted windows, parked in a high-end urban setting at night. Subtle reflections of city lights on the polished surface. The aesthetic is extremely premium, executive, and secure, designed for a high-end chauffeur experience." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDWxjNiKUyoqA6eWkrulk0nrxn0fn5WshleyAVjNbj0Vp8R92OwtwrhC4Bc4ptWURhWocTHF0tGg0Se0X5OAGnRwKeN9L1IA5hfq_ItaY_LkYT2saIcF-_NYuxocv5Vkl_cSQP0_p9XlCKvqPEBpxKthi-uIzkUTUrerWe9yP98-uGwSb0jTsAlApYp_mDTw3l8h0Xt_qiYLuioOJS60be5wPPV5sJrmiZtbArvEzSsHW2bnKd8f2fHKfkPrNl-AV-eRvt2Jrpuhv_d"/>
+</div>
+<div class="flex flex-col">
+<span class="text-body-lg font-bold">أمانة فخمة</span>
+<span class="text-label-sm text-on-surface-variant">خدمة راقية وسيارات فارهة</span>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="text-body-lg font-bold text-primary">٨٢.٠٠ ر.س</span>
+<span class="text-label-sm text-on-surface-variant">٤:١٨ م</span>
+</div>
+</button>
+<!-- Option 3: Group -->
+<button class="ride-option flex items-center justify-between p-4 rounded-xl border border-outline-variant hover:bg-surface-container-low transition-all text-right group" onclick="selectRide(this)">
+<div class="flex items-center gap-4">
+<div class="w-16 h-12 bg-surface-container-highest rounded-lg flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A spacious modern silver van designed for group transport, parked in a bright contemporary driveway. The image emphasizes space, safety features, and comfort for multiple passengers. Clean lines and bright day lighting create a welcoming and trustworthy feel." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAdSTYBCPpHeELT7Dd3_-0gWAZSfUU1NcPDmgOdxr6thfcGqFufB3cvDJHjY_2Gt0is73skoDP0FPrCmrhfrTgMuLuBngPMI9sof2CCMrRf2VuHQ6LHPV7-G0BCF22SubrIpVKzAffRjGhcF75QUIj-7eQrPnU7gJUsX83odYdsqOJhVQQUUdvQ1jJGy0feYWNI1Dc7EDEkHwhmlsTO94RNI4pqXc6wcVIl0L97B3sWWoPPmzIFS_rvxLuYbYCcpktiNJ0bMRnzTJTr"/>
+</div>
+<div class="flex flex-col">
+<span class="text-body-lg font-bold">مجموعة نقل</span>
+<span class="text-label-sm text-on-surface-variant">تتسع حتى ٦ أشخاص</span>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="text-body-lg font-bold text-primary">٦٨.٠٠ ر.س</span>
+<span class="text-label-sm text-on-surface-variant">٤:٢٥ م</span>
+</div>
+</button>
+</div>
+<!-- Payment Selector -->
+<div class="mb-8 p-4 bg-surface-container-lowest rounded-xl border border-outline-variant/30 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-6 bg-surface-container-high rounded flex items-center justify-center">
+<img alt="Visa" class="h-2 opacity-80" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYQFKyEZQK-kFFGMMuuZLahcCYeVk6im3Jo6rMlZDWh1MUJ9XOod9FAmDv8DH39ifOJjky3zGrkI0nsb7O4-B5Kwnb7yiMs2Ubz1xdhGw09CUph-sWg04dPxflHboBbpb7nbW6jhPMIwsHvyiCFYOhZLNVG7pZOXgOyl6WMmTq1TZQiDUklP_fNqZ_j6HUJ-94fj0zNewWwmqgaftoc64ZcfHMSoyyoKQaHvT6CC6zBwxMwohKCYxN1QALE4PmxSx0NptpReBJi48Y"/>
+</div>
+<span class="text-body-md font-medium">Visa •••• ٩٤٣٢</span>
+</div>
+<button class="text-primary text-label-sm font-bold flex items-center gap-1">
+                تغيير
+                <span class="material-symbols-outlined text-[14px]">chevron_left</span>
+</button>
+</div>
+<!-- Action Button -->
+<button class="w-full h-14 bg-primary text-on-primary rounded-xl font-bold text-body-lg flex items-center justify-center gap-2 active:scale-[0.98] transition-transform shadow-lg shadow-primary/20">
+<span>اطلبي الرحلة</span>
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+</div>
+<script>
+        function selectRide(element) {
+            // Remove active class from all
+            document.querySelectorAll('.ride-option').forEach(opt => {
+                opt.classList.remove('ride-option-active');
+            });
+            // Add to selected
+            element.classList.add('ride-option-active');
+        }
+
+        // Simple Bottom Sheet Drag Simulation (Touch events would be needed for real mobile)
+        const sheet = document.getElementById('bottomSheet');
+        let startY;
+        let startHeight;
+
+        sheet.addEventListener('touchstart', (e) => {
+            startY = e.touches[0].pageY;
+            startHeight = sheet.offsetHeight;
+        });
+
+        // Basic visual interaction on button
+        const mainBtn = document.querySelector('button.bg-primary');
+        mainBtn.addEventListener('click', () => {
+            mainBtn.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>جاري البحث عن كابتن...</span>
+                </div>
+            `;
+            setTimeout(() => {
+                alert('تم استلام طلبك بنجاح! سيتم إخطارك عند العثور على سائقة.');
+                location.reload();
+            }, 3000);
+        });
+    </script>
+</body></html>

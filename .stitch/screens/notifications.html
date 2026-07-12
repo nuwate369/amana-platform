@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>الإشعارات - Amana</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed": "#ffd9e0",
+                    "surface-bright": "#f8f9fa",
+                    "primary": "#000666",
+                    "on-primary-fixed": "#000767",
+                    "surface-dim": "#d9dadb",
+                    "surface-container-low": "#f3f4f5",
+                    "on-background": "#191c1d",
+                    "secondary": "#5e604d",
+                    "primary-container": "#1a237e",
+                    "surface-tint": "#4c56af",
+                    "secondary-fixed-dim": "#c8c8b0",
+                    "surface-container-highest": "#e1e3e4",
+                    "surface-container-high": "#e7e8e9",
+                    "on-primary": "#ffffff",
+                    "outline-variant": "#c6c5d4",
+                    "surface-variant": "#e1e3e4",
+                    "on-tertiary-fixed-variant": "#5f3d45",
+                    "surface-container-lowest": "#ffffff",
+                    "tertiary": "#2d131a",
+                    "on-secondary-container": "#636451",
+                    "error": "#ba1a1a",
+                    "on-tertiary-fixed": "#2e131a",
+                    "inverse-surface": "#2e3132",
+                    "on-tertiary-container": "#b78c95",
+                    "on-secondary": "#ffffff",
+                    "primary-fixed-dim": "#bdc2ff",
+                    "error-container": "#ffdad6",
+                    "on-secondary-fixed-variant": "#474836",
+                    "secondary-fixed": "#e4e4cc",
+                    "on-error-container": "#93000a",
+                    "surface": "#f8f9fa",
+                    "primary-fixed": "#e0e0ff",
+                    "on-primary-container": "#8690ee",
+                    "secondary-container": "#e1e1c9",
+                    "inverse-on-surface": "#f0f1f2",
+                    "outline": "#767683",
+                    "on-surface": "#191c1d",
+                    "inverse-primary": "#bdc2ff",
+                    "tertiary-container": "#45272e",
+                    "tertiary-fixed-dim": "#e9bbc4",
+                    "on-surface-variant": "#454652",
+                    "on-secondary-fixed": "#1b1d0e",
+                    "on-primary-fixed-variant": "#343d96",
+                    "surface-container": "#edeeef",
+                    "on-tertiary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "background": "#f8f9fa"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "md": "16px",
+                    "margin-desktop": "64px",
+                    "xs": "4px",
+                    "lg": "24px",
+                    "gutter": "16px",
+                    "sm": "12px",
+                    "margin-mobile": "20px",
+                    "xl": "40px",
+                    "base": "8px"
+            },
+            "fontFamily": {
+                    "body-md": ["IBM Plex Sans Arabic"],
+                    "display-lg-mobile": ["IBM Plex Sans Arabic"],
+                    "label-sm": ["IBM Plex Sans Arabic"],
+                    "body-lg": ["IBM Plex Sans Arabic"],
+                    "headline-md": ["IBM Plex Sans Arabic"],
+                    "display-lg": ["IBM Plex Sans Arabic"]
+            },
+            "fontSize": {
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "display-lg-mobile": ["26px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .unread-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #000666;
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .notif-card {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .notif-card:active {
+            transform: scale(0.98);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface antialiased">
+<!-- Top App Bar (Top-level destination logic applied) -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile h-14 bg-surface shadow-sm">
+<div class="flex items-center gap-4">
+<button class="p-2 transition-colors duration-200 ease-in-out hover:bg-surface-container-high rounded-full">
+<span class="material-symbols-outlined text-primary" data-icon="arrow_forward">arrow_forward</span>
+</button>
+<h1 class="font-headline-md text-headline-md-mobile text-primary">الإشعارات</h1>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 transition-colors duration-200 ease-in-out hover:bg-surface-container-high rounded-full">
+<span class="material-symbols-outlined text-primary" data-icon="done_all">done_all</span>
+</button>
+</div>
+</header>
+<main class="pt-16 pb-24 px-margin-mobile max-w-2xl mx-auto">
+<!-- Filter Chips -->
+<div class="flex gap-2 mb-lg overflow-x-auto py-2 no-scrollbar">
+<span class="bg-primary text-on-primary px-4 py-1.5 rounded-full font-label-sm text-label-sm whitespace-nowrap shadow-sm">الكل</span>
+<span class="bg-surface-container-high text-on-surface-variant px-4 py-1.5 rounded-full font-label-sm text-label-sm whitespace-nowrap hover:bg-outline-variant transition-colors">الرحلات</span>
+<span class="bg-surface-container-high text-on-surface-variant px-4 py-1.5 rounded-full font-label-sm text-label-sm whitespace-nowrap hover:bg-outline-variant transition-colors">العروض</span>
+<span class="bg-surface-container-high text-on-surface-variant px-4 py-1.5 rounded-full font-label-sm text-label-sm whitespace-nowrap hover:bg-outline-variant transition-colors">تحديثات النظام</span>
+</div>
+<div class="space-y-4">
+<!-- Section: Today -->
+<h2 class="font-label-sm text-label-sm text-outline px-2 uppercase tracking-wider mb-2">اليوم</h2>
+<!-- Unread: Ride Confirmed -->
+<div class="notif-card relative bg-primary-fixed/30 p-4 rounded-xl flex gap-4 items-start shadow-sm border border-primary-fixed/50">
+<div class="unread-indicator"></div>
+<div class="bg-primary-container p-3 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary-container" data-icon="directions_car">directions_car</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start mb-1">
+<h3 class="font-headline-md text-[16px] text-primary leading-tight">تم تأكيد رحلتك</h3>
+<span class="text-[12px] text-on-surface-variant font-label-sm">الآن</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant">تم تخصيص الكابتن سارة لرحلتك المتجهة إلى مطار الملك خالد. ستصل خلال 10 دقائق.</p>
+</div>
+</div>
+<!-- Unread: Special Offer -->
+<div class="notif-card relative bg-primary-fixed/30 p-4 rounded-xl flex gap-4 items-start shadow-sm border border-primary-fixed/50">
+<div class="unread-indicator"></div>
+<div class="bg-tertiary-container p-3 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-on-tertiary-container" data-icon="redeem">redeem</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start mb-1">
+<h3 class="font-headline-md text-[16px] text-primary leading-tight">خصم خاص لكِ</h3>
+<span class="text-[12px] text-on-surface-variant font-label-sm">منذ ساعة</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant">استمتعي بخصم 20% على رحلتك القادمة باستخدام الكود AMANA20. صالح لمدة 48 ساعة.</p>
+</div>
+</div>
+<!-- Section: Yesterday -->
+<h2 class="font-label-sm text-label-sm text-outline px-2 uppercase tracking-wider mt-lg mb-2">أمس</h2>
+<!-- Read: App Update -->
+<div class="notif-card bg-surface-container-lowest p-4 rounded-xl flex gap-4 items-start border border-outline-variant/30">
+<div class="bg-surface-container-high p-3 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="system_update">system_update</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start mb-1">
+<h3 class="font-headline-md text-[16px] text-on-surface leading-tight">تحديث جديد للتطبيق</h3>
+<span class="text-[12px] text-outline font-label-sm">أمس، 4:30 م</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant">أضفنا ميزات أمان جديدة وخيارات تتبع مباشرة لضمان أقصى درجات الطمأنينة.</p>
+</div>
+</div>
+<!-- Read: Generic Notification -->
+<div class="notif-card bg-surface-container-lowest p-4 rounded-xl flex gap-4 items-start border border-outline-variant/30">
+<div class="bg-surface-container-high p-3 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="notifications">notifications</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start mb-1">
+<h3 class="font-headline-md text-[16px] text-on-surface leading-tight">اكتمال التحقق من الهوية</h3>
+<span class="text-[12px] text-outline font-label-sm">أمس، 11:15 ص</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant">تم التحقق من بياناتك بنجاح. يمكنك الآن الاستمتاع بكافة خدمات "أمانة" بكل ثقة.</p>
+</div>
+</div>
+</div>
+<!-- Empty State (Hidden by default, shown for demo purpose if needed) -->
+<div class="hidden flex-col items-center justify-center py-xl text-center space-y-4">
+<div class="w-32 h-32 bg-surface-container rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-[64px] text-outline-variant" data-icon="notifications_off">notifications_off</span>
+</div>
+<div>
+<h3 class="font-headline-md text-primary mb-2">لا توجد إشعارات حالياً</h3>
+<p class="font-body-md text-on-surface-variant">سنقوم بإخطارك فور حدوث أي تحديثات تتعلق برحلاتك أو حسابك.</p>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar (Contextual State Logic applied) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-3 pb-safe bg-surface-container-lowest shadow-[0_-4px_12px_rgba(26,35,126,0.08)] rounded-t-xl">
+<a class="flex flex-col items-center justify-center text-on-surface-variant transition-transform duration-150 scale-95 active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-sm text-label-sm">الرئيسية</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant transition-transform duration-150 scale-95 active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="directions_car">directions_car</span>
+<span class="font-label-sm text-label-sm">رحلاتي</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant transition-transform duration-150 scale-95 active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="auto_awesome">auto_awesome</span>
+<span class="font-label-sm text-label-sm">المخطط الذكي</span>
+</a>
+<!-- "Active" logic: Profile/Person is closest to notification/account scope usually, but let's assume this falls under Profile for now -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant transition-transform duration-150 scale-95 active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-sm text-label-sm">الملف الشخصي</span>
+</a>
+</nav>
+<!-- Visual Polish: Subtle Background Ornament -->
+<div class="fixed top-0 right-0 -z-10 opacity-10 pointer-events-none">
+
+</div>
+<script>
+        // Micro-interaction for marking as read
+        document.querySelectorAll('.notif-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const indicator = this.querySelector('.unread-indicator');
+                if (indicator) {
+                    indicator.classList.add('opacity-0');
+                    this.classList.remove('bg-primary-fixed/30');
+                    this.classList.add('bg-surface-container-lowest', 'border-outline-variant/30');
+                    // In a real app, you'd trigger an API call here
+                }
+            });
+        });
+
+        // Swipe-to-delete logic (Visual representation)
+        let touchstartX = 0;
+        let touchendX = 0;
+
+        document.querySelectorAll('.notif-card').forEach(card => {
+            card.addEventListener('touchstart', e => {
+                touchstartX = e.changedTouches[0].screenX;
+            }, {passive: true});
+
+            card.addEventListener('touchend', e => {
+                touchendX = e.changedTouches[0].screenX;
+                handleGesture(card);
+            }, {passive: true});
+        });
+
+        function handleGesture(card) {
+            // Simple RTL swipe logic (Swiping to the left in RTL is technically swiping "away")
+            if (touchendX < touchstartX - 100) {
+                card.style.transform = 'translateX(-120%)';
+                card.style.opacity = '0';
+                setTimeout(() => {
+                    card.style.display = 'none';
+                }, 300);
+            }
+        }
+    </script>
+</body></html>

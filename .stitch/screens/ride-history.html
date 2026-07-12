@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>أمانة - سجل الرحلات</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        .safe-bottom {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        body {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c6c5d4;
+            border-radius: 10px;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed": "#ffd9e0",
+                        "surface-bright": "#f8f9fa",
+                        "primary": "#000666",
+                        "on-primary-fixed": "#000767",
+                        "surface-dim": "#d9dadb",
+                        "surface-container-low": "#f3f4f5",
+                        "on-background": "#191c1d",
+                        "secondary": "#5e604d",
+                        "primary-container": "#1a237e",
+                        "surface-tint": "#4c56af",
+                        "secondary-fixed-dim": "#c8c8b0",
+                        "surface-container-highest": "#e1e3e4",
+                        "surface-container-high": "#e7e8e9",
+                        "on-primary": "#ffffff",
+                        "outline-variant": "#c6c5d4",
+                        "surface-variant": "#e1e3e4",
+                        "on-tertiary-fixed-variant": "#5f3d45",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary": "#2d131a",
+                        "on-secondary-container": "#636451",
+                        "error": "#ba1a1a",
+                        "on-tertiary-fixed": "#2e131a",
+                        "inverse-surface": "#2e3132",
+                        "on-tertiary-container": "#b78c95",
+                        "on-secondary": "#ffffff",
+                        "primary-fixed-dim": "#bdc2ff",
+                        "error-container": "#ffdad6",
+                        "on-secondary-fixed-variant": "#474836",
+                        "secondary-fixed": "#e4e4cc",
+                        "on-error-container": "#93000a",
+                        "surface": "#f8f9fa",
+                        "primary-fixed": "#e0e0ff",
+                        "on-primary-container": "#8690ee",
+                        "secondary-container": "#e1e1c9",
+                        "inverse-on-surface": "#f0f1f2",
+                        "outline": "#767683",
+                        "on-surface": "#191c1d",
+                        "inverse-primary": "#bdc2ff",
+                        "tertiary-container": "#45272e",
+                        "tertiary-fixed-dim": "#e9bbc4",
+                        "on-surface-variant": "#454652",
+                        "on-secondary-fixed": "#1b1d0e",
+                        "on-primary-fixed-variant": "#343d96",
+                        "surface-container": "#edeeef",
+                        "on-tertiary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "background": "#f8f9fa"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "md": "16px",
+                        "margin-desktop": "64px",
+                        "xs": "4px",
+                        "lg": "24px",
+                        "gutter": "16px",
+                        "sm": "12px",
+                        "margin-mobile": "20px",
+                        "xl": "40px",
+                        "base": "8px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["IBM Plex Sans Arabic"],
+                        "display-lg-mobile": ["IBM Plex Sans Arabic"],
+                        "label-sm": ["IBM Plex Sans Arabic"],
+                        "body-lg": ["IBM Plex Sans Arabic"],
+                        "headline-md": ["IBM Plex Sans Arabic"],
+                        "display-lg": ["IBM Plex Sans Arabic"]
+                    },
+                    "fontSize": {
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "display-lg-mobile": ["26px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen pb-32">
+<!-- Top App Bar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile h-14 bg-surface shadow-sm">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-primary">menu</span>
+</button>
+<h1 class="font-headline-md text-headline-md-mobile text-primary">أمانة</h1>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-primary">notifications</span>
+</button>
+</header>
+<main class="pt-20 px-margin-mobile max-w-2xl mx-auto">
+<!-- Title Section -->
+<div class="mb-lg">
+<h2 class="font-display-lg-mobile text-display-lg-mobile text-primary mb-xs">سجل الرحلات</h2>
+<p class="font-body-md text-on-surface-variant">استعرض جميع رحلاتك السابقة وتفاصيلها</p>
+</div>
+<!-- Filter Chips -->
+<div class="flex gap-sm overflow-x-auto pb-md no-scrollbar">
+<span class="bg-primary-container text-on-primary-container px-md py-1.5 rounded-full font-label-sm text-label-sm whitespace-nowrap cursor-pointer">الكل</span>
+<span class="bg-surface-container-high text-on-surface-variant px-md py-1.5 rounded-full font-label-sm text-label-sm whitespace-nowrap cursor-pointer hover:bg-surface-container-highest transition-colors">مكتملة</span>
+<span class="bg-surface-container-high text-on-surface-variant px-md py-1.5 rounded-full font-label-sm text-label-sm whitespace-nowrap cursor-pointer hover:bg-surface-container-highest transition-colors">ملغاة</span>
+<span class="bg-surface-container-high text-on-surface-variant px-md py-1.5 rounded-full font-label-sm text-label-sm whitespace-nowrap cursor-pointer hover:bg-surface-container-highest transition-colors">مجدولة</span>
+</div>
+<!-- Rides List -->
+<div class="space-y-md mt-sm">
+<!-- Ride Card 1 -->
+<div class="bg-surface-container-lowest p-md rounded-xl shadow-[0_4px_12px_rgba(26,35,126,0.04)] border border-outline-variant hover:shadow-lg transition-all duration-300">
+<div class="flex justify-between items-start mb-md">
+<div class="flex gap-md items-center">
+<div class="w-12 h-12 rounded-full overflow-hidden bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="A professional and friendly female driver portrait in a high-end corporate setting, wearing a sophisticated dark navy uniform. The background is a soft-focus modern city office, lit with warm, professional lighting consistent with a premium concierge service. High-quality digital photography with a clean, trustworthy aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAY9m5-31y8V37vz-O9g0WaLaubomi_SKLPvKfKrACW7GUEkqyaCW7Xsf5J3sOhJG8u172fJxZb6v3y0vJyp5kLFpCl42xf7l45U5AvRQ2Rp3DeOOKxDFIiOjriZ2gtTuLrrIAugCMieXzIlf3kt6cVxxyLLMlwBdJtkrEJ-AnQywYymur5IAxt7Y20VHsNNlzwzv3B7PClMxHN17Z5RPdkG8i_jVmb31dyoqhC3MBVD-ANG6rEkCOTkFTzr3spqAH-dpQpx6L_2sqw"/>
+</div>
+<div>
+<h3 class="font-headline-md text-on-surface">سارة الكاظم</h3>
+<div class="flex items-center gap-xs text-secondary">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-label-sm text-label-sm">4.9</span>
+</div>
+</div>
+</div>
+<div class="text-left">
+<span class="font-headline-md text-primary block">65.00 ر.س</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">رقم الرحلة #8821</span>
+</div>
+</div>
+<div class="space-y-sm mb-lg">
+<div class="flex gap-md items-start">
+<div class="flex flex-col items-center mt-1">
+<span class="w-2.5 h-2.5 rounded-full bg-primary"></span>
+<div class="w-0.5 h-6 bg-outline-variant my-0.5"></div>
+<span class="w-2.5 h-2.5 rounded-full border-2 border-primary"></span>
+</div>
+<div class="space-y-2">
+<p class="font-body-md text-on-surface">مركز الملك عبد الله المالي (KAFD)</p>
+<p class="font-body-md text-on-surface">حي الملقا، طريق أنس بن مالك</p>
+</div>
+</div>
+<div class="flex items-center gap-md text-on-surface-variant pr-6">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">calendar_today</span>
+<span class="font-body-md">15 أكتوبر 2023</span>
+</div>
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">schedule</span>
+<span class="font-body-md">09:15 ص</span>
+</div>
+</div>
+</div>
+<div class="flex gap-md">
+<button class="flex-1 bg-primary text-on-primary h-12 rounded-lg font-headline-md text-label-sm flex items-center justify-center gap-xs active:scale-[0.98] transition-transform">
+<span class="material-symbols-outlined">restart_alt</span>
+                        إعادة حجز
+                    </button>
+<button class="px-md h-12 rounded-lg border border-outline text-on-surface font-headline-md text-label-sm flex items-center justify-center hover:bg-surface-container transition-colors">
+                        التفاصيل
+                    </button>
+</div>
+</div>
+<!-- Ride Card 2 -->
+<div class="bg-surface-container-lowest p-md rounded-xl shadow-[0_4px_12px_rgba(26,35,126,0.04)] border border-outline-variant opacity-90">
+<div class="flex justify-between items-start mb-md">
+<div class="flex gap-md items-center">
+<div class="w-12 h-12 rounded-full overflow-hidden bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="A sophisticated woman driver smiling confidently, professional attire, seated in the clean interior of a luxury electric vehicle. Sunlight streams through the window in a soft, ethereal way. The color palette is composed of beige, navy, and soft grays, evoking a sense of calm and safety. Premium lifestyle photography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdjZSKHEKOTnMbEvWlpc55oOceRuBPP0mlagaCfzN3HlRbTQJ_11dWHt6Bs27lkr-nUhLuBpwbiTnNcaqBUa0dxMZ2elJknFMLdjKsb79mwFBfa94WgWbu4tAwHWZXE9G10xCPm93mYmtDQQDEo5BF2LRF9hzkLn4PuduXaVOXzFCYRLco4pstWrqkn3pBZqMm7ncdW_LM71tmhYcU65SgptWUMl7XNgCBhKz-2pUqfdOgw5wk6TQLx0IV8uEgdrrFDAfE7JuMvgGU"/>
+</div>
+<div>
+<h3 class="font-headline-md text-on-surface">نورة العتيبي</h3>
+<div class="flex items-center gap-xs text-secondary">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-label-sm text-label-sm">4.8</span>
+</div>
+</div>
+</div>
+<div class="text-left">
+<span class="font-headline-md text-primary block">42.50 ر.س</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">رقم الرحلة #8790</span>
+</div>
+</div>
+<div class="space-y-sm mb-lg">
+<div class="flex gap-md items-start">
+<div class="flex flex-col items-center mt-1">
+<span class="w-2.5 h-2.5 rounded-full bg-primary"></span>
+<div class="w-0.5 h-6 bg-outline-variant my-0.5"></div>
+<span class="w-2.5 h-2.5 rounded-full border-2 border-primary"></span>
+</div>
+<div class="space-y-2">
+<p class="font-body-md text-on-surface">الرياض بارك مول</p>
+<p class="font-body-md text-on-surface">جامعة الملك سعود، الدرعية</p>
+</div>
+</div>
+<div class="flex items-center gap-md text-on-surface-variant pr-6">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">calendar_today</span>
+<span class="font-body-md">12 أكتوبر 2023</span>
+</div>
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">schedule</span>
+<span class="font-body-md">06:30 م</span>
+</div>
+</div>
+</div>
+<div class="flex gap-md">
+<button class="flex-1 bg-primary text-on-primary h-12 rounded-lg font-headline-md text-label-sm flex items-center justify-center gap-xs active:scale-[0.98] transition-transform">
+<span class="material-symbols-outlined">restart_alt</span>
+                        إعادة حجز
+                    </button>
+<button class="px-md h-12 rounded-lg border border-outline text-on-surface font-headline-md text-label-sm flex items-center justify-center hover:bg-surface-container transition-colors">
+                        التفاصيل
+                    </button>
+</div>
+</div>
+<!-- Ride Card 3 (Cancelled) -->
+<div class="bg-surface-container-low p-md rounded-xl border border-outline-variant opacity-75">
+<div class="flex justify-between items-start mb-md">
+<div class="flex gap-md items-center">
+<div class="w-12 h-12 rounded-full overflow-hidden bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-outline">no_accounts</span>
+</div>
+<div>
+<h3 class="font-headline-md text-on-surface">رحلة ملغاة</h3>
+<span class="bg-error-container text-on-error-container px-2 py-0.5 rounded text-[10px] font-bold">تم الإلغاء</span>
+</div>
+</div>
+<div class="text-left">
+<span class="font-headline-md text-outline block">0.00 ر.س</span>
+</div>
+</div>
+<div class="space-y-sm mb-lg">
+<div class="flex gap-md items-start opacity-60">
+<div class="flex flex-col items-center mt-1">
+<span class="w-2.5 h-2.5 rounded-full bg-outline"></span>
+<div class="w-0.5 h-6 bg-outline-variant my-0.5"></div>
+<span class="w-2.5 h-2.5 rounded-full border-2 border-outline"></span>
+</div>
+<div class="space-y-2">
+<p class="font-body-md text-on-surface">حي النرجس</p>
+<p class="font-body-md text-on-surface">مطار الملك خالد الدولي</p>
+</div>
+</div>
+</div>
+<div class="flex gap-md">
+<button class="flex-1 bg-secondary text-on-secondary h-12 rounded-lg font-headline-md text-label-sm flex items-center justify-center gap-xs">
+<span class="material-symbols-outlined">info</span>
+                        سبب الإلغاء
+                    </button>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-3 pb-safe bg-surface-container-lowest shadow-[0_-4px_12px_rgba(26,35,126,0.08)] rounded-t-xl">
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:opacity-80 transition-all" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-sm text-label-sm mt-1">الرئيسية</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-5 py-1 scale-95 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">directions_car</span>
+<span class="font-label-sm text-label-sm mt-1">رحلاتي</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:opacity-80 transition-all" href="#">
+<span class="material-symbols-outlined">auto_awesome</span>
+<span class="font-label-sm text-label-sm mt-1">المخطط الذكي</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:opacity-80 transition-all" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm mt-1">الملف الشخصي</span>
+</a>
+</nav>
+<!-- Contextual FAB (Only for main screens) -->
+<button class="fixed bottom-24 left-6 w-14 h-14 bg-primary text-on-primary rounded-full shadow-lg flex items-center justify-center active:scale-90 transition-transform z-40">
+<span class="material-symbols-outlined text-[28px]">add</span>
+</button>
+<script>
+        // Micro-interaction for cards
+        document.querySelectorAll('.bg-surface-container-lowest').forEach(card => {
+            card.addEventListener('mousedown', () => {
+                card.style.transform = 'scale(0.98)';
+            });
+            card.addEventListener('mouseup', () => {
+                card.style.transform = 'scale(1)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'scale(1)';
+            });
+        });
+
+        // Filter chips switching logic
+        const chips = document.querySelectorAll('.rounded-full.cursor-pointer');
+        chips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                chips.forEach(c => {
+                    c.classList.remove('bg-primary-container', 'text-on-primary-container');
+                    c.classList.add('bg-surface-container-high', 'text-on-surface-variant');
+                });
+                chip.classList.add('bg-primary-container', 'text-on-primary-container');
+                chip.classList.remove('bg-surface-container-high', 'text-on-surface-variant');
+            });
+        });
+    </script>
+</body></html>

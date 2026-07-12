@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>البصمة الكربونية - Amana</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .eco-gradient {
+            background: linear-gradient(135deg, #e1e1c9 0%, #ffffff 100%);
+        }
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.8s ease-in-out;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        .floating-leaf {
+            animation: float 4s ease-in-out infinite;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "tertiary-fixed": "#ffd9e0",
+                      "surface-bright": "#f8f9fa",
+                      "primary": "#000666",
+                      "on-primary-fixed": "#000767",
+                      "surface-dim": "#d9dadb",
+                      "surface-container-low": "#f3f4f5",
+                      "on-background": "#191c1d",
+                      "secondary": "#5e604d",
+                      "primary-container": "#1a237e",
+                      "surface-tint": "#4c56af",
+                      "secondary-fixed-dim": "#c8c8b0",
+                      "surface-container-highest": "#e1e3e4",
+                      "surface-container-high": "#e7e8e9",
+                      "on-primary": "#ffffff",
+                      "outline-variant": "#c6c5d4",
+                      "surface-variant": "#e1e3e4",
+                      "on-tertiary-fixed-variant": "#5f3d45",
+                      "surface-container-lowest": "#ffffff",
+                      "tertiary": "#2d131a",
+                      "on-secondary-container": "#636451",
+                      "error": "#ba1a1a",
+                      "on-tertiary-fixed": "#2e131a",
+                      "inverse-surface": "#2e3132",
+                      "on-tertiary-container": "#b78c95",
+                      "on-secondary": "#ffffff",
+                      "primary-fixed-dim": "#bdc2ff",
+                      "error-container": "#ffdad6",
+                      "on-secondary-fixed-variant": "#474836",
+                      "secondary-fixed": "#e4e4cc",
+                      "on-error-container": "#93000a",
+                      "surface": "#f8f9fa",
+                      "primary-fixed": "#e0e0ff",
+                      "on-primary-container": "#8690ee",
+                      "secondary-container": "#e1e1c9",
+                      "inverse-on-surface": "#f0f1f2",
+                      "outline": "#767683",
+                      "on-surface": "#191c1d",
+                      "inverse-primary": "#bdc2ff",
+                      "tertiary-container": "#45272e",
+                      "tertiary-fixed-dim": "#e9bbc4",
+                      "on-surface-variant": "#454652",
+                      "on-secondary-fixed": "#1b1d0e",
+                      "on-primary-fixed-variant": "#343d96",
+                      "surface-container": "#edeeef",
+                      "on-tertiary": "#ffffff",
+                      "on-error": "#ffffff",
+                      "background": "#f8f9fa",
+                      "eco-green": "#2E7D32",
+                      "eco-light": "#E8F5E9"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "md": "16px",
+                      "margin-desktop": "64px",
+                      "xs": "4px",
+                      "lg": "24px",
+                      "gutter": "16px",
+                      "sm": "12px",
+                      "margin-mobile": "20px",
+                      "xl": "40px",
+                      "base": "8px"
+              },
+              "fontFamily": {
+                      "body-md": ["IBM Plex Sans Arabic"],
+                      "display-lg-mobile": ["IBM Plex Sans Arabic"],
+                      "label-sm": ["IBM Plex Sans Arabic"],
+                      "body-lg": ["IBM Plex Sans Arabic"],
+                      "headline-md": ["IBM Plex Sans Arabic"],
+                      "display-lg": ["IBM Plex Sans Arabic"]
+              },
+              "fontSize": {
+                      "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "display-lg-mobile": ["26px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                      "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                      "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface min-h-screen pb-24">
+<!-- Top App Bar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile h-14 bg-surface shadow-sm">
+<button class="w-10 h-10 flex items-center justify-center text-primary transition-colors duration-200 hover:bg-surface-container-high rounded-full">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<h1 class="font-headline-md text-headline-md-mobile text-primary">البصمة الكربونية</h1>
+<button class="w-10 h-10 flex items-center justify-center text-primary transition-colors duration-200 hover:bg-surface-container-high rounded-full">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</header>
+<main class="mt-14 px-margin-mobile py-lg">
+<!-- Hero Impact Card -->
+<section class="eco-gradient rounded-xl p-lg shadow-sm border border-outline-variant mb-lg relative overflow-hidden">
+<div class="relative z-10">
+<p class="font-label-sm text-label-sm text-on-secondary-fixed-variant mb-xs">إجمالي ثاني أكسيد الكربون الذي تم توفيره</p>
+<h2 class="font-display-lg-mobile text-display-lg-mobile text-primary mb-md">124.5 كجم</h2>
+<div class="flex items-center gap-sm bg-white/60 backdrop-blur-sm rounded-full py-xs px-md inline-flex border border-white">
+<span class="material-symbols-outlined text-eco-green" style="font-variation-settings: 'FILL' 1;">eco</span>
+<span class="font-body-md text-body-md text-on-surface">يعادل زراعة 6 أشجار</span>
+</div>
+</div>
+<!-- Decorative Animation -->
+<div class="absolute -left-4 -bottom-4 opacity-10 floating-leaf">
+<span class="material-symbols-outlined text-[120px] text-eco-green">forest</span>
+</div>
+</section>
+<!-- Bento Stats Grid -->
+<div class="grid grid-cols-2 gap-md mb-lg">
+<!-- CO2 Chart Card -->
+<div class="col-span-2 bg-surface-container-lowest p-md rounded-xl border border-outline-variant shadow-sm">
+<div class="flex justify-between items-center mb-md">
+<h3 class="font-headline-md text-headline-md-mobile text-primary">الأداء الأسبوعي</h3>
+<span class="text-eco-green font-label-sm text-label-sm">+12% تحسن</span>
+</div>
+<div class="h-40 flex items-end justify-between gap-xs pt-base">
+<!-- Simple CSS Bar Chart -->
+<div class="flex-1 bg-secondary-container rounded-t-lg h-[40%] relative group">
+<div class="absolute -top-6 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] px-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">١٢</div>
+</div>
+<div class="flex-1 bg-secondary-container rounded-t-lg h-[60%]"></div>
+<div class="flex-1 bg-secondary-container rounded-t-lg h-[45%]"></div>
+<div class="flex-1 bg-secondary-container rounded-t-lg h-[75%]"></div>
+<div class="flex-1 bg-primary rounded-t-lg h-[90%]"></div>
+<div class="flex-1 bg-secondary-container rounded-t-lg h-[55%]"></div>
+<div class="flex-1 bg-secondary-container rounded-t-lg h-[65%]"></div>
+</div>
+<div class="flex justify-between mt-sm font-label-sm text-label-sm text-outline">
+<span>ح</span><span>ن</span><span>ث</span><span>ر</span><span>خ</span><span>ج</span><span>س</span>
+</div>
+</div>
+<!-- Eco Rides -->
+<div class="bg-surface-container-lowest p-md rounded-xl border border-outline-variant shadow-sm flex flex-col justify-center items-center">
+<span class="material-symbols-outlined text-primary mb-xs" style="font-variation-settings: 'FILL' 1;">directions_car</span>
+<span class="font-display-lg-mobile text-display-lg-mobile text-primary">٢٤</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">رحلة مشتركة</span>
+</div>
+<!-- Trees Progress -->
+<div class="bg-surface-container-lowest p-md rounded-xl border border-outline-variant shadow-sm flex flex-col justify-center items-center overflow-hidden">
+<svg class="w-16 h-16">
+<circle class="text-surface-container-highest" cx="32" cy="32" fill="transparent" r="28" stroke="currentColor" stroke-width="4"></circle>
+<circle class="text-eco-green progress-ring__circle" cx="32" cy="32" fill="transparent" r="28" stroke="currentColor" stroke-dasharray="175.9" stroke-dashoffset="43.9" stroke-linecap="round" stroke-width="4"></circle>
+</svg>
+<div class="mt-xs text-center">
+<span class="font-label-sm text-label-sm text-primary block">هدف الشهر</span>
+<span class="font-body-md text-body-md text-eco-green font-bold">٧٥٪</span>
+</div>
+</div>
+</div>
+<!-- Details List -->
+<h3 class="font-headline-md text-headline-md-mobile text-primary mb-md">تفاصيل المساهمة البيئية</h3>
+<div class="space-y-md">
+<!-- Item 1 -->
+<div class="flex items-center gap-md bg-surface-container-low p-md rounded-xl hover:bg-surface-container-high transition-colors cursor-pointer">
+<div class="w-12 h-12 rounded-lg bg-eco-light flex items-center justify-center text-eco-green">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">electric_car</span>
+</div>
+<div class="flex-1">
+<h4 class="font-body-lg text-body-lg text-on-surface font-semibold">رحلات كهربائية</h4>
+<p class="font-body-md text-body-md text-on-surface-variant">تم توفير ٤٥ كجم من CO2</p>
+</div>
+<span class="material-symbols-outlined text-outline">chevron_left</span>
+</div>
+<!-- Item 2 -->
+<div class="flex items-center gap-md bg-surface-container-low p-md rounded-xl hover:bg-surface-container-high transition-colors cursor-pointer">
+<div class="w-12 h-12 rounded-lg bg-secondary-fixed flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">group</span>
+</div>
+<div class="flex-1">
+<h4 class="font-body-lg text-body-lg text-on-surface font-semibold">الركوب المشترك</h4>
+<p class="font-body-md text-body-md text-on-surface-variant">تم توفير ٧٩.٥ كجم من CO2</p>
+</div>
+<span class="material-symbols-outlined text-outline">chevron_left</span>
+</div>
+</div>
+<!-- Call to Action -->
+<div class="mt-xl p-lg rounded-2xl bg-primary text-white relative overflow-hidden">
+<div class="relative z-10">
+<h4 class="font-headline-md text-headline-md-mobile mb-xs">ازرعي شجرة اليوم!</h4>
+<p class="font-body-md text-body-md opacity-80 mb-md">استخدمي النقاط المكتسبة من رحلاتك البيئية للمساهمة في مبادرة "السعودية الخضراء".</p>
+<button class="bg-white text-primary px-lg py-sm rounded-full font-label-sm text-label-sm font-bold shadow-lg transition-transform active:scale-95">استبدال النقاط</button>
+</div>
+<div class="absolute -right-10 top-0 w-40 h-40 bg-white/5 rounded-full blur-3xl"></div>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-3 pb-safe bg-surface-container-lowest shadow-[0_-4px_12px_rgba(26,35,126,0.08)] rounded-t-xl">
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:opacity-80 transition-transform duration-150 active:scale-90" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-sm text-label-sm">الرئيسية</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:opacity-80 transition-transform duration-150 active:scale-90" href="#">
+<span class="material-symbols-outlined">directions_car</span>
+<span class="font-label-sm text-label-sm">رحلاتي</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-5 py-1 scale-95 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<span class="font-label-sm text-label-sm">المخطط الذكي</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:opacity-80 transition-transform duration-150 active:scale-90" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm">الملف الشخصي</span>
+</a>
+</nav>
+<!-- Floating Action Button (Eco-Specific) -->
+<button class="fixed bottom-24 left-margin-mobile bg-eco-green text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center z-40 transition-transform active:scale-90">
+<span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' 1;">add_location_alt</span>
+</button>
+<script>
+        // Micro-interaction for Progress Circle
+        document.addEventListener('DOMContentLoaded', () => {
+            const circle = document.querySelector('.progress-ring__circle');
+            const radius = circle.r.baseVal.value;
+            const circumference = radius * 2 * Math.PI;
+            
+            circle.style.strokeDasharray = `${circumference} ${circumference}`;
+            
+            // Set progress to 75%
+            const offset = circumference - (75 / 100 * circumference);
+            circle.style.strokeDashoffset = offset;
+        });
+    </script>
+</body></html>

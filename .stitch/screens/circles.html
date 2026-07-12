@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>المجموعات المغلقة | أمانة</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed": "#ffd9e0",
+                    "surface-bright": "#f8f9fa",
+                    "primary": "#000666",
+                    "on-primary-fixed": "#000767",
+                    "surface-dim": "#d9dadb",
+                    "surface-container-low": "#f3f4f5",
+                    "on-background": "#191c1d",
+                    "secondary": "#5e604d",
+                    "primary-container": "#1a237e",
+                    "surface-tint": "#4c56af",
+                    "secondary-fixed-dim": "#c8c8b0",
+                    "surface-container-highest": "#e1e3e4",
+                    "surface-container-high": "#e7e8e9",
+                    "on-primary": "#ffffff",
+                    "outline-variant": "#c6c5d4",
+                    "surface-variant": "#e1e3e4",
+                    "on-tertiary-fixed-variant": "#5f3d45",
+                    "surface-container-lowest": "#ffffff",
+                    "tertiary": "#2d131a",
+                    "on-secondary-container": "#636451",
+                    "error": "#ba1a1a",
+                    "on-tertiary-fixed": "#2e131a",
+                    "inverse-surface": "#2e3132",
+                    "on-tertiary-container": "#b78c95",
+                    "on-secondary": "#ffffff",
+                    "primary-fixed-dim": "#bdc2ff",
+                    "error-container": "#ffdad6",
+                    "on-secondary-fixed-variant": "#474836",
+                    "secondary-fixed": "#e4e4cc",
+                    "on-error-container": "#93000a",
+                    "surface": "#f8f9fa",
+                    "primary-fixed": "#e0e0ff",
+                    "on-primary-container": "#8690ee",
+                    "secondary-container": "#e1e1c9",
+                    "inverse-on-surface": "#f0f1f2",
+                    "outline": "#767683",
+                    "on-surface": "#191c1d",
+                    "inverse-primary": "#bdc2ff",
+                    "tertiary-container": "#45272e",
+                    "tertiary-fixed-dim": "#e9bbc4",
+                    "on-surface-variant": "#454652",
+                    "on-secondary-fixed": "#1b1d0e",
+                    "on-primary-fixed-variant": "#343d96",
+                    "surface-container": "#edeeef",
+                    "on-tertiary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "background": "#f8f9fa"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "md": "16px",
+                    "margin-desktop": "64px",
+                    "xs": "4px",
+                    "lg": "24px",
+                    "gutter": "16px",
+                    "sm": "12px",
+                    "margin-mobile": "20px",
+                    "xl": "40px",
+                    "base": "8px"
+            },
+            "fontFamily": {
+                    "body-md": ["IBM Plex Sans Arabic"],
+                    "display-lg-mobile": ["IBM Plex Sans Arabic"],
+                    "label-sm": ["IBM Plex Sans Arabic"],
+                    "body-lg": ["IBM Plex Sans Arabic"],
+                    "headline-md": ["IBM Plex Sans Arabic"],
+                    "display-lg": ["IBM Plex Sans Arabic"]
+            },
+            "fontSize": {
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "display-lg-mobile": ["26px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'IBM Plex Sans Arabic', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .glass-card { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(224, 224, 224, 0.4); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface">
+<!-- Top App Bar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile h-14 bg-surface shadow-sm">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-primary">menu</span>
+</button>
+<h1 class="font-headline-md text-headline-md-mobile text-primary">المجموعات المغلقة</h1>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-primary">notifications</span>
+</button>
+</header>
+<main class="pt-20 pb-32 px-margin-mobile max-w-lg mx-auto">
+<!-- Welcome & Action Bento -->
+<section class="grid grid-cols-2 gap-4 mb-lg">
+<div class="col-span-2 relative overflow-hidden bg-primary-container rounded-xl p-lg text-white shadow-lg">
+<div class="relative z-10">
+<h2 class="font-headline-md text-headline-md-mobile mb-2">أنشئي دائرتك الآمنة</h2>
+<p class="font-body-md text-body-md opacity-90 mb-4">شاركي رحلاتك مع زميلات العمل أو الصديقات بخصوصية تامة.</p>
+<button class="bg-white text-primary px-lg py-2 rounded-full font-label-sm text-label-sm shadow-md flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+                        إنشاء مجموعة جديدة
+                    </button>
+</div>
+
+</div>
+<div class="bg-white border border-outline-variant rounded-xl p-md flex flex-col justify-between hover:border-primary transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-primary text-3xl mb-2 group-hover:scale-110 transition-transform">group_add</span>
+<p class="font-label-sm text-label-sm font-bold text-primary">انضمام بكود</p>
+</div>
+<div class="bg-white border border-outline-variant rounded-xl p-md flex flex-col justify-between hover:border-primary transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-primary text-3xl mb-2 group-hover:scale-110 transition-transform">security</span>
+<p class="font-label-sm text-label-sm font-bold text-primary">إعدادات الخصوصية</p>
+</div>
+</section>
+<!-- Active Groups Section -->
+<section class="mb-lg">
+<div class="flex items-center justify-between mb-md">
+<h3 class="font-headline-md text-headline-md-mobile text-on-surface">مجموعاتك الحالية</h3>
+<span class="text-primary font-label-sm text-label-sm cursor-pointer">عرض الكل</span>
+</div>
+<div class="space-y-4">
+<!-- Group Card 1 -->
+<div class="glass-card rounded-xl p-md shadow-sm relative overflow-hidden">
+<div class="flex items-start justify-between mb-md">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-lg bg-secondary-container flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional, clean group avatar for a Saudi female corporate workplace circle, featuring minimalist geometric patterns in navy blue and gold on a soft beige background, high-end corporate aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-raSRk1ldq7kO0idokAJ-uG924D26HQW7D6582DggxrwYyaegdVNVJlEs1tQhFx1wGPDt8_43C_xs9LGhZGpcd-RFR-dyrsS83JO4GqWK5XYe_i72SdPS15LYvCwiPSlny5x-hPr72C7GTGoawrH7-y1nP724538sIssW-mUl1GmChcIczU601I6IexF6VEt2sHDom26Q2tmJM6pg5k91Oh9CTLJ-imeGxIPJVQaRJCKhb4tbEhhH3UVrePzCHovyc4i5AKZPmrbY"/>
+</div>
+<div>
+<h4 class="font-headline-md text-headline-md-mobile text-primary">زميلات العمل (المقر الرئيسي)</h4>
+<p class="font-body-md text-body-md text-on-surface-variant">12 عضوة • 3 رحلات نشطة</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant">more_vert</span>
+</div>
+<!-- Members List -->
+<div class="flex -space-x-3 space-x-reverse mb-4">
+<div class="w-8 h-8 rounded-full border-2 border-white overflow-hidden bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="Close up portrait of a professional Saudi woman wearing a modern high-end hijab, soft cinematic lighting, neutral office background, highly detailed skin and fabric textures, elegant and trustworthy appearance." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAPzQjW1TPFHtkmgjb2ywGYmAyO0lPrzwYF_DZyJkULOxD4oDNvfk6yuPc32lTK1RUFi-MQg5VmWXnNzuzJB565mOnK34gtZ_Tj6kE1ZONCZNYDbIW8Az6iBfPrutVCyhOg7_dz4VGnVLDU90r_zCD6wq73ZTY-Oy1WJPcmRpVxeVuxZ3LGMWYv4S6niOPw63K0GMiBgcNFNe0IEkrtsH3ywwn_6PbbFRgbHJBIb5hxmR3TabZYTjvQsFFz5LfI99ykdq5LBu4CRiin"/>
+</div>
+<div class="w-8 h-8 rounded-full border-2 border-white overflow-hidden bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="Close up portrait of a young professional Saudi woman in professional attire, minimalist aesthetic, warm soft lighting, high-end digital photography style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuACm0nDwaRIlnTRWSJ5dGrofYy3DU6PxHPG7yD96_h3a51fBqD_JBzoFJEA6YPZu3KJ_C3aiipskSorYVl6bFjhtF6ZjGKyMiJaidKbgVPMP-GfkYnI4q-JjBmTXJ448O_Sg_0gZIQqAH7Y07vtMvcwg5gUargGvhH6mWlnpLgJG7_WijMCuG_Auy9O3hrp-c0AlIERKwhwLMqNEPqeIJPcs6PA6F-iS7lDzBuJR96jPofh0XJDTyh6Vy6si-rTXhP8W0jQgTxrlZcw"/>
+</div>
+<div class="w-8 h-8 rounded-full border-2 border-white overflow-hidden bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="Close up portrait of a mature Saudi professional woman, smiling gently, elegant scarf, soft focus background of a modern workspace, premium lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCba1hyFOPcrzjCWZANXWTuQ8Z-3Fm5UDFCuuy6fy_JPUeU3VActF44SE_-0-65LlC6IOX4ZBhmDXEhUqyrVSBOyHKdzXHtzOedZWBLem28czar_Ort0W7pt-B5vosBFgH7vtTvvFLNNTwjHN9v8zsYfCxlC6GoMYClkPTVVT7g04IY61gAqrxfAxnzw5G0N2FTnPqT_mhLGmhA1kUHHiPL3g2GWHHuE_PDQMzaR0FfMT4oijjSesaeRhLxuo4BSllx0UCFLSxv65Fo"/>
+</div>
+<div class="w-8 h-8 rounded-full bg-primary-fixed text-primary flex items-center justify-center font-label-sm text-label-sm border-2 border-white">
+                            +9
+                        </div>
+</div>
+<!-- Active Ride Indicator -->
+<div class="bg-surface-container-low rounded-lg p-3 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+<span class="font-label-sm text-label-sm text-primary">رحلة جارية الآن</span>
+</div>
+<button class="bg-primary text-white px-4 py-1.5 rounded-full font-label-sm text-label-sm">متابعة الموقع</button>
+</div>
+</div>
+<!-- Group Card 2 -->
+<div class="glass-card rounded-xl p-md shadow-sm opacity-90">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-lg bg-tertiary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-tertiary text-2xl">school</span>
+</div>
+<div>
+<h4 class="font-headline-md text-headline-md-mobile text-on-surface">صديقات الجامعة</h4>
+<p class="font-body-md text-body-md text-on-surface-variant">5 عضوات • لا يوجد رحلات</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant">chevron_left</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Privacy & Trust Section -->
+<section class="bg-surface-variant/30 rounded-xl p-lg border border-dashed border-outline-variant">
+<div class="flex gap-4 items-start">
+<span class="material-symbols-outlined text-primary text-3xl">verified_user</span>
+<div>
+<h5 class="font-headline-md text-headline-md-mobile text-primary mb-1">خصوصيتك أولويتنا</h5>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+                        في المجموعات المغلقة، لا تظهر رحلاتك إلا للمشتركات في المجموعة فقط. جميع بيانات الموقع مشفرة ومؤمنة تماماً.
+                    </p>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 bg-surface-container-lowest shadow-[0_-4px_12px_rgba(26,35,126,0.08)] rounded-t-xl px-4 py-3 pb-safe flex justify-around items-center">
+<a class="flex flex-col items-center justify-center text-on-surface-variant transition-transform active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-sm text-label-sm">الرئيسية</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant transition-transform active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined">directions_car</span>
+<span class="font-label-sm text-label-sm">رحلاتي</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-5 py-1 scale-95 active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined">auto_awesome</span>
+<span class="font-label-sm text-label-sm">المجموعات</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant transition-transform active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm">الملف الشخصي</span>
+</a>
+</nav>
+<!-- Floating Action Button (for Creating/Joining) -->
+<div class="fixed bottom-24 left-6 z-40">
+<button class="w-14 h-14 bg-primary text-white rounded-full shadow-lg flex items-center justify-center active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-3xl">add</span>
+</button>
+</div>
+<script>
+        // Simple Micro-interactions
+        document.querySelectorAll('.glass-card').forEach(card => {
+            card.addEventListener('touchstart', () => {
+                card.style.transform = 'scale(0.98)';
+                card.style.transition = 'transform 0.1s ease';
+            });
+            card.addEventListener('touchend', () => {
+                card.style.transform = 'scale(1)';
+            });
+        });
+    </script>
+</body></html>

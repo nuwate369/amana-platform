@@ -53,3 +53,6 @@ _exporttest/
 
 # MCP config holds an API key — keep local
 .mcp.json
+
+# TypeScript incremental build info
+*.tsbuildinfo

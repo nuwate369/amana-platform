@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>تتبع الرحلة - Amana</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            overflow: hidden; /* Prevent body scroll for app-like feel */
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .map-container {
+            height: 100vh;
+            width: 100vw;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 0;
+        }
+        .bottom-sheet {
+            transition: transform 0.4s cubic-bezier(0.33, 1, 0.68, 1);
+            z-index: 60;
+        }
+        .handle-bar {
+            width: 40px;
+            height: 4px;
+            background-color: #E0E0E0;
+            border-radius: 2px;
+            margin: 8px auto;
+        }
+        /* Custom scrollbar for small areas */
+        .custom-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #e1e3e4;
+            border-radius: 10px;
+        }
+    </style>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed": "#ffd9e0",
+                    "surface-bright": "#f8f9fa",
+                    "primary": "#000666",
+                    "on-primary-fixed": "#000767",
+                    "surface-dim": "#d9dadb",
+                    "surface-container-low": "#f3f4f5",
+                    "on-background": "#191c1d",
+                    "secondary": "#5e604d",
+                    "primary-container": "#1a237e",
+                    "surface-tint": "#4c56af",
+                    "secondary-fixed-dim": "#c8c8b0",
+                    "surface-container-highest": "#e1e3e4",
+                    "surface-container-high": "#e7e8e9",
+                    "on-primary": "#ffffff",
+                    "outline-variant": "#c6c5d4",
+                    "surface-variant": "#e1e3e4",
+                    "on-tertiary-fixed-variant": "#5f3d45",
+                    "surface-container-lowest": "#ffffff",
+                    "tertiary": "#2d131a",
+                    "on-secondary-container": "#636451",
+                    "error": "#ba1a1a",
+                    "on-tertiary-fixed": "#2e131a",
+                    "inverse-surface": "#2e3132",
+                    "on-tertiary-container": "#b78c95",
+                    "on-secondary": "#ffffff",
+                    "primary-fixed-dim": "#bdc2ff",
+                    "error-container": "#ffdad6",
+                    "on-secondary-fixed-variant": "#474836",
+                    "secondary-fixed": "#e4e4cc",
+                    "on-error-container": "#93000a",
+                    "surface": "#f8f9fa",
+                    "primary-fixed": "#e0e0ff",
+                    "on-primary-container": "#8690ee",
+                    "secondary-container": "#e1e1c9",
+                    "inverse-on-surface": "#f0f1f2",
+                    "outline": "#767683",
+                    "on-surface": "#191c1d",
+                    "inverse-primary": "#bdc2ff",
+                    "tertiary-container": "#45272e",
+                    "tertiary-fixed-dim": "#e9bbc4",
+                    "on-surface-variant": "#454652",
+                    "on-secondary-fixed": "#1b1d0e",
+                    "on-primary-fixed-variant": "#343d96",
+                    "surface-container": "#edeeef",
+                    "on-tertiary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "background": "#f8f9fa"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "md": "16px",
+                    "margin-desktop": "64px",
+                    "xs": "4px",
+                    "lg": "24px",
+                    "gutter": "16px",
+                    "sm": "12px",
+                    "margin-mobile": "20px",
+                    "xl": "40px",
+                    "base": "8px"
+            },
+            "fontFamily": {
+                    "body-md": ["IBM Plex Sans Arabic"],
+                    "display-lg-mobile": ["IBM Plex Sans Arabic"],
+                    "label-sm": ["IBM Plex Sans Arabic"],
+                    "body-lg": ["IBM Plex Sans Arabic"],
+                    "headline-md": ["IBM Plex Sans Arabic"],
+                    "display-lg": ["IBM Plex Sans Arabic"]
+            },
+            "fontSize": {
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "display-lg-mobile": ["26px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface">
+<!-- Top App Bar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile h-14 bg-surface/80 backdrop-blur-md">
+<button class="w-10 h-10 flex items-center justify-center rounded-full text-primary hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+<h1 class="font-headline-md text-headline-md-mobile text-primary">تتبع الرحلة</h1>
+<button class="w-10 h-10 flex items-center justify-center rounded-full text-primary hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined">share</span>
+</button>
+</header>
+<!-- Map Background -->
+<main class="map-container overflow-hidden">
+<div class="w-full h-full" data-location="Riyadh, Saudi Arabia" style="">
+<img class="w-full h-full object-cover grayscale-[20%] opacity-80" data-alt="A premium, stylized digital map of Riyadh, Saudi Arabia, featuring clean minimalist aesthetics with soft beige and light navy blue color accents. The map shows elegant, thin street lines and subtle landmark icons. A small, sleek blue car icon with a glowing pulse effect represents the real-time location. The lighting is bright and clear, reflecting a high-end corporate modern design style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBt_jM3ZyDAFLax5nGpPx95lIdtWwOgn0tH9D5Og-TudZOeITOBIBKY6smY5e0woeZqRJULaMQvxx6mHKJwuz-9Aj6I_rv7w-cVm-egoUTw9vBocbTxqONR9hOtjrJj_8aulZgyVfo-R9SaH-Zuo97HKBJRXUHty3RWhmTj9OP-SfUU6wAkAAoXx5eEE9gG6NylLvCWE03XV27fnmjV3l6oOAgPeNMse88vmPHd2vo-kPpeBPI6-8DaRdXm2EnFdILSDNH-yU6KUyZY"/>
+</div>
+<!-- Float Controls on Map -->
+<div class="absolute right-margin-mobile bottom-80 z-20 flex flex-col gap-4">
+<button class="w-12 h-12 bg-surface-container-lowest shadow-lg rounded-full flex items-center justify-center text-primary-container active:scale-95 transition-transform">
+<span class="material-symbols-outlined">my_location</span>
+</button>
+<button class="w-12 h-12 bg-surface-container-lowest shadow-lg rounded-full flex items-center justify-center text-primary-container active:scale-95 transition-transform">
+<span class="material-symbols-outlined">add</span>
+</button>
+<button class="w-12 h-12 bg-surface-container-lowest shadow-lg rounded-full flex items-center justify-center text-primary-container active:scale-95 transition-transform">
+<span class="material-symbols-outlined">remove</span>
+</button>
+</div>
+</main>
+<!-- SOS Button (Floating above sheet) -->
+<button class="fixed left-margin-mobile bottom-72 z-50 bg-error text-on-error flex items-center gap-2 px-6 py-3 rounded-full font-bold shadow-xl active:scale-90 transition-all">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">emergency_home</span>
+<span class="font-label-sm text-label-sm">SOS</span>
+</button>
+<!-- Bottom Sheet Content -->
+<div class="bottom-sheet fixed bottom-0 left-0 w-full bg-surface-container-lowest rounded-t-[32px] shadow-[0_-10px_30px_rgba(0,0,0,0.1)] px-margin-mobile pb-10" id="bottomSheet">
+<!-- Handle -->
+<div class="handle-bar"></div>
+<!-- Trip Status Header -->
+<div class="flex items-center justify-between mb-6 mt-2">
+<div>
+<p class="font-label-sm text-label-sm text-outline mb-1">وقت الوصول المقدر</p>
+<div class="flex items-baseline gap-1">
+<span class="font-display-lg-mobile text-display-lg-mobile text-primary">12</span>
+<span class="font-body-md text-body-md text-primary">دقيقة</span>
+</div>
+</div>
+<div class="text-left">
+<p class="font-label-sm text-label-sm text-outline mb-1">المسافة المتبقية</p>
+<p class="font-headline-md text-headline-md-mobile text-on-surface">4.8 كم</p>
+</div>
+</div>
+<div class="h-[1px] bg-outline-variant w-full mb-6"></div>
+<!-- Driver Profile -->
+<div class="flex items-center justify-between gap-4 mb-8">
+<div class="flex items-center gap-4">
+<div class="relative">
+<div class="w-16 h-16 rounded-2xl overflow-hidden border-2 border-primary/10">
+<img class="w-full h-full object-cover" data-alt="A professional and warm portrait of a Saudi woman driver in her late 20s, wearing a modern, elegant professional attire. She has a friendly, trustworthy expression. The background is a soft, out-of-focus urban setting. The lighting is natural and flattering, maintaining the Amana brand's premium and secure aesthetic with a clean, high-end commercial photography style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBaJ44ff3QuZt1DuZomF3bXRLNbcrMaZJSzv7_I0TxNFQmjl_HunVytXqgF9GjZz7QOfqCcZEjxUnkI6Mf3XXfe4C72fkPEMojTqAnqa3GjIivHeDFl7gZzdGVXagb7PHM_nhsv6j5sjI5863pfiLDFwIbgtf5ThiCcu3ADiddYAj3xYHie1NpvxTqxV1figZ-C56CV54sc4fiiuae_vCjhySUMm6h8iLM0cSkJHMGqGpftL2DsxKUpxs-yBW3TrtlWjxnGidi5iWJs"/>
+</div>
+<div class="absolute -bottom-1 -right-1 bg-secondary-container text-on-secondary-container w-6 h-6 rounded-full flex items-center justify-center border-2 border-white">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md-mobile text-on-surface mb-1">سارة الكاظم</h3>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-amber-500 text-[18px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-label-sm text-label-sm text-on-surface">4.9</span>
+<span class="mx-1 text-outline">•</span>
+<span class="font-label-sm text-label-sm text-outline">Lexus ES 2023</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-high px-3 py-1 rounded-lg border border-outline-variant">
+<p class="font-label-sm text-label-sm text-on-surface-variant text-center leading-tight tracking-widest">أ ب ج ١٢٣٤</p>
+<p class="font-label-sm text-label-sm text-outline text-center text-[10px]">1234 GBA</p>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="grid grid-cols-2 gap-4">
+<button class="flex items-center justify-center gap-3 h-14 bg-primary text-on-primary rounded-xl font-bold active:scale-95 transition-transform">
+<span class="material-symbols-outlined">call</span>
+<span class="font-body-lg text-body-lg">اتصال</span>
+</button>
+<button class="flex items-center justify-center gap-3 h-14 bg-secondary-container text-on-secondary-container rounded-xl font-bold active:scale-95 transition-transform">
+<span class="material-symbols-outlined">chat_bubble</span>
+<span class="font-body-lg text-body-lg">مراسلة</span>
+</button>
+</div>
+<!-- Safe Journey Badge -->
+<div class="mt-6 flex items-center justify-center gap-2 py-3 bg-surface-container-low rounded-full">
+<span class="material-symbols-outlined text-primary text-[20px]" style="font-variation-settings: 'FILL' 1;">security</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">رحلتك مؤمنة بالكامل مع أمانة</span>
+</div>
+</div>
+<!-- Navigation Mock (Hidden Bottom Nav as per 'Task-Focused' rule, but structure maintained for logic) -->
+<!-- Not rendering BottomNavBar here as this is a focused Journey Tracking screen (Task-Focused) -->
+<script>
+        // Simple drag interaction simulator for bottom sheet
+        const sheet = document.getElementById('bottomSheet');
+        let startY = 0;
+        let currentY = 0;
+
+        sheet.addEventListener('touchstart', (e) => {
+            startY = e.touches[0].clientY;
+        });
+
+        sheet.addEventListener('touchmove', (e) => {
+            const touchY = e.touches[0].clientY;
+            const diff = touchY - startY;
+            if (diff > 0) { // Only allow dragging down
+                sheet.style.transform = `translateY(${diff}px)`;
+            }
+        });
+
+        sheet.addEventListener('touchend', (e) => {
+            const touchY = e.changedTouches[0].clientY;
+            const diff = touchY - startY;
+            if (diff > 100) {
+                // In a real app, this would snap to a collapsed state
+                sheet.style.transform = `translateY(70%)`;
+            } else {
+                sheet.style.transform = `translateY(0)`;
+            }
+        });
+
+        // Click interaction for SOS to show visual feedback
+        const sosBtn = document.querySelector('.bg-error');
+        sosBtn.addEventListener('click', () => {
+            const confirm = window.confirm("هل تريد إرسال نداء استغاثة (SOS)؟ سيتم إخطار فريق الأمان وجهات الاتصال الموثوقة فوراً.");
+            if (confirm) {
+                alert("تم إرسال نداء الاستغاثة. المساعدة في الطريق.");
+            }
+        });
+    </script>
+</body></html>

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>الملف الشخصي - أمانة</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(224, 224, 224, 0.5);
+        }
+        .safe-bottom {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed": "#ffd9e0",
+                    "surface-bright": "#f8f9fa",
+                    "primary": "#000666",
+                    "on-primary-fixed": "#000767",
+                    "surface-dim": "#d9dadb",
+                    "surface-container-low": "#f3f4f5",
+                    "on-background": "#191c1d",
+                    "secondary": "#5e604d",
+                    "primary-container": "#1a237e",
+                    "surface-tint": "#4c56af",
+                    "secondary-fixed-dim": "#c8c8b0",
+                    "surface-container-highest": "#e1e3e4",
+                    "surface-container-high": "#e7e8e9",
+                    "on-primary": "#ffffff",
+                    "outline-variant": "#c6c5d4",
+                    "surface-variant": "#e1e3e4",
+                    "on-tertiary-fixed-variant": "#5f3d45",
+                    "surface-container-lowest": "#ffffff",
+                    "tertiary": "#2d131a",
+                    "on-secondary-container": "#636451",
+                    "error": "#ba1a1a",
+                    "on-tertiary-fixed": "#2e131a",
+                    "inverse-surface": "#2e3132",
+                    "on-tertiary-container": "#b78c95",
+                    "on-secondary": "#ffffff",
+                    "primary-fixed-dim": "#bdc2ff",
+                    "error-container": "#ffdad6",
+                    "on-secondary-fixed-variant": "#474836",
+                    "secondary-fixed": "#e4e4cc",
+                    "on-error-container": "#93000a",
+                    "surface": "#f8f9fa",
+                    "primary-fixed": "#e0e0ff",
+                    "on-primary-container": "#8690ee",
+                    "secondary-container": "#e1e1c9",
+                    "inverse-on-surface": "#f0f1f2",
+                    "outline": "#767683",
+                    "on-surface": "#191c1d",
+                    "inverse-primary": "#bdc2ff",
+                    "tertiary-container": "#45272e",
+                    "tertiary-fixed-dim": "#e9bbc4",
+                    "on-surface-variant": "#454652",
+                    "on-secondary-fixed": "#1b1d0e",
+                    "on-primary-fixed-variant": "#343d96",
+                    "surface-container": "#edeeef",
+                    "on-tertiary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "background": "#f8f9fa"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "md": "16px",
+                    "margin-desktop": "64px",
+                    "xs": "4px",
+                    "lg": "24px",
+                    "gutter": "16px",
+                    "sm": "12px",
+                    "margin-mobile": "20px",
+                    "xl": "40px",
+                    "base": "8px"
+            },
+            "fontFamily": {
+                    "body-md": ["IBM Plex Sans Arabic"],
+                    "display-lg-mobile": ["IBM Plex Sans Arabic"],
+                    "label-sm": ["IBM Plex Sans Arabic"],
+                    "body-lg": ["IBM Plex Sans Arabic"],
+                    "headline-md": ["IBM Plex Sans Arabic"],
+                    "display-lg": ["IBM Plex Sans Arabic"]
+            },
+            "fontSize": {
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "display-lg-mobile": ["26px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen pb-32">
+<!-- Top AppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile h-14 bg-surface dark:bg-on-surface shadow-sm">
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-primary dark:text-primary-fixed-dim hover:bg-surface-container-high dark:hover:bg-inverse-surface p-2 rounded-full transition-colors duration-200">
+                menu
+            </button>
+<h1 class="font-headline-md text-headline-md-mobile text-primary dark:text-primary-fixed-dim">أمانة</h1>
+</div>
+<button class="material-symbols-outlined text-primary dark:text-primary-fixed-dim hover:bg-surface-container-high dark:hover:bg-inverse-surface p-2 rounded-full transition-colors duration-200">
+            notifications
+        </button>
+</header>
+<main class="mt-20 px-margin-mobile max-w-2xl mx-auto">
+<!-- Profile Header Section -->
+<div class="flex flex-col items-center mb-lg">
+<div class="relative mb-md">
+<div class="w-28 h-28 rounded-full border-4 border-white shadow-lg overflow-hidden bg-primary-fixed">
+<img class="w-full h-full object-cover" data-alt="A professional and elegant portrait of a Saudi woman wearing a modern, stylish abaya, set against a soft-focus minimalist background with warm, natural lighting. The style is high-end corporate photography, focusing on a sense of trust and empowerment, using a palette of soft beiges and deep navy blues to match the Amana brand identity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB1Oi_Ro-qPTU2Y-yNIs6ZCeEDanJkaBu5Gm8U-yPJvqMlDTSamCpVql6GZ1SUzDPNx4zYsbgvNdHrCS19Q-3Ryblkx_aKHtWgMt3gowlOAn9bWl34MgC-EJNvkQSKTDoZfetJ5fDvB6GaNEToUwYCebBtDvu6E8CqgC-iCAQyLsD2t5qc12DqnV_KBc9-SYFr2ah7EYDuwtGFwEXYIIcYSREFayQjhJ5OJgG7SQRpH_pT4FxOObqPdKH5EFpTTbhNEheKpSJzU1C2j"/>
+</div>
+<button class="absolute bottom-0 right-0 bg-primary text-on-primary p-2 rounded-full shadow-md active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+</div>
+<h2 class="font-headline-md text-headline-md-mobile text-on-surface mb-1">نورة الفيصل</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mb-2">noura.alfaisal@email.com</p>
+<div class="inline-flex items-center gap-1 px-3 py-1 bg-secondary-container text-on-secondary-container rounded-full">
+<span class="material-symbols-outlined text-[14px]">calendar_today</span>
+<span class="font-label-sm text-label-sm">انضم في أكتوبر 2023</span>
+</div>
+</div>
+<!-- Dashboard Stats (High-end Bento Style) -->
+<div class="grid grid-cols-2 gap-md mb-lg">
+<div class="bg-surface-container-lowest p-md rounded-xl shadow-sm border border-outline-variant flex flex-col items-center justify-center">
+<span class="text-primary font-headline-md text-headline-md-mobile">٤٨</span>
+<span class="text-on-surface-variant font-label-sm text-label-sm">رحلة مكتملة</span>
+</div>
+<div class="bg-surface-container-lowest p-md rounded-xl shadow-sm border border-outline-variant flex flex-col items-center justify-center">
+<span class="text-primary font-headline-md text-headline-md-mobile">٤.٩</span>
+<span class="text-on-surface-variant font-label-sm text-label-sm">التقييم</span>
+</div>
+</div>
+<!-- Menu Items -->
+<div class="bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant overflow-hidden mb-lg">
+<h3 class="px-md py-4 font-headline-md text-headline-md-mobile border-b border-outline-variant">الملف الشخصي</h3>
+<nav class="flex flex-col">
+<!-- Edit Profile -->
+<button class="flex items-center justify-between p-md hover:bg-surface-container-low transition-colors duration-200 group">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">person</span>
+</div>
+<span class="font-body-lg text-body-lg text-on-surface">تعديل الملف الشخصي</span>
+</div>
+<span class="material-symbols-outlined text-outline group-hover:translate-x-[-4px] transition-transform">chevron_left</span>
+</button>
+<!-- Payment Methods -->
+<button class="flex items-center justify-between p-md hover:bg-surface-container-low transition-colors duration-200 group border-t border-outline-variant">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<span class="font-body-lg text-body-lg text-on-surface">طرق الدفع</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm text-outline">مدى ****٤٣٢١</span>
+<span class="material-symbols-outlined text-outline group-hover:translate-x-[-4px] transition-transform">chevron_left</span>
+</div>
+</button>
+<!-- Favorite Places -->
+<button class="flex items-center justify-between p-md hover:bg-surface-container-low transition-colors duration-200 group border-t border-outline-variant">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">star</span>
+</div>
+<span class="font-body-lg text-body-lg text-on-surface">الأماكن المفضلة</span>
+</div>
+<span class="material-symbols-outlined text-outline group-hover:translate-x-[-4px] transition-transform">chevron_left</span>
+</button>
+<!-- Emergency Contacts -->
+<button class="flex items-center justify-between p-md hover:bg-surface-container-low transition-colors duration-200 group border-t border-outline-variant">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-error-container flex items-center justify-center text-error">
+<span class="material-symbols-outlined">emergency</span>
+</div>
+<span class="font-body-lg text-body-lg text-on-surface">جهات اتصال الطوارئ</span>
+</div>
+<span class="material-symbols-outlined text-outline group-hover:translate-x-[-4px] transition-transform">chevron_left</span>
+</button>
+</nav>
+</div>
+<!-- Log out button -->
+<button class="w-full py-4 rounded-xl border border-error text-error font-headline-md text-headline-md-mobile flex items-center justify-center gap-2 active:bg-error-container transition-colors">
+<span class="material-symbols-outlined">logout</span>
+            تسجيل الخروج
+        </button>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-3 pb-safe bg-surface-container-lowest dark:bg-surface-dim shadow-[0_-4px_12px_rgba(26,35,126,0.08)] rounded-t-xl">
+<!-- Home -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline scale-95 active:scale-90 transition-transform duration-150 hover:opacity-80" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-sm text-label-sm mt-1">الرئيسية</span>
+</a>
+<!-- My Trips -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline scale-95 active:scale-90 transition-transform duration-150 hover:opacity-80" href="#">
+<span class="material-symbols-outlined">directions_car</span>
+<span class="font-label-sm text-label-sm mt-1">رحلاتي</span>
+</a>
+<!-- Smart Planner -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline scale-95 active:scale-90 transition-transform duration-150 hover:opacity-80" href="#">
+<span class="material-symbols-outlined">auto_awesome</span>
+<span class="font-label-sm text-label-sm mt-1">المخطط الذكي</span>
+</a>
+<!-- Profile (Active) -->
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-5 py-1 scale-95 active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="font-label-sm text-label-sm mt-0.5">الملف الشخصي</span>
+</a>
+</nav>
+<script>
+        // Micro-interactions for menu items
+        document.querySelectorAll('nav button, nav a').forEach(button => {
+            button.addEventListener('touchstart', () => {
+                button.classList.add('scale-95');
+            });
+            button.addEventListener('touchend', () => {
+                button.classList.remove('scale-95');
+            });
+        });
+    </script>
+</body></html>
