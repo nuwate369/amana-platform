@@ -15,6 +15,7 @@
     "@amana/shared-ui": "*",
     "@amana/supabase-client": "*",
     "i18next": "^23.15.1",
+    "lucide-react": "^0.454.0",
     "next": "^15.1.6",
     "next-themes": "^0.4.4",
     "react": "19.0.0",
