@@ -1,22 +1,22 @@
 'use client';
 
-import { Car, Users, Navigation, Wallet, TrendingUp } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Car, Users, Navigation, Wallet } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { getDashboardStats, type DashboardStats } from '@/app/actions/admin';
 
 /**
  * صفحة النظرة العامة — المرجع التصميمي لبقية صفحات اللوحة.
- * هوية أنثراسايت + ذهبي، RTL، دعم الوضع الداكن، بيانات ثابتة (mock).
+ * هوية أنثراسايت + ذهبي، RTL، دعم الوضع الداكن. المؤشرات من بيانات حقيقية (Supabase).
  */
 
 function StatCard({
   label,
   value,
-  delta,
   icon: Icon,
 }: {
   label: string;
   value: string;
-  delta: string;
   icon: LucideIcon;
 }) {
   return (
@@ -25,10 +25,6 @@ function StatCard({
         <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-500/15 text-accent-600 dark:text-accent-400">
           <Icon size={20} />
         </span>
-        <span className="flex items-center gap-1 text-xs font-medium text-emerald-600">
-          <TrendingUp size={14} />
-          {delta}
-        </span>
       </div>
       <p className="mt-4 text-2xl font-bold text-brand-900 dark:text-brand-50">{value}</p>
       <p className="mt-1 text-sm text-brand-500 dark:text-brand-300">{label}</p>
@@ -36,6 +32,7 @@ function StatCard({
   );
 }
 
+// TODO: بيانات حقيقية
 const WEEK = [
   { d: 'السبت', v: 62 },
   { d: 'الأحد', v: 80 },
@@ -46,6 +43,7 @@ const WEEK = [
   { d: 'الجمعة', v: 48 },
 ];
 
+// TODO: بيانات حقيقية
 const RECENT = [
   { id: '#1042', passenger: 'نورة الأحمد', driver: 'سارة العتيبي', status: 'مكتملة', amount: '84.50' },
   { id: '#1041', passenger: 'ريم القحطاني', driver: 'هند الدوسري', status: 'جارية', amount: '—' },
@@ -67,6 +65,31 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default function DashboardPage() {
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const data = await getDashboardStats();
+        if (alive) setStats(data);
+      } finally {
+        if (alive) setLoading(false);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const dash = '…';
+  const totalRides = loading || !stats ? dash : stats.totalRides.toLocaleString('ar-SA');
+  const activeDrivers = loading || !stats ? dash : stats.activeDrivers.toLocaleString('ar-SA');
+  const passengers = loading || !stats ? dash : stats.passengers.toLocaleString('ar-SA');
+  const revenue = loading || !stats ? dash : `${stats.revenue.toLocaleString('ar-SA')} ﷼`;
+  const pendingKyc = loading || !stats ? dash : stats.pendingKyc.toLocaleString('ar-SA');
+
   return (
     <div className="space-y-6">
       <div>
@@ -76,14 +99,15 @@ export default function DashboardPage() {
 
       {/* بطاقات المؤشرات */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="رحلات اليوم" value="٣٤٨" delta="+12%" icon={Navigation} />
-        <StatCard label="السائقات النشطات" value="٤٢" delta="+5%" icon={Car} />
-        <StatCard label="الراكبات" value="١٬٢٦٠" delta="+8%" icon={Users} />
-        <StatCard label="إيرادات اليوم" value="١٨٬٤٥٠ ﷼" delta="+15%" icon={Wallet} />
+        <StatCard label="الرحلات" value={totalRides} icon={Navigation} />
+        <StatCard label="السائقات النشطات" value={activeDrivers} icon={Car} />
+        <StatCard label="الراكبات" value={passengers} icon={Users} />
+        <StatCard label="الإيرادات" value={revenue} icon={Wallet} />
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* رسم الرحلات الأسبوعي */}
+        {/* TODO: بيانات حقيقية */}
         <div className="rounded-xl border border-brand-200 bg-white p-5 lg:col-span-2 dark:border-brand-700 dark:bg-brand-800">
           <h2 className="mb-4 font-semibold text-brand-800 dark:text-brand-100">الرحلات هذا الأسبوع</h2>
           <div className="flex h-48 items-end justify-between gap-2">
@@ -107,8 +131,9 @@ export default function DashboardPage() {
           <ul className="space-y-3 text-sm">
             <li className="flex justify-between">
               <span className="text-brand-500 dark:text-brand-300">طلبات KYC معلّقة</span>
-              <span className="font-semibold text-accent-600 dark:text-accent-400">٧</span>
+              <span className="font-semibold text-accent-600 dark:text-accent-400">{pendingKyc}</span>
             </li>
+            {/* TODO: بيانات حقيقية */}
             <li className="flex justify-between">
               <span className="text-brand-500 dark:text-brand-300">بلاغات طوارئ اليوم</span>
               <span className="font-semibold text-brand-900 dark:text-brand-50">٠</span>
@@ -126,6 +151,7 @@ export default function DashboardPage() {
       </div>
 
       {/* آخر الرحلات */}
+      {/* TODO: بيانات حقيقية */}
       <div className="overflow-hidden rounded-xl border border-brand-200 bg-white dark:border-brand-700 dark:bg-brand-800">
         <div className="border-b border-brand-200 px-5 py-4 dark:border-brand-700">
           <h2 className="font-semibold text-brand-800 dark:text-brand-100">آخر الرحلات</h2>

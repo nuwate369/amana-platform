@@ -1,18 +1,12 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { UserPlus, Shield, Eye, BarChart3 } from 'lucide-react';
+import { listAdmins, type ProfileRow } from '@/app/actions/admin';
 
 /**
- * صفحة المستخدمون والصلاحيات — بيانات ثابتة (mock)، هوية أنثراسايت + ذهبي، RTL، دعم الوضع الداكن.
+ * صفحة المستخدمون والصلاحيات — بيانات حقيقية (Supabase)، هوية أنثراسايت + ذهبي، RTL، دعم الوضع الداكن.
  */
-
-const MEMBERS = [
-  { id: 1, name: 'أحمد الطيّاح', email: 'ahmed@amana.sa', role: 'مدير', last: 'قبل ٥ دقائق' },
-  { id: 2, name: 'فاطمة العلي', email: 'fatima@amana.sa', role: 'مشرف', last: 'قبل ساعة' },
-  { id: 3, name: 'خالد الرشيد', email: 'khalid@amana.sa', role: 'مشرف', last: 'اليوم ٩:٤٠ ص' },
-  { id: 4, name: 'سلمى الناصر', email: 'salma@amana.sa', role: 'محلل', last: 'أمس' },
-  { id: 5, name: 'يوسف الحمد', email: 'yousef@amana.sa', role: 'محلل', last: 'قبل ٣ أيام' },
-];
 
 function RoleBadge({ role }: { role: string }) {
   const map: Record<string, string> = {
@@ -46,6 +40,24 @@ const LEGEND = [
 ];
 
 export default function UsersPage() {
+  const [members, setMembers] = useState<ProfileRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const data = await listAdmins();
+        if (alive) setMembers(data);
+      } finally {
+        if (alive) setLoading(false);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -68,22 +80,42 @@ export default function UsersPage() {
             <thead className="bg-brand-50 text-brand-500 dark:bg-brand-900/50 dark:text-brand-300">
               <tr>
                 <th className="px-5 py-3 font-medium">الاسم</th>
-                <th className="px-5 py-3 font-medium">البريد</th>
+                <th className="px-5 py-3 font-medium">الجوال</th>
                 <th className="px-5 py-3 font-medium">الدور</th>
-                <th className="px-5 py-3 font-medium">آخر دخول</th>
+                <th className="px-5 py-3 font-medium">تاريخ الإضافة</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-brand-100 dark:divide-brand-700">
-              {MEMBERS.map((m) => (
-                <tr key={m.id} className="text-brand-700 dark:text-brand-200">
-                  <td className="px-5 py-3 font-medium text-brand-900 dark:text-brand-50">{m.name}</td>
-                  <td className="px-5 py-3 font-mono text-brand-500 dark:text-brand-300">{m.email}</td>
-                  <td className="px-5 py-3">
-                    <RoleBadge role={m.role} />
+              {loading ? (
+                <tr>
+                  <td colSpan={4} className="px-5 py-8 text-center text-brand-500 dark:text-brand-300">
+                    جارٍ التحميل…
                   </td>
-                  <td className="px-5 py-3 text-brand-500 dark:text-brand-300">{m.last}</td>
                 </tr>
-              ))}
+              ) : members.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-5 py-8 text-center text-brand-500 dark:text-brand-300">
+                    لا يوجد مستخدمون بعد
+                  </td>
+                </tr>
+              ) : (
+                members.map((m) => (
+                  <tr key={m.id} className="text-brand-700 dark:text-brand-200">
+                    <td className="px-5 py-3 font-medium text-brand-900 dark:text-brand-50">
+                      {m.fullName ?? '—'}
+                    </td>
+                    <td className="px-5 py-3 font-mono text-brand-500 dark:text-brand-300">
+                      {m.phone ?? '—'}
+                    </td>
+                    <td className="px-5 py-3">
+                      <RoleBadge role="مدير" />
+                    </td>
+                    <td className="px-5 py-3 text-brand-500 dark:text-brand-300">
+                      {new Date(m.createdAt).toLocaleDateString('ar-SA')}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

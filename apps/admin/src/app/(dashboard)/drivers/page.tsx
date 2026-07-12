@@ -1,23 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Car, FileText, Image as ImageIcon, Check, X, ShieldCheck, Star } from 'lucide-react';
+import { listDrivers, type DriverRow } from '@/app/actions/admin';
 
 /**
- * صفحة إدارة السائقات — بيانات ثابتة (mock)، هوية أنثراسايت + ذهبي، RTL، دعم الوضع الداكن.
+ * صفحة إدارة السائقات — بيانات حقيقية (Supabase)، هوية أنثراسايت + ذهبي، RTL، دعم الوضع الداكن.
  */
 
 const FILTERS = ['الكل', 'نشطة', 'قيد المراجعة', 'موقوفة'] as const;
 type Filter = (typeof FILTERS)[number];
 
-const DRIVERS = [
-  { id: 1, name: 'سارة العتيبي', phone: '٠٥٥١٢٣٤٥٦٧', car: 'تويوتا كامري ٢٠٢٢', rating: '٤.٩', status: 'نشطة' },
-  { id: 2, name: 'هند الدوسري', phone: '٠٥٤٩٨٧٦٥٤٣', car: 'هيونداي إلنترا ٢٠٢٣', rating: '٤.٨', status: 'نشطة' },
-  { id: 3, name: 'عبير الشمري', phone: '٠٥٠٤٤٥٥٦٦٧', car: 'كيا سيراتو ٢٠٢١', rating: '٤.٧', status: 'قيد المراجعة' },
-  { id: 4, name: 'منى الزهراني', phone: '٠٥٦٧٧٨٨٩٩٠', car: 'نيسان صني ٢٠٢٢', rating: '—', status: 'قيد المراجعة' },
-  { id: 5, name: 'لمياء الحربي', phone: '٠٥٣٢٢١١٠٠٩', car: 'تويوتا كورولا ٢٠٢٣', rating: '٤.٦', status: 'موقوفة' },
-  { id: 6, name: 'ريما القحطاني', phone: '٠٥٩٠٠١١٢٢٣', car: 'هوندا سيفيك ٢٠٢٢', rating: '٤.٩', status: 'نشطة' },
-];
+const STATUS_LABELS: Record<string, string> = {
+  approved: 'نشطة',
+  pending: 'قيد المراجعة',
+  rejected: 'موقوفة',
+};
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
@@ -34,8 +32,28 @@ function StatusBadge({ status }: { status: string }) {
 
 export default function DriversPage() {
   const [active, setActive] = useState<Filter>('الكل');
+  const [drivers, setDrivers] = useState<DriverRow[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const rows = active === 'الكل' ? DRIVERS : DRIVERS.filter((d) => d.status === active);
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const data = await listDrivers();
+        if (alive) setDrivers(data);
+      } finally {
+        if (alive) setLoading(false);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const rows =
+    active === 'الكل'
+      ? drivers
+      : drivers.filter((d) => STATUS_LABELS[d.status] === active);
 
   return (
     <div className="space-y-6">
@@ -47,6 +65,7 @@ export default function DriversPage() {
       </div>
 
       {/* بطاقة طلبات KYC معلّقة */}
+      {/* TODO: بيانات حقيقية */}
       <div className="rounded-xl border border-brand-200 bg-white p-5 dark:border-brand-700 dark:bg-brand-800">
         <div className="mb-4 flex items-center gap-2">
           <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-500/15 text-accent-600 dark:text-accent-400">
@@ -125,40 +144,61 @@ export default function DriversPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-brand-100 dark:divide-brand-700">
-              {rows.map((d) => (
-                <tr key={d.id} className="text-brand-700 dark:text-brand-200">
-                  <td className="px-5 py-3">
-                    <div className="flex items-center gap-2">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-brand-500 dark:bg-brand-700 dark:text-brand-300">
-                        <Car size={15} />
-                      </span>
-                      <span className="font-medium text-brand-900 dark:text-brand-50">{d.name}</span>
-                    </div>
-                  </td>
-                  <td className="px-5 py-3 font-mono text-brand-500 dark:text-brand-300">{d.phone}</td>
-                  <td className="px-5 py-3">{d.car}</td>
-                  <td className="px-5 py-3">
-                    <span className="inline-flex items-center gap-1">
-                      <Star size={14} className="text-accent-500" />
-                      {d.rating}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3">
-                    <StatusBadge status={d.status} />
-                  </td>
-                  <td className="px-5 py-3">
-                    {d.status === 'قيد المراجعة' ? (
-                      <button className="rounded-lg bg-accent-500 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-accent-600">
-                        مراجعة KYC
-                      </button>
-                    ) : (
-                      <button className="rounded-lg border border-brand-200 px-3 py-1.5 text-xs font-medium text-brand-600 transition-colors hover:bg-brand-50 dark:border-brand-700 dark:text-brand-300 dark:hover:bg-brand-700">
-                        عرض
-                      </button>
-                    )}
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="px-5 py-8 text-center text-brand-500 dark:text-brand-300">
+                    جارٍ التحميل…
                   </td>
                 </tr>
-              ))}
+              ) : rows.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-5 py-8 text-center text-brand-500 dark:text-brand-300">
+                    لا توجد بيانات
+                  </td>
+                </tr>
+              ) : (
+                rows.map((d) => {
+                  const label = STATUS_LABELS[d.status] ?? d.status;
+                  return (
+                    <tr key={d.id} className="text-brand-700 dark:text-brand-200">
+                      <td className="px-5 py-3">
+                        <div className="flex items-center gap-2">
+                          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-brand-500 dark:bg-brand-700 dark:text-brand-300">
+                            <Car size={15} />
+                          </span>
+                          <span className="font-medium text-brand-900 dark:text-brand-50">
+                            {d.fullName ?? '—'}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-5 py-3 font-mono text-brand-500 dark:text-brand-300">
+                        {d.phone ?? '—'}
+                      </td>
+                      <td className="px-5 py-3">{d.vehicle}</td>
+                      <td className="px-5 py-3">
+                        <span className="inline-flex items-center gap-1">
+                          <Star size={14} className="text-accent-500" />
+                          —
+                        </span>
+                      </td>
+                      <td className="px-5 py-3">
+                        <StatusBadge status={label} />
+                      </td>
+                      <td className="px-5 py-3">
+                        {label === 'قيد المراجعة' ? (
+                          <button className="rounded-lg bg-accent-500 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-accent-600">
+                            مراجعة KYC
+                          </button>
+                        ) : (
+                          <button className="rounded-lg border border-brand-200 px-3 py-1.5 text-xs font-medium text-brand-600 transition-colors hover:bg-brand-50 dark:border-brand-700 dark:text-brand-300 dark:hover:bg-brand-700">
+                            عرض
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>
