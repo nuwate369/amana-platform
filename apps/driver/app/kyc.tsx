@@ -182,12 +182,13 @@ export default function KycScreen() {
 
         {/* زر الإرسال */}
         <View className="mt-8">
-          <View className="h-14 flex-row items-center justify-center gap-4 rounded-xl bg-neutral-300 dark:bg-neutral-700">
-            <Text className="font-plex-semibold text-xl text-neutral-500 dark:text-neutral-400">
-              إرسال للتدقيق
-            </Text>
-            <MaterialIcons name="send" size={22} color="#9ca3af" />
-          </View>
+          <Pressable
+            onPress={() => router.push('/pending')}
+            className="h-14 flex-row items-center justify-center gap-4 rounded-xl bg-brand-700 active:scale-[0.98] dark:bg-brand-600"
+          >
+            <Text className="font-plex-semibold text-xl text-white">إرسال للتدقيق</Text>
+            <MaterialIcons name="send" size={22} color="#ffffff" />
+          </Pressable>
           <Text className="mt-4 px-6 text-center font-plex text-xs leading-5 text-neutral-500 dark:text-neutral-400">
             بضغطك على إرسال، أنت توافق على معالجة بياناتك وفقاً لسياسة الخصوصية الخاصة بأمانة.
           </Text>

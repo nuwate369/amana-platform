@@ -23,7 +23,18 @@ function RootNavigator() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" />
       <Stack.Screen name="(auth)" />
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="request-ride" />
+      <Stack.Screen name="matching" />
+      <Stack.Screen name="tracking" />
+      <Stack.Screen name="rating" />
       <Stack.Screen name="payment" />
+      <Stack.Screen name="ai-planner" />
+      <Stack.Screen name="circles" />
+      <Stack.Screen name="carbon" />
+      <Stack.Screen name="settings" />
+      <Stack.Screen name="onboarding" />
+      <Stack.Screen name="splash" />
     </Stack>
   );
 }

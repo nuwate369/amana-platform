@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import { Image, Pressable, ScrollView, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { passengerPurple } from '@amana/shared-ui/tokens';
+import { supabase } from '@/lib/supabase';
 
 /**
  * شاشة «الإعدادات» — تحويل مطابق لتصميم Stitch
@@ -157,7 +158,10 @@ export default function SettingsScreen() {
 
         {/* إجراءات حسّاسة */}
         <View className="mb-6 gap-4 pt-2">
-          <Pressable className="h-14 flex-row items-center justify-center gap-3 rounded-xl bg-brand-50 active:opacity-90 dark:bg-brand-900/40">
+          <Pressable
+            onPress={() => supabase.auth.signOut()}
+            className="h-14 flex-row items-center justify-center gap-3 rounded-xl bg-brand-50 active:opacity-90 dark:bg-brand-900/40"
+          >
             <MaterialIcons name="logout" size={22} color={passengerPurple[700]} />
             <Text className="font-plex-medium text-base text-brand-700 dark:text-brand-200">
               تسجيل الخروج

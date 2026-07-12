@@ -1,7 +1,9 @@
 import { MaterialIcons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { passengerPurple } from '@amana/shared-ui/tokens';
+import { supabase } from '@/lib/supabase';
 
 /**
  * شاشة «الملف الشخصي» — تحويل مطابق لتصميم Stitch
@@ -16,14 +18,19 @@ function MenuItem({
   label,
   trailing,
   danger,
+  onPress,
 }: {
   icon: keyof typeof MaterialIcons.glyphMap;
   label: string;
   trailing?: string;
   danger?: boolean;
+  onPress?: () => void;
 }) {
   return (
-    <Pressable className="flex-row items-center justify-between border-t border-neutral-100 p-4 first:border-t-0 active:bg-neutral-50 dark:border-neutral-700 dark:active:bg-neutral-700/40">
+    <Pressable
+      onPress={onPress}
+      className="flex-row items-center justify-between border-t border-neutral-100 p-4 first:border-t-0 active:bg-neutral-50 dark:border-neutral-700 dark:active:bg-neutral-700/40"
+    >
       <View className="flex-row items-center gap-4">
         <View
           className={`h-10 w-10 items-center justify-center rounded-full ${
@@ -44,32 +51,6 @@ function MenuItem({
         ) : null}
         <MaterialIcons name="chevron-left" size={22} color="#9ca3af" />
       </View>
-    </Pressable>
-  );
-}
-
-// عنصر في شريط التنقّل السفلي.
-function TabItem({
-  icon,
-  label,
-  active,
-}: {
-  icon: keyof typeof MaterialIcons.glyphMap;
-  label: string;
-  active?: boolean;
-}) {
-  if (active) {
-    return (
-      <View className="flex-row items-center gap-1.5 rounded-full bg-brand-600 px-5 py-1.5">
-        <MaterialIcons name={icon} size={22} color="#ffffff" />
-        <Text className="font-plex-medium text-xs text-white">{label}</Text>
-      </View>
-    );
-  }
-  return (
-    <Pressable className="items-center justify-center active:opacity-70">
-      <MaterialIcons name={icon} size={24} color="#9ca3af" />
-      <Text className="mt-1 font-plex-medium text-xs text-neutral-400">{label}</Text>
     </Pressable>
   );
 }
@@ -147,25 +128,26 @@ export default function ProfileScreen() {
             الملف الشخصي
           </Text>
           <MenuItem icon="person" label="تعديل الملف الشخصي" />
-          <MenuItem icon="payments" label="طرق الدفع" trailing="مدى ****٤٣٢١" />
+          <MenuItem
+            icon="payments"
+            label="طرق الدفع"
+            trailing="مدى ****٤٣٢١"
+            onPress={() => router.push('/payment')}
+          />
+          <MenuItem icon="settings" label="الإعدادات" onPress={() => router.push('/settings')} />
           <MenuItem icon="star" label="الأماكن المفضلة" />
           <MenuItem icon="contact-phone" label="جهات اتصال الطوارئ" danger />
         </View>
 
         {/* زر تسجيل الخروج */}
-        <Pressable className="h-14 flex-row items-center justify-center gap-2 rounded-xl border border-red-500 active:bg-red-50 dark:active:bg-red-900/20">
+        <Pressable
+          onPress={() => supabase.auth.signOut()}
+          className="h-14 flex-row items-center justify-center gap-2 rounded-xl border border-red-500 active:bg-red-50 dark:active:bg-red-900/20"
+        >
           <MaterialIcons name="logout" size={22} color="#dc2626" />
           <Text className="font-plex-semibold text-xl text-red-600">تسجيل الخروج</Text>
         </Pressable>
       </ScrollView>
-
-      {/* شريط التنقّل السفلي */}
-      <View className="absolute bottom-0 left-0 right-0 flex-row items-center justify-around rounded-t-xl bg-white px-4 pb-8 pt-3 shadow-lg dark:bg-neutral-800">
-        <TabItem icon="home" label="الرئيسية" />
-        <TabItem icon="directions-car" label="رحلاتي" />
-        <TabItem icon="auto-awesome" label="المخطط الذكي" />
-        <TabItem icon="person" label="الملف الشخصي" active />
-      </View>
     </SafeAreaView>
   );
 }

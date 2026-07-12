@@ -139,7 +139,10 @@ export default function RatingScreen() {
 
       {/* شريط الإجراء الثابت أسفل الشاشة */}
       <View className="absolute bottom-0 left-0 right-0 rounded-t-xl bg-white px-5 pb-8 pt-4 dark:bg-neutral-800">
-        <Pressable className="h-14 flex-row items-center justify-center gap-2 rounded-xl bg-brand-600 active:scale-[0.98]">
+        <Pressable
+          onPress={() => router.push('/payment')}
+          className="h-14 flex-row items-center justify-center gap-2 rounded-xl bg-brand-600 active:scale-[0.98]"
+        >
           <Text className="font-plex-semibold text-xl text-white">إرسال التقييم</Text>
           <MaterialIcons name="send" size={22} color="#ffffff" />
         </Pressable>

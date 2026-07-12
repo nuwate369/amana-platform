@@ -24,7 +24,10 @@ function QuickDestination({
   time: string;
 }) {
   return (
-    <View className="min-w-[150px] flex-row items-center gap-3 rounded-xl border border-neutral-200/60 bg-white/90 p-3 dark:border-neutral-700 dark:bg-neutral-800/90">
+    <Pressable
+      onPress={() => router.push('/request-ride')}
+      className="min-w-[150px] flex-row items-center gap-3 rounded-xl border border-neutral-200/60 bg-white/90 p-3 active:scale-[0.99] dark:border-neutral-700 dark:bg-neutral-800/90"
+    >
       <View className="rounded-lg bg-neutral-100 p-2 dark:bg-neutral-700">
         <MaterialIcons name={icon} size={20} color={passengerPurple[600]} />
       </View>
@@ -32,33 +35,7 @@ function QuickDestination({
         <Text className="font-plex-medium text-xs text-neutral-900 dark:text-neutral-100">{label}</Text>
         <Text className="font-plex text-[10px] text-neutral-500 dark:text-neutral-400">{time}</Text>
       </View>
-    </View>
-  );
-}
-
-// عنصر في شريط التنقل السفلي.
-function NavItem({
-  icon,
-  label,
-  active = false,
-}: {
-  icon: keyof typeof MaterialIcons.glyphMap;
-  label: string;
-  active?: boolean;
-}) {
-  if (active) {
-    return (
-      <View className="flex-row items-center gap-2 rounded-full bg-brand-100 px-5 py-2 dark:bg-brand-900/50">
-        <MaterialIcons name={icon} size={22} color={passengerPurple[700]} />
-        <Text className="font-plex-medium text-xs text-brand-700 dark:text-brand-200">{label}</Text>
-      </View>
-    );
-  }
-  return (
-    <View className="items-center justify-center">
-      <MaterialIcons name={icon} size={22} color="#9ca3af" />
-      <Text className="mt-0.5 font-plex text-xs text-neutral-400">{label}</Text>
-    </View>
+    </Pressable>
   );
 }
 
@@ -141,7 +118,7 @@ export default function HomeScreen() {
             </View>
             <View className="mt-4 flex-row justify-end">
               <Pressable
-                onPress={() => router.push('/request-ride')}
+                onPress={() => router.push('/ai-planner')}
                 className="flex-row items-center gap-2 rounded-full bg-brand-600 px-6 py-2 shadow-md active:scale-[0.98]"
               >
                 <Text className="font-plex-medium text-xs text-white">احجز الآن</Text>
@@ -160,14 +137,6 @@ export default function HomeScreen() {
             <QuickDestination icon="favorite" label="النادي الرياضي" time="٢٥ دقيقة" />
           </ScrollView>
         </View>
-      </View>
-
-      {/* شريط التنقل السفلي الثابت */}
-      <View className="flex-row items-center justify-around rounded-t-xl bg-white px-4 pb-6 pt-3 dark:bg-neutral-800">
-        <NavItem icon="home" label="الرئيسية" active />
-        <NavItem icon="directions-car" label="رحلاتي" />
-        <NavItem icon="auto-awesome" label="المخطط الذكي" />
-        <NavItem icon="person" label="الملف الشخصي" />
       </View>
     </SafeAreaView>
   );

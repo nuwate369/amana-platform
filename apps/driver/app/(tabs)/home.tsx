@@ -10,37 +10,6 @@ import { driverNavy } from '@amana/shared-ui/tokens';
  * خريطة (Placeholder)، مفتاح متصل/غير متصل، بطاقات الأرباح، وبطاقة طلب واردة.
  * لوحة التطبيق: الأزرق الداكن (Navy). البيانات ثابتة (mock) — بلا منطق أعمال.
  */
-
-// عنصر التنقل السفلي.
-function NavItem({
-  icon,
-  label,
-  active,
-}: {
-  icon: keyof typeof MaterialIcons.glyphMap;
-  label: string;
-  active?: boolean;
-}) {
-  return (
-    <Pressable className="items-center justify-center px-4 py-1">
-      <MaterialIcons
-        name={icon}
-        size={24}
-        color={active ? driverNavy[700] : '#9ca3af'}
-      />
-      <Text
-        className={
-          active
-            ? 'font-plex-bold text-xs text-brand-700 dark:text-brand-300'
-            : 'font-plex text-xs text-neutral-400'
-        }
-      >
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
-
 export default function HomeScreen() {
   const [online, setOnline] = useState(false);
 
@@ -216,16 +185,6 @@ export default function HomeScreen() {
               </Text>
             </Pressable>
           </View>
-        </View>
-      )}
-
-      {/* شريط التنقل السفلي */}
-      {!online && (
-        <View className="flex-row-reverse items-center justify-around rounded-t-xl border-t border-neutral-200 bg-white px-4 py-2 pb-6 dark:border-neutral-800 dark:bg-neutral-800">
-          <NavItem icon="home" label="الرئيسية" active />
-          <NavItem icon="payments" label="الأرباح" />
-          <NavItem icon="history" label="الرحلات" />
-          <NavItem icon="person" label="الملف" />
         </View>
       )}
     </SafeAreaView>

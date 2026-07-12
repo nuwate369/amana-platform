@@ -1,5 +1,6 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { passengerPurple } from '@amana/shared-ui/tokens';
@@ -58,8 +59,11 @@ export default function CarbonScreen() {
     <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-900" edges={['top']}>
       {/* الشريط العلوي */}
       <View className="h-14 flex-row items-center justify-between px-5">
-        <Pressable className="h-10 w-10 items-center justify-center rounded-full active:bg-neutral-200 dark:active:bg-neutral-800">
-          <MaterialIcons name="menu" size={24} color={passengerPurple[700]} />
+        <Pressable
+          onPress={() => router.back()}
+          className="h-10 w-10 items-center justify-center rounded-full active:bg-neutral-200 dark:active:bg-neutral-800"
+        >
+          <MaterialIcons name="arrow-forward" size={24} color={passengerPurple[700]} />
         </Pressable>
         <Text className="font-plex-semibold text-xl text-brand-700 dark:text-brand-200">
           البصمة الكربونية

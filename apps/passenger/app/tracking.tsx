@@ -140,6 +140,17 @@ export default function TrackingScreen() {
           </Pressable>
         </View>
 
+        {/* زر إنهاء الرحلة (الوصول) */}
+        <Pressable
+          onPress={() => router.replace('/rating')}
+          className="mt-4 h-14 flex-row items-center justify-center gap-2 rounded-xl border border-brand-600 active:scale-95 active:bg-brand-50 dark:active:bg-brand-900/20"
+        >
+          <MaterialIcons name="flag" size={22} color={passengerPurple[700]} />
+          <Text className="font-plex-semibold text-base text-brand-700 dark:text-brand-200">
+            وصلت إلى وجهتي
+          </Text>
+        </Pressable>
+
         {/* شارة الرحلة المؤمّنة */}
         <View className="mt-6 flex-row items-center justify-center gap-2 rounded-full bg-neutral-100 py-3 dark:bg-neutral-700/50">
           <MaterialIcons name="security" size={20} color={passengerPurple[600]} />

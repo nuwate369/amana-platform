@@ -1,8 +1,10 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { driverNavy } from '@amana/shared-ui/tokens';
+import { supabase } from '@/lib/supabase';
 
 /**
  * شاشة «الملف الشخصي» للسائق — تحويل مطابق لتصميم Stitch
@@ -36,12 +38,17 @@ function StatCard({
 function ActionRow({
   icon,
   label,
+  onPress,
 }: {
   icon: keyof typeof MaterialIcons.glyphMap;
   label: string;
+  onPress?: () => void;
 }) {
   return (
-    <Pressable className="mb-2 flex-row items-center justify-between rounded-xl border border-neutral-200 bg-white p-4 active:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800 dark:active:bg-neutral-700">
+    <Pressable
+      onPress={onPress}
+      className="mb-2 flex-row items-center justify-between rounded-xl border border-neutral-200 bg-white p-4 active:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800 dark:active:bg-neutral-700"
+    >
       <View className="flex-row items-center gap-3">
         <MaterialIcons name={icon} size={24} color={driverNavy[600]} />
         <Text className="font-plex text-base text-neutral-900 dark:text-neutral-50">{label}</Text>
@@ -153,12 +160,22 @@ export default function ProfileScreen() {
         <View>
           <ActionRow icon="history" label="سجل الرحلات" />
           <ActionRow icon="account-balance-wallet" label="المحفظة والأرباح" />
+          <ActionRow
+            icon="description"
+            label="الوثائق"
+            onPress={() => router.push('/documents')}
+          />
           <ActionRow icon="settings" label="إعدادات الحساب" />
         </View>
 
         {/* تسجيل الخروج */}
         <View className="mt-8">
-          <Pressable className="h-14 flex-row items-center justify-center gap-2 rounded-xl border border-red-200 active:bg-red-50 dark:border-red-900/40 dark:active:bg-red-900/20">
+          <Pressable
+            onPress={async () => {
+              await supabase.auth.signOut();
+            }}
+            className="h-14 flex-row items-center justify-center gap-2 rounded-xl border border-red-200 active:bg-red-50 dark:border-red-900/40 dark:active:bg-red-900/20"
+          >
             <MaterialIcons name="logout" size={22} color="#dc2626" />
             <Text className="font-plex-semibold text-xl text-red-600">تسجيل الخروج</Text>
           </Pressable>

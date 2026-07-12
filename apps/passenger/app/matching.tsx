@@ -54,6 +54,12 @@ function DetailPill({ icon, label }: { icon: keyof typeof MaterialIcons.glyphMap
 }
 
 export default function MatchingScreen() {
+  // محاكاة العثور على سائقة بعد ثلاث ثوانٍ ثم الانتقال إلى شاشة التتبّع.
+  useEffect(() => {
+    const timer = setTimeout(() => router.replace('/tracking'), 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-900" edges={['top']}>
       {/* الشريط العلوي */}

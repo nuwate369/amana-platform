@@ -128,7 +128,7 @@ export default function ActiveRideScreen() {
 
           {/* زر إتمام الرحلة */}
           <Pressable
-            onPress={() => router.back()}
+            onPress={() => router.replace('/(tabs)/home')}
             className="relative h-16 flex-row items-center justify-center overflow-hidden rounded-full bg-brand-700 active:scale-[0.98] dark:bg-brand-600"
           >
             <Text className="font-plex-semibold text-xl text-white">إتمام الرحلة</Text>

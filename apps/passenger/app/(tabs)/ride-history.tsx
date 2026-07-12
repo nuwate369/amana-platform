@@ -189,32 +189,6 @@ function RideCard({ ride }: { ride: Ride }) {
   );
 }
 
-// عنصر تبويب في الشريط السفلي.
-function NavItem({
-  icon,
-  label,
-  active,
-}: {
-  icon: keyof typeof MaterialIcons.glyphMap;
-  label: string;
-  active?: boolean;
-}) {
-  if (active) {
-    return (
-      <View className="flex-row items-center gap-1 rounded-full bg-brand-100 px-5 py-1 dark:bg-brand-900/40">
-        <MaterialIcons name={icon} size={24} color={passengerPurple[700]} />
-        <Text className="font-plex-medium text-xs text-brand-700 dark:text-brand-200">{label}</Text>
-      </View>
-    );
-  }
-  return (
-    <View className="items-center justify-center">
-      <MaterialIcons name={icon} size={24} color="#9ca3af" />
-      <Text className="mt-1 font-plex-medium text-xs text-neutral-400">{label}</Text>
-    </View>
-  );
-}
-
 export default function RideHistoryScreen() {
   const [activeFilter, setActiveFilter] = useState('الكل');
 
@@ -288,17 +262,9 @@ export default function RideHistoryScreen() {
       </ScrollView>
 
       {/* زر عائم لإضافة رحلة */}
-      <Pressable className="absolute bottom-24 left-6 h-14 w-14 items-center justify-center rounded-full bg-brand-600 shadow-lg active:scale-90">
+      <Pressable className="absolute bottom-6 left-6 h-14 w-14 items-center justify-center rounded-full bg-brand-600 shadow-lg active:scale-90">
         <MaterialIcons name="add" size={28} color="#ffffff" />
       </Pressable>
-
-      {/* شريط التنقّل السفلي */}
-      <View className="absolute bottom-0 left-0 right-0 flex-row items-center justify-around rounded-t-xl bg-white px-4 pb-8 pt-3 dark:bg-neutral-800">
-        <NavItem icon="home" label="الرئيسية" />
-        <NavItem icon="directions-car" label="رحلاتي" active />
-        <NavItem icon="auto-awesome" label="المخطط الذكي" />
-        <NavItem icon="person" label="الملف الشخصي" />
-      </View>
     </SafeAreaView>
   );
 }
