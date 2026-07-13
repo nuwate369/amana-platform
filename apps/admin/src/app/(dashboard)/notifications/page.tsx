@@ -33,9 +33,12 @@ function StatusBadge({ status }: { status: string }) {
 export default function NotificationsPage() {
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">الإعلانات والتنبيهات العامة</h1>
-        <p className="text-sm text-muted-foreground">إرسال رسائل تظهر داخل تطبيقي الراكبة والسائقة</p>
+      <div className="flex flex-wrap items-center gap-2">
+        <h1 className="text-xl font-bold text-foreground">الإعلانات والتنبيهات</h1>
+        <span className="text-muted-foreground font-light">/</span>
+        <p className="text-sm text-muted-foreground pt-1">
+          مراسلة الراكبات والسائقات
+        </p>
       </div>
 
       {/* بطاقة الإنشاء */}

@@ -7,7 +7,6 @@ import { useAuth } from '@/lib/auth';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from 'next-themes';
 import { STAFF_TYPE_LABELS, type UserType } from '@amana/shared-types';
-import { listTrustedDevices, logoutAllDevices, type TrustedDevice } from '@/app/actions/devices';
 import { notify } from '@/lib/toast';
 
 export default function ProfileClient() {
@@ -34,11 +33,6 @@ export default function ProfileClient() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Security
-  const [devices, setDevices] = useState<TrustedDevice[]>([]);
-  const [devicesLoading, setDevicesLoading] = useState(true);
-  const [loggingOutAll, setLoggingOutAll] = useState(false);
-  const [showLogoutAllConfirm, setShowLogoutAllConfirm] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -61,36 +55,9 @@ export default function ProfileClient() {
           }
         });
 
-      // جلب الأجهزة الموثوقة
-      loadDevices();
     }
   }, [user]);
 
-  async function loadDevices() {
-    if (!user) return;
-    setDevicesLoading(true);
-    const list = await listTrustedDevices(user.id);
-    setDevices(list);
-    setDevicesLoading(false);
-  }
-
-  async function handleLogoutAll() {
-    setShowLogoutAllConfirm(true);
-  }
-
-  async function confirmLogoutAll() {
-    if (!user) return;
-    setShowLogoutAllConfirm(false);
-    setLoggingOutAll(true);
-    const result = await logoutAllDevices(user.id);
-    if (result.success) {
-      notify.success('تم تسجيل الخروج من كل الأجهزة');
-      loadDevices();
-    } else {
-      notify.error(result.error || 'حدث خطأ');
-    }
-    setLoggingOutAll(false);
-  }
 
   async function handleAvatarUpload(event: React.ChangeEvent<HTMLInputElement>) {
     try {
@@ -234,7 +201,7 @@ export default function ProfileClient() {
           />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-foreground">الملف الشخصي</h1>
+          <h1 className="text-xl font-bold text-foreground">الملف الشخصي</h1>
           <p className="text-sm text-muted-foreground">إدارة معلومات حسابك والتفضيلات</p>
         </div>
       </div>
@@ -351,64 +318,6 @@ export default function ProfileClient() {
             </div>
           </div>
 
-          <div className="space-y-4 pt-6 border-t border-border">
-            <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-              <ShieldCheck className="w-5 h-5 text-primary" />
-              الأمان
-            </h3>
-
-            {/* Trusted Devices */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="text-sm font-semibold text-muted-foreground">الأجهزة الموثوقة</h4>
-                <button
-                  onClick={handleLogoutAll}
-                  disabled={loggingOutAll || devices.length === 0}
-                  className="text-xs text-destructive hover:text-destructive/80 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                >
-                  <LogOut className="w-3 h-3" />
-                  {loggingOutAll ? 'جاري...' : 'تسجيل الخروج من كل الأجهزة'}
-                </button>
-              </div>
-
-              {devicesLoading ? (
-                <div className="text-sm text-muted-foreground py-4 text-center">جاري تحميل الأجهزة...</div>
-              ) : devices.length === 0 ? (
-                <div className="text-sm text-muted-foreground py-4 text-center bg-muted/50 rounded-lg">لا توجد أجهزة مسجلة</div>
-              ) : (
-                <div className="space-y-2">
-                  {devices.map((device) => (
-                    <div
-                      key={device.id}
-                      className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-border"
-                    >
-                      <div className="flex items-center gap-3">
-                        {device.os?.toLowerCase().includes('android') || device.os?.toLowerCase().includes('ios') ? (
-                          <Smartphone className="w-5 h-5 text-muted-foreground" />
-                        ) : (
-                          <Monitor className="w-5 h-5 text-muted-foreground" />
-                        )}
-                        <div>
-                          <p className="text-sm font-medium text-foreground">
-                            {device.deviceName}
-                            {device.isCurrent && (
-                              <span className="mr-2 text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">هذا الجهاز</span>
-                            )}
-                          </p>
-                          <p className="text-xs text-muted-foreground/80">
-                            {device.browser} · {device.os} · {device.ipAddress}
-                          </p>
-                          <p className="text-xs text-muted-foreground/60">
-                            آخر ظهور: {new Date(device.lastSeenAt).toLocaleDateString('ar-SA')}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
 
           <div className="pt-6 flex justify-end">
             <button
@@ -423,39 +332,6 @@ export default function ProfileClient() {
         </form>
       </div>
 
-      {/* Logout All Confirmation Dialog */}
-      {showLogoutAllConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-background border border-border rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center shrink-0">
-                <LogOut className="w-5 h-5 text-destructive rotate-180" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-foreground">تسجيل الخروج من كل الأجهزة</h3>
-                <p className="text-xs text-muted-foreground">هل أنت متأكد؟</p>
-              </div>
-            </div>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              سيتم إنهاء جميع الجلسات النشطة على جميع الأجهزة. سيُطلب منك إعادة تسجيل الدخول على كل جهاز.
-            </p>
-            <div className="flex gap-3 pt-2">
-              <button
-                onClick={confirmLogoutAll}
-                className="flex-1 py-2.5 rounded-xl bg-destructive hover:bg-destructive/90 text-destructive-foreground font-bold text-sm transition-colors"
-              >
-                نعم، إنهاء كل الجلسات
-              </button>
-              <button
-                onClick={() => setShowLogoutAllConfirm(false)}
-                className="flex-1 py-2.5 rounded-xl bg-muted hover:bg-muted/80 text-foreground font-bold text-sm transition-colors"
-              >
-                إلغاء
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

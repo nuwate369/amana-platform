@@ -4,6 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 import { revalidatePath } from 'next/cache';
 import { inviteStaffSchema } from '@amana/shared-ui/validation';
 import type { UserType } from '@amana/shared-types';
+import { logAudit } from '@/app/actions/moderation';
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -24,6 +25,7 @@ export interface StaffRow {
   id: string;
   name: string;
   email: string;
+  phone: string | null;
   userType: UserType;
   isProtected: boolean;
   isActive: boolean;
@@ -58,8 +60,11 @@ async function detectSchema(): Promise<SchemaInfo> {
     ? ['super_admin', 'admin', 'support']
     : ['admin'];
 
-  _schema = { typeCol, hasProtected, hasActive, staffValues };
-  return _schema;
+  const info: SchemaInfo = { typeCol, hasProtected, hasActive, staffValues };
+  // لا نخزّن في الكاش إلا المخطط المكتمل — وإلا علِقت نتيجة «ما قبل الهجرة»
+  // في ذاكرة الخادم وعطّلت التفعيل/التعطيل بصمت بعد تطبيق الهجرة.
+  if (typeCol === 'user_type' && hasProtected && hasActive) _schema = info;
+  return info;
 }
 
 /**
@@ -83,6 +88,8 @@ function translateSupabaseError(message: string): string {
     return 'هذا الحساب محمي ولا يمكن تعديله.';
   if (m.includes('invalid input value for enum'))
     return 'لتفعيل دورَي «مدير عام» و«دعم فني» يجب تطبيق تحديث قاعدة البيانات (هجرة user_type) أولًا.';
+  if (m.includes('immutable_user_type'))
+    return 'تغيير الدور يتطلب تطبيق تحديث قاعدة البيانات (هجرة 0015) أولًا.';
   return message || 'حدث خطأ غير متوقع.';
 }
 
@@ -116,6 +123,7 @@ function mapRow(
     id: p.id,
     name: p.full_name || '—',
     email: auth?.email ?? '',
+    phone: p.phone ?? null,
     userType: (p[schema.typeCol] || 'admin') as UserType,
     isProtected,
     isActive,
@@ -129,7 +137,7 @@ function mapRow(
  */
 export async function listStaff(): Promise<StaffRow[]> {
   const schema = await detectSchema();
-  const cols = ['id', 'full_name', schema.typeCol, 'created_at'];
+  const cols = ['id', 'full_name', 'phone', schema.typeCol, 'created_at'];
   if (schema.hasProtected) cols.push('is_protected');
   if (schema.hasActive) cols.push('is_active');
 
@@ -152,10 +160,15 @@ export async function listStaff(): Promise<StaffRow[]> {
 }
 
 /**
- * دعوة موظف جديد.
+ * دعوة موظف جديد — الاسم + البريد + الجوال (اختياري) + الدور.
+ * الدور يُثبَّت لحظة الإنشاء ولا يتغيّر بعدها (مُشغّل قاعدة البيانات يمنع ذلك).
+ * تُسجَّل الحركة في audit_logs باسم المنفِّذ.
  */
-export async function inviteStaffUser(email: string, userType: string) {
-  const parsed = inviteStaffSchema.safeParse({ email, userType });
+export async function inviteStaffUser(
+  actorId: string | null,
+  input: { email: string; userType: string; fullName: string; phone?: string },
+) {
+  const parsed = inviteStaffSchema.safeParse(input);
   if (!parsed.success) return { success: false, error: 'بيانات غير صحيحة' };
 
   const schema = await detectSchema();
@@ -165,7 +178,7 @@ export async function inviteStaffUser(email: string, userType: string) {
     const { data, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
       parsed.data.email,
       {
-        data: { user_type: parsed.data.userType, full_name: 'موظف جديد' },
+        data: { user_type: parsed.data.userType, full_name: parsed.data.fullName },
         redirectTo: `${siteUrl}/accept-invite`,
       },
     );
@@ -176,12 +189,22 @@ export async function inviteStaffUser(email: string, userType: string) {
       return { success: false, error: translateSupabaseError(inviteError.message) };
     }
 
-    const payload: Record<string, any> = { id: data.user.id, full_name: 'موظف جديد' };
+    const payload: Record<string, any> = { id: data.user.id, full_name: parsed.data.fullName };
+    if (parsed.data.phone) payload.phone = parsed.data.phone;
     payload[schema.typeCol] = parsed.data.userType;
     if (schema.hasProtected) payload.is_protected = false;
     if (schema.hasActive) payload.is_active = true;
 
     await supabaseAdmin.from('profiles').upsert(payload);
+
+    await logAudit({
+      actorId,
+      action: 'invite_staff',
+      targetType: 'staff',
+      targetId: data.user.id,
+      targetName: parsed.data.fullName,
+      metadata: { email: parsed.data.email, userType: parsed.data.userType },
+    });
 
     revalidatePath('/staff');
     return { success: true };
@@ -191,31 +214,64 @@ export async function inviteStaffUser(email: string, userType: string) {
 }
 
 /**
- * تعديل بيانات موظف (الاسم + النوع).
- * يرفض الحسابات المحمية.
+ * تعديل بيانات موظف (الاسم + الجوال + الدور).
+ * تغيير الدور مسموح بين أدوار الموظفين فقط (يفرضه مُشغّل القاعدة بعد هجرة 0015
+ * ولا يمرّ إلا عبر service_role). يرفض الحسابات المحمية. تُسجَّل الحركة في audit_logs.
  */
-export async function editStaffUser(userId: string, fullName: string, userType: string) {
+export async function editStaffUser(
+  actorId: string | null,
+  userId: string,
+  fullName: string,
+  phone?: string,
+  userType?: string,
+) {
   const schema = await detectSchema();
+
+  // تحقّق مبكر: الدور الجديد ضمن أدوار الموظفين فقط
+  if (userType && !schema.staffValues.includes(userType)) {
+    return { success: false, error: 'الدور المحدد غير صحيح.' };
+  }
 
   try {
     // حماية: فحص القائمة المحمية أولاً (حتى لو العمود غير موجود في القاعدة)
     if (isProtectedAccount(userId)) {
       return { success: false, error: 'لا يمكن تعديل هذا الحساب لأنه محمي.' };
     }
-    // حماية إضافية: فحص عمود is_protected في القاعدة إن وُجد
+    // حماية إضافية: فحص عمود is_protected + الدور الحالي (يجب أن يكون موظفًا)
+    let previousType: string | null = null;
     if (schema.hasProtected) {
       const { data: profile } = await supabaseAdmin
-        .from('profiles').select('is_protected').eq('id', userId).single();
-      if (profile?.is_protected) {
+        .from('profiles')
+        .select(`is_protected, ${schema.typeCol}`)
+        .eq('id', userId)
+        .single();
+      if ((profile as any)?.is_protected) {
         return { success: false, error: 'لا يمكن تعديل هذا الحساب لأنه محمي.' };
+      }
+      previousType = ((profile as any)?.[schema.typeCol] as string | null) ?? null;
+      if (userType && previousType && !schema.staffValues.includes(previousType)) {
+        return { success: false, error: 'لا يمكن تغيير دور حساب ليس من فريق العمل.' };
       }
     }
 
     const update: Record<string, any> = { full_name: fullName };
-    update[schema.typeCol] = userType;
+    if (phone !== undefined) update.phone = phone || null;
+    if (userType) update[schema.typeCol] = userType;
 
     const { error } = await supabaseAdmin.from('profiles').update(update).eq('id', userId);
     if (error) return { success: false, error: translateSupabaseError(error.message) };
+
+    await logAudit({
+      actorId,
+      action: 'edit_staff',
+      targetType: 'staff',
+      targetId: userId,
+      targetName: fullName,
+      metadata:
+        userType && previousType && userType !== previousType
+          ? { roleChanged: { from: previousType, to: userType } }
+          : null,
+    });
 
     revalidatePath('/staff');
     return { success: true };
@@ -229,7 +285,7 @@ export async function editStaffUser(userId: string, fullName: string, userType: 
  * التعطيل يمنع تسجيل الدخول عبر is_active = false.
  * يرفض الحسابات المحمية.
  */
-export async function toggleStaffStatus(userId: string) {
+export async function toggleStaffStatus(actorId: string | null, userId: string) {
   const schema = await detectSchema();
 
   try {
@@ -237,20 +293,32 @@ export async function toggleStaffStatus(userId: string) {
     if (isProtectedAccount(userId)) {
       return { success: false, error: 'لا يمكن تعطيل هذا الحساب لأنه محمي.' };
     }
-    // حماية إضافية: فحص أعمدة القاعدة إن وُجدت
-    if (schema.hasProtected) {
-      const { data: profile } = await supabaseAdmin
-        .from('profiles').select('is_protected, is_active').eq('id', userId).single();
-      if (profile?.is_protected) {
-        return { success: false, error: 'لا يمكن تعطيل هذا الحساب لأنه محمي.' };
-      }
-      if (schema.hasActive) {
-        const newActive = !(profile?.is_active ?? true);
-        const { error } = await supabaseAdmin
-          .from('profiles').update({ is_active: newActive }).eq('id', userId);
-        if (error) return { success: false, error: translateSupabaseError(error.message) };
-      }
+    // فشل صريح بدل التخطي الصامت إن كان العمود غير موجود بعد
+    if (!schema.hasActive) {
+      return { success: false, error: 'تفعيل/تعطيل الحساب يتطلب تطبيق تحديث قاعدة البيانات (هجرة 0013) أولًا.' };
     }
+
+    const cols = schema.hasProtected ? 'is_protected, is_active, full_name' : 'is_active, full_name';
+    const { data: profile, error: pErr } = await supabaseAdmin
+      .from('profiles').select(cols).eq('id', userId).single();
+    if (pErr) return { success: false, error: translateSupabaseError(pErr.message) };
+    if ((profile as any)?.is_protected) {
+      return { success: false, error: 'لا يمكن تعطيل هذا الحساب لأنه محمي.' };
+    }
+
+    const newActive = !((profile as any)?.is_active ?? true);
+    const { error } = await supabaseAdmin
+      .from('profiles').update({ is_active: newActive }).eq('id', userId);
+    if (error) return { success: false, error: translateSupabaseError(error.message) };
+
+    await logAudit({
+      actorId,
+      action: 'toggle_staff',
+      targetType: 'staff',
+      targetId: userId,
+      targetName: (profile as any)?.full_name ?? null,
+      metadata: { isActive: newActive },
+    });
 
     revalidatePath('/staff');
     return { success: true };
@@ -263,7 +331,7 @@ export async function toggleStaffStatus(userId: string) {
  * إعادة إرسال الدعوة.
  * يبطل الرابط القديم بإنشاء رابط جديد (inviteUserByEmail يُبطل القديم تلقائياً).
  */
-export async function resendInvite(userId: string, email: string) {
+export async function resendInvite(actorId: string | null, userId: string, email: string) {
   try {
     // حماية: رفض إعادة إرسال الدعوة للحسابات المحمية
     if (isProtectedAccount(userId)) {
@@ -271,12 +339,22 @@ export async function resendInvite(userId: string, email: string) {
     }
 
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    // الملف الشخصي موجود مسبقًا (أُنشئ عند الدعوة الأولى) — لا نمرّر metadata
+    // حتى لا نكتب فوق الاسم/الدور الصحيحَين.
     const { error } = await supabaseAdmin.auth.admin.inviteUserByEmail(
       email,
-      { data: { user_type: 'admin', full_name: 'موظف جديد' }, redirectTo: `${siteUrl}/accept-invite` },
+      { redirectTo: `${siteUrl}/accept-invite` },
     );
 
     if (error) return { success: false, error: translateSupabaseError(error.message) };
+
+    await logAudit({
+      actorId,
+      action: 'resend_invite',
+      targetType: 'staff',
+      targetId: userId,
+      targetName: email,
+    });
 
     revalidatePath('/staff');
     return { success: true };
@@ -290,17 +368,19 @@ export async function resendInvite(userId: string, email: string) {
  * يتحقق فعلياً من نجاح الحذف قبل إرجاع النجاح.
  * يرفض الحسابات المحمية.
  */
-export async function deleteStaffUser(userId: string) {
+export async function deleteStaffUser(actorId: string | null, userId: string) {
   try {
     // حماية: فحص القائمة المحمية أولاً (حتى لو العمود غير موجود في القاعدة)
     if (isProtectedAccount(userId)) {
       return { success: false, error: 'لا يمكن حذف هذا الحساب لأنه محمي.' };
     }
-    // حماية إضافية: فحص عمود is_protected في القاعدة إن وُجد
+    // حماية إضافية: فحص عمود is_protected في القاعدة إن وُجد + لقطة الاسم للسجل
+    let targetName: string | null = null;
     const schema = await detectSchema();
     if (schema.hasProtected) {
       const { data: profile } = await supabaseAdmin
-        .from('profiles').select('is_protected').eq('id', userId).single();
+        .from('profiles').select('is_protected, full_name').eq('id', userId).single();
+      targetName = profile?.full_name ?? null;
       if (profile?.is_protected) {
         return { success: false, error: 'لا يمكن حذف هذا الحساب لأنه محمي.' };
       }
@@ -328,6 +408,15 @@ export async function deleteStaffUser(userId: string) {
       console.error(`[deleteStaffUser] Verification failed for ${userId}: auth=${authStillExists}, profile=${profileStillExists}`);
       return { success: false, error: 'فشلت عملية الحذف. حاول مرة أخرى.' };
     }
+
+    // التسجيل بعد التحقق الفعلي من الحذف (actor_id يبقى؛ target حُذف فتبقى لقطة اسمه)
+    await logAudit({
+      actorId,
+      action: 'delete_staff',
+      targetType: 'staff',
+      targetId: userId,
+      targetName,
+    });
 
     revalidatePath('/staff');
     return { success: true };

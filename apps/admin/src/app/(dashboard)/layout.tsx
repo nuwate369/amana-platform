@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { Moon, Sun, Languages, LogOut, UserCircle, Menu, X, LayoutDashboard, Headset, ChevronRight, ChevronLeft } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
+import type { Metadata } from 'next';
 import { RequireAuth } from '@/components/RequireAuth';
 import { NotificationBell } from '@/components/NotificationBell';
 import { useAuth } from '@/lib/auth';
@@ -12,7 +13,6 @@ import { supabase } from '@/lib/supabase/client';
 import { NAV_ITEMS } from '@/lib/nav';
 import { STAFF_TYPE_LABELS, type UserType } from '@amana/shared-types';
 import { useTranslation } from 'react-i18next';
-import { logoutAllDevices } from '@/app/actions/devices';
 
 /** مفاتيح الترجمة لكل عنصر في القائمة الجانبية — يُستخدم المفتاح العربي كقيمة افتراضية. */
 const NAV_I18N: Record<string, { ar: string; en: string; descAr?: string; descEn?: string }> = {
@@ -22,9 +22,11 @@ const NAV_I18N: Record<string, { ar: string; en: string; descAr?: string; descEn
   '/rides':               { ar: 'الرحلات الحية',              en: 'Live Rides' },
   '/pricing':             { ar: 'التسعير',                    en: 'Pricing' },
   '/reports':             { ar: 'التقارير',                   en: 'Reports' },
+  '/ratings':             { ar: 'التقييمات',                  en: 'Ratings', descAr: 'إدارة أسئلة التقييم ومتابعة التقييمات الواردة من التطبيقات', descEn: 'Manage rating questions and monitor incoming ratings' },
   '/groups':              { ar: 'مجموعات النقل المشتركة',    en: 'Shared Ride Groups', descAr: 'مجموعات تنسيق الرحلات بين الراكبات — للمراقبة والإشراف فقط', descEn: 'Ride coordination groups between passengers — for monitoring only' },
   '/notifications':       { ar: 'الإعلانات والتنبيهات العامة', en: 'Announcements & Alerts', descAr: 'إرسال رسائل تظهر داخل تطبيقي الراكبة والسائقة', descEn: 'Send messages that appear inside the passenger and driver apps' },
   '/staff':               { ar: 'فريق العمل',                 en: 'Staff' },
+  '/audit-log':           { ar: 'سجل الحركات',                en: 'Audit Log', descAr: 'سجلّ زمني لكل إجراء حسّاس على النظام — للمدير العام والمدير', descEn: 'Chronological log of every sensitive action — for super admin and admin' },
   '/system-notifications':{ ar: 'الإشعارات',                   en: 'Notifications' },
 };
 
@@ -186,7 +188,6 @@ function Topbar({
         >
           <Menu size={22} />
         </button>
-        <div className="text-sm font-semibold md:font-normal text-foreground">مرحبًا بك في لوحة أمانة</div>
       </div>
       
       <div className="flex items-center gap-2 md:gap-4">
@@ -265,22 +266,16 @@ function Topbar({
 
               <div className="border-t border-border py-2">
                 <button 
-                  onClick={() => { setMenuOpen(false); supabase.auth.signOut(); }} 
+                  onClick={() => { 
+                    if (window.confirm('هل أنت متأكد من تسجيل الخروج؟')) {
+                      setMenuOpen(false); 
+                      supabase.auth.signOut(); 
+                    }
+                  }} 
                   className="w-full flex items-center gap-3 px-5 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                 >
                   <LogOut size={18} className="text-muted-foreground" />
                   تسجيل خروج
-                </button>
-                <button 
-                  onClick={async () => { 
-                    setMenuOpen(false);
-                    if (user?.id) await logoutAllDevices(user.id);
-                    supabase.auth.signOut({ scope: 'global' }); 
-                  }}
-                  className="w-full flex items-center gap-3 px-5 py-2 text-sm font-bold text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/50 transition-colors"
-                >
-                  <LogOut size={18} className="rotate-180" />
-                  إنهاء كافة الجلسات
                 </button>
               </div>
             </div>
@@ -294,6 +289,19 @@ function Topbar({
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const pathname = usePathname();
+  const { i18n } = useTranslation();
+  const lang = i18n.language === 'ar' ? 'ar' : 'en';
+
+  // تحديث عنوان الصفحة ديناميكياً
+  useEffect(() => {
+    const i18nKey = NAV_I18N[pathname];
+    if (i18nKey) {
+      document.title = `أمانة | ${lang === 'ar' ? i18nKey.ar : i18nKey.en}`;
+    } else {
+      document.title = 'أمانة | لوحة الإدارة';
+    }
+  }, [pathname, lang]);
 
   return (
     <RequireAuth>
@@ -305,7 +313,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             onDesktopMenuToggle={() => setIsCollapsed(!isCollapsed)}
           />
           <main className="flex-1 overflow-y-auto p-4 md:p-6 w-full">
-            {children}
+            <div className="w-full">
+              {children}
+            </div>
           </main>
         </div>
       </div>

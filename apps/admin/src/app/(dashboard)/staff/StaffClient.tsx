@@ -6,8 +6,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'next/navigation';
 import {
-  Users, Plus, Mail, Shield, X, Lock, Pencil, Trash2,
-  RotateCcw, ToggleLeft, ToggleRight, AlertTriangle,
+  Users, Plus, Mail, Shield, X, Lock, Pencil, Trash2, User as UserIcon,
+  RotateCcw, ToggleLeft, ToggleRight, AlertTriangle, Eye, Phone,
 } from 'lucide-react';
 import {
   inviteStaffSchema,
@@ -24,15 +24,19 @@ import {
   deleteStaffUser,
   type StaffRow,
 } from '@/app/actions/staff';
+import { ActionDialog } from '@/components/ActionDialog';
+import { UserDetailsModal } from '@/components/UserDetailsModal';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase/client';
 import { notify } from '@/lib/toast';
 import { useUnsavedChanges } from '@/lib/useUnsavedChanges';
 
-const STAFF_TYPE_OPTIONS = [
-  { value: 'admin', label: 'مدير' },
-  { value: 'support', label: 'دعم فني' },
-];
+/** وصف صلاحيات كل دور — يظهر تحت اختيار الدور في نموذج الدعوة. */
+const ROLE_DESCRIPTIONS: Record<string, string> = {
+  super_admin: 'صلاحيات كاملة على كل شيء، بما فيها إدارة الموظفين ودعوتهم.',
+  admin: 'مشاهدة كل أقسام اللوحة دون أي صلاحية تعديل أو إدارة.',
+  support: 'مشاهدة شاشات محددة فقط: اللوحة، السائقات، الركاب، الرحلات، التقارير.',
+};
 
 function InviteStatusBadge({ status }: { status: StaffRow['inviteStatus'] }) {
   const map: Record<string, { bg: string; text: string; label: string }> = {
@@ -79,13 +83,24 @@ export default function StaffClient({ initialStaff }: { initialStaff: StaffRow[]
   const [inviteOpen, setInviteOpen] = useState(false);
   const inviteForm = useForm<InviteStaffInput>({
     resolver: zodResolver(inviteStaffSchema),
-    defaultValues: { email: '', userType: 'admin' },
+    defaultValues: { fullName: '', email: '', phone: '', userType: 'admin' },
   });
+  const selectedRole = inviteForm.watch('userType');
 
   // Edit modal
   const [editTarget, setEditTarget] = useState<StaffRow | null>(null);
   const [editName, setEditName] = useState('');
+  const [editPhone, setEditPhone] = useState('');
   const [editType, setEditType] = useState('admin');
+
+  // Toggle confirmation dialog
+  const [toggleTarget, setToggleTarget] = useState<StaffRow | null>(null);
+
+  // Details modal
+  const [detailsId, setDetailsId] = useState<string | null>(null);
+
+  const actorName =
+    (user?.user_metadata?.full_name as string | undefined) || user?.email || 'مسؤول';
 
   // Delete dialog
   const [deleteTarget, setDeleteTarget] = useState<StaffRow | null>(null);
@@ -96,12 +111,17 @@ export default function StaffClient({ initialStaff }: { initialStaff: StaffRow[]
   useUnsavedChanges(inviteOpen && inviteForm.formState.isDirty, t('common.unsavedChanges'));
 
   function closeInvite() {
-    inviteForm.reset({ email: '', userType: 'admin' });
+    inviteForm.reset({ fullName: '', email: '', phone: '', userType: 'admin' });
     setInviteOpen(false);
   }
 
   const onInvite = inviteForm.handleSubmit(async (values) => {
-    const res = await inviteStaffUser(values.email, values.userType);
+    const res = await inviteStaffUser(user?.id ?? null, {
+      email: values.email,
+      userType: values.userType,
+      fullName: values.fullName,
+      phone: values.phone || undefined,
+    });
     if (!res.success) { notify.error(res.error || t('common.error')); return; }
     notify.success(t('common.saveSuccess'));
     closeInvite();
@@ -112,13 +132,14 @@ export default function StaffClient({ initialStaff }: { initialStaff: StaffRow[]
   function openEdit(m: StaffRow) {
     setEditTarget(m);
     setEditName(m.name === '—' ? '' : m.name);
+    setEditPhone(m.phone ?? '');
     setEditType(m.userType);
   }
 
   async function submitEdit() {
     if (!editTarget) return;
     setLoadingAction('edit');
-    const res = await editStaffUser(editTarget.id, editName, editType);
+    const res = await editStaffUser(user?.id ?? null, editTarget.id, editName, editPhone, editType);
     setLoadingAction(null);
     if (!res.success) { notify.error(res.error || t('common.error')); return; }
     notify.success('تم التعديل بنجاح');
@@ -126,11 +147,14 @@ export default function StaffClient({ initialStaff }: { initialStaff: StaffRow[]
     router.refresh();
   }
 
-  // ===== Status Toggle =====
-  async function handleToggle(m: StaffRow) {
+  // ===== Status Toggle (بعد تأكيد المستخدم في الحوار) =====
+  async function confirmToggle() {
+    if (!toggleTarget) return;
+    const m = toggleTarget;
     setLoadingAction(`status-${m.id}`);
-    const res = await toggleStaffStatus(m.id);
+    const res = await toggleStaffStatus(user?.id ?? null, m.id);
     setLoadingAction(null);
+    setToggleTarget(null);
     if (!res.success) { notify.error(res.error || t('common.error')); return; }
     notify.success(m.isActive ? 'تم تعطيل الحساب' : 'تم تنشيط الحساب');
     router.refresh();
@@ -139,7 +163,7 @@ export default function StaffClient({ initialStaff }: { initialStaff: StaffRow[]
   // ===== Resend Invite =====
   async function handleResend(m: StaffRow) {
     setLoadingAction(`resend-${m.id}`);
-    const res = await resendInvite(m.id, m.email);
+    const res = await resendInvite(user?.id ?? null, m.id, m.email);
     setLoadingAction(null);
     if (!res.success) { notify.error(res.error || t('common.error')); return; }
     notify.success('تم إرسال الدعوة مجددًا');
@@ -157,7 +181,7 @@ export default function StaffClient({ initialStaff }: { initialStaff: StaffRow[]
     setStaff((prev) => prev.filter((m) => m.id !== targetId));
     setDeleteTarget(null);
 
-    const res = await deleteStaffUser(targetId);
+    const res = await deleteStaffUser(user?.id ?? null, targetId);
     setLoadingAction(null);
     if (!res.success) {
       // في حالة الفشل: أعد الصف للقائمة
@@ -173,13 +197,14 @@ export default function StaffClient({ initialStaff }: { initialStaff: StaffRow[]
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <Users className="w-6 h-6 text-primary shrink-0" />
+        <div className="flex flex-wrap items-center gap-2">
+          <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
+            <Users className="w-5 h-5 text-primary shrink-0" />
             <span>فريق العمل</span>
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            الموظفون الذين يديرون لوحة أمانة — المديرون والدعم الفني
+          <span className="text-muted-foreground font-light">/</span>
+          <p className="text-sm text-muted-foreground pt-1">
+            مديرو الدعم الفني والمشرفون
           </p>
         </div>
         {canManage && (
@@ -231,6 +256,14 @@ export default function StaffClient({ initialStaff }: { initialStaff: StaffRow[]
                   </td>
                   <td className="px-5 py-3.5">
                     <div className="flex items-center justify-center gap-1">
+                      {/* عرض التفاصيل — متاح للجميع */}
+                      <button
+                        onClick={() => setDetailsId(m.id)}
+                        title="عرض التفاصيل"
+                        className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-muted transition-colors"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
                       {m.isProtected ? (
                         <span className="inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 font-medium">
                           <Lock className="w-3.5 h-3.5" />
@@ -265,7 +298,7 @@ export default function StaffClient({ initialStaff }: { initialStaff: StaffRow[]
                             </button>
                           ) : (
                             <button
-                              onClick={() => handleToggle(m)}
+                              onClick={() => setToggleTarget(m)}
                               disabled={loadingAction === `status-${m.id}`}
                               title={m.isActive ? 'تعطيل الحساب' : 'تنشيط الحساب'}
                               className="p-1.5 rounded-lg transition-colors disabled:opacity-30"
@@ -309,8 +342,27 @@ export default function StaffClient({ initialStaff }: { initialStaff: StaffRow[]
 
       {/* ===== Modal: دعوة موظف جديد ===== */}
       {inviteOpen && (
-        <Modal onClose={closeInvite} title="دعوة موظف جديد">
+        <Modal onClose={closeInvite} title="دعوة موظف جديد" className="max-w-2xl">
           <form onSubmit={onInvite} className="p-6 space-y-4" noValidate>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-foreground">الاسم الكامل</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-muted-foreground">
+                  <UserIcon className="w-5 h-5" />
+                </div>
+                <input
+                  type="text"
+                  className="w-full pl-4 pr-10 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-foreground"
+                  placeholder="مثال: سارة العبدالله"
+                  {...inviteForm.register('fullName')}
+                />
+              </div>
+              {inviteForm.formState.errors.fullName && (
+                <p className="text-sm text-red-500">{translateError(t, inviteForm.formState.errors.fullName.message)}</p>
+              )}
+            </div>
+
             <div className="space-y-1">
               <label className="text-sm font-medium text-foreground">البريد الإلكتروني</label>
               <div className="relative">
@@ -328,6 +380,28 @@ export default function StaffClient({ initialStaff }: { initialStaff: StaffRow[]
                 <p className="text-sm text-red-500">{translateError(t, inviteForm.formState.errors.email.message)}</p>
               )}
             </div>
+
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-foreground">
+                رقم الجوال <span className="text-xs text-muted-foreground">(اختياري)</span>
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-muted-foreground">
+                  <Phone className="w-5 h-5" />
+                </div>
+                <input
+                  type="tel"
+                  dir="ltr"
+                  className="w-full pl-4 pr-10 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-foreground text-left"
+                  placeholder="05xxxxxxxx"
+                  {...inviteForm.register('phone')}
+                />
+              </div>
+              {inviteForm.formState.errors.phone && (
+                <p className="text-sm text-red-500">{translateError(t, inviteForm.formState.errors.phone.message)}</p>
+              )}
+            </div>
+
             <div className="space-y-1">
               <label className="text-sm font-medium text-foreground">الدور</label>
               <select
@@ -338,17 +412,22 @@ export default function StaffClient({ initialStaff }: { initialStaff: StaffRow[]
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
                 ))}
               </select>
-              {inviteForm.formState.errors.userType && (
-                <p className="text-sm text-red-500">{translateError(t, inviteForm.formState.errors.userType.message)}</p>
-              )}
             </div>
-            <div className="pt-4 flex gap-3">
+            </div>
+
+            {/* وصف صلاحيات الدور المختار */}
+            <p className="flex items-start gap-1.5 rounded-lg bg-muted/50 border border-border px-3 py-2 text-xs text-muted-foreground">
+              <Shield className="w-3.5 h-3.5 shrink-0 mt-0.5 text-primary" />
+              {ROLE_DESCRIPTIONS[selectedRole] ?? ''}
+            </p>
+
+            <div className="pt-2 flex gap-3">
               <button type="submit" disabled={inviteForm.formState.isSubmitting}
-                className="flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground py-2 rounded-lg font-semibold transition-colors disabled:opacity-70">
+                className="flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground py-2.5 rounded-full font-semibold transition-colors disabled:opacity-70">
                 {inviteForm.formState.isSubmitting ? <Spinner /> : 'إرسال الدعوة'}
               </button>
               <button type="button" onClick={closeInvite}
-                className="flex-1 bg-muted hover:bg-muted/80 text-foreground py-2 rounded-lg font-medium transition-colors">
+                className="flex-1 bg-muted hover:bg-muted/80 text-foreground py-2.5 rounded-full font-semibold transition-colors">
                 {t('common.cancel')}
               </button>
             </div>
@@ -358,40 +437,72 @@ export default function StaffClient({ initialStaff }: { initialStaff: StaffRow[]
 
       {/* ===== Modal: تعديل موظف ===== */}
       {editTarget && (
-        <Modal onClose={() => setEditTarget(null)} title="تعديل بيانات الموظف">
+        <Modal onClose={() => setEditTarget(null)} title="تعديل بيانات الموظف" className="max-w-2xl">
           <div className="p-6 space-y-4">
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-foreground">الاسم الكامل</label>
-              <input
-                type="text"
-                value={editName}
-                onChange={(e) => setEditName(e.target.value)}
-                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-foreground"
-                placeholder="أدخل الاسم الكامل"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* بطاقة تعريف الموظف (قراءة فقط) */}
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-foreground">البريد الإلكتروني <span className="text-xs text-muted-foreground">(للقراءة فقط)</span></label>
+                <div className="w-full px-4 py-2 bg-muted/50 border border-border rounded-lg flex items-center min-h-[42px]">
+                  <p className="text-sm font-mono text-muted-foreground truncate" dir="ltr">{editTarget.email}</p>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-foreground">الاسم الكامل</label>
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-foreground"
+                  placeholder="أدخل الاسم الكامل"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-foreground">
+                  رقم الجوال <span className="text-xs text-muted-foreground">(اختياري)</span>
+                </label>
+                <input
+                  type="tel"
+                  dir="ltr"
+                  value={editPhone}
+                  onChange={(e) => setEditPhone(e.target.value)}
+                  className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-foreground text-left"
+                  placeholder="05xxxxxxxx"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-foreground">الدور</label>
+                <select
+                  value={editType}
+                  onChange={(e) => setEditType(e.target.value)}
+                  className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-foreground appearance-none cursor-pointer"
+                >
+                  {STAFF_USER_TYPE_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
+                  ))}
+                </select>
+              </div>
             </div>
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-foreground">الدور</label>
-              <select
-                value={editType}
-                onChange={(e) => setEditType(e.target.value)}
-                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-foreground appearance-none cursor-pointer"
-              >
-                {STAFF_TYPE_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
-                ))}
-              </select>
-            </div>
-            <div className="pt-4 flex gap-3">
+
+            {/* وصف صلاحيات الدور المختار */}
+            <p className="flex items-start gap-1.5 rounded-lg bg-muted/50 border border-border px-3 py-2 text-xs text-muted-foreground">
+              <Shield className="w-3.5 h-3.5 shrink-0 mt-0.5 text-primary" />
+              {ROLE_DESCRIPTIONS[editType] ?? ''}
+            </p>
+
+            <div className="pt-2 flex gap-3">
               <button
                 onClick={submitEdit}
                 disabled={loadingAction === 'edit'}
-                className="flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground py-2 rounded-lg font-semibold transition-colors disabled:opacity-70"
+                className="flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground py-2.5 rounded-full font-semibold transition-colors disabled:opacity-70"
               >
                 {loadingAction === 'edit' ? <Spinner /> : 'حفظ التعديلات'}
               </button>
               <button onClick={() => setEditTarget(null)}
-                className="flex-1 bg-muted hover:bg-muted/80 text-foreground py-2 rounded-lg font-medium transition-colors">
+                className="flex-1 bg-muted hover:bg-muted/80 text-foreground py-2.5 rounded-full font-semibold transition-colors">
                 {t('common.cancel')}
               </button>
             </div>
@@ -403,43 +514,70 @@ export default function StaffClient({ initialStaff }: { initialStaff: StaffRow[]
       {deleteTarget && (
         <Modal onClose={() => setDeleteTarget(null)} title="تأكيد الحذف">
           <div className="p-6 space-y-4">
-            <div className="flex items-start gap-3 p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+            <div className="flex items-start gap-3 p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800">
               <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm font-medium text-red-800 dark:text-red-200">
-                  هل أنت متأكد من حذف <strong>{deleteTarget.name}</strong>؟
+                <p className="text-sm font-bold text-red-800 dark:text-red-200">
+                  هل أنت متأكد من حذف <span className="font-extrabold">{deleteTarget.name}</span>؟
                 </p>
-                <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                <p className="text-xs text-red-600 dark:text-red-400 mt-1 font-medium">
                   هذا الإجراء لا يمكن التراجع عنه. سيتم حذف الحساب نهائياً من النظام.
                 </p>
               </div>
             </div>
-            <div className="pt-2 flex gap-3">
+            <div className="pt-4 flex gap-3">
               <button
                 onClick={confirmDelete}
                 disabled={loadingAction === 'delete'}
-                className="flex-1 flex items-center justify-center gap-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground py-2 rounded-lg font-semibold transition-colors disabled:opacity-70"
+                className="flex-1 flex items-center justify-center gap-2 bg-background border border-border hover:bg-muted text-foreground py-2.5 rounded-full font-bold transition-colors disabled:opacity-70"
               >
                 {loadingAction === 'delete' ? <Spinner /> : 'نعم، حذف'}
               </button>
               <button onClick={() => setDeleteTarget(null)}
-                className="flex-1 bg-muted hover:bg-muted/80 text-foreground py-2 rounded-lg font-medium transition-colors">
+                className="flex-1 bg-muted hover:bg-muted/80 text-foreground py-2.5 rounded-full font-bold transition-colors">
                 {t('common.cancel')}
               </button>
             </div>
           </div>
         </Modal>
       )}
+
+      {/* حوار تأكيد التفعيل/التعطيل — إعادة استخدام ActionDialog */}
+      <ActionDialog
+        open={!!toggleTarget}
+        title={toggleTarget?.isActive ? 'تعطيل حساب الموظف' : 'تنشيط حساب الموظف'}
+        variant={toggleTarget?.isActive ? 'danger' : 'primary'}
+        actorName={actorName}
+        description={
+          toggleTarget?.isActive ? (
+            <>
+              هل أنت متأكد من تعطيل حساب <strong>{toggleTarget?.name}</strong>؟
+              لن يتمكن من تسجيل الدخول للوحة حتى يُعاد تنشيطه.
+            </>
+          ) : (
+            <>
+              هل تريد إعادة تنشيط حساب <strong>{toggleTarget?.name}</strong> والسماح له بالدخول للوحة؟
+            </>
+          )
+        }
+        confirmLabel={toggleTarget?.isActive ? 'نعم، تعطيل' : 'نعم، تنشيط'}
+        loading={loadingAction === `status-${toggleTarget?.id}`}
+        onConfirm={confirmToggle}
+        onClose={() => setToggleTarget(null)}
+      />
+
+      {/* نافذة التفاصيل — نفس المكوّن المعاد استخدامه */}
+      <UserDetailsModal userId={detailsId} kind="staff" onClose={() => setDetailsId(null)} />
     </div>
   );
 }
 
 // ===== مكونات مساعدة =====
 
-function Modal({ onClose, title, children }: { onClose: () => void; title: string; children: React.ReactNode }) {
+function Modal({ onClose, title, children, className = "max-w-md" }: { onClose: () => void; title: string; children: React.ReactNode; className?: string }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-card rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200 border border-border">
+      <div className={`bg-card rounded-2xl shadow-xl w-full ${className} overflow-hidden animate-in fade-in zoom-in duration-200 border border-border`}>
         <div className="p-6 border-b border-border flex items-center justify-between">
           <h2 className="text-xl font-bold text-foreground">{title}</h2>
           <button onClick={onClose} className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">

@@ -385,3 +385,156 @@ where id in (select id from auth.users where email = 'nuwate369@gmail.com');
 create trigger trigger_immutable_user_type
   before update or delete on public.profiles
   for each row execute function public.enforce_immutable_user_type();
+
+-- ===== 0013_ban_and_audit.sql (الحظر + سجل الحركات) =====
+
+-- حالة النشاط + سياق الحظر على profiles
+alter table public.profiles add column if not exists is_active  boolean not null default true;
+alter table public.profiles add column if not exists ban_reason text;
+alter table public.profiles add column if not exists banned_by  uuid references public.profiles(id) on delete set null;
+alter table public.profiles add column if not exists banned_at  timestamptz;
+
+create index if not exists idx_profiles_is_active on public.profiles (is_active) where is_active = false;
+
+-- جدول سجل الحركات
+create table if not exists public.audit_logs (
+  id          uuid primary key default gen_random_uuid(),
+  actor_id    uuid references public.profiles(id) on delete set null,
+  actor_name  text,
+  actor_type  user_type,
+  action      text not null,
+  target_type text,
+  target_id   uuid,
+  target_name text,
+  reason      text,
+  metadata    jsonb,
+  created_at  timestamptz not null default now()
+);
+
+create index if not exists idx_audit_logs_created on public.audit_logs (created_at desc);
+create index if not exists idx_audit_logs_actor   on public.audit_logs (actor_id);
+create index if not exists idx_audit_logs_target  on public.audit_logs (target_id);
+create index if not exists idx_audit_logs_action  on public.audit_logs (action);
+
+alter table public.audit_logs enable row level security;
+
+drop policy if exists audit_logs_select_staff on public.audit_logs;
+create policy audit_logs_select_staff on public.audit_logs
+  for select
+  using (
+    exists (
+      select 1 from public.profiles p
+      where p.id = auth.uid() and p.user_type in ('super_admin', 'admin', 'support')
+    )
+  );
+
+-- ===== 0014_rating_questions.sql (أسئلة التقييم المُدارة) =====
+
+create table if not exists public.rating_questions (
+  id         uuid primary key default gen_random_uuid(),
+  question   text not null,
+  target     text not null check (target in ('driver', 'passenger')),
+  is_active  boolean not null default true,
+  sort_order int not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create unique index if not exists uq_rating_questions_question_target
+  on public.rating_questions (question, target);
+
+drop trigger if exists set_rating_questions_updated_at on public.rating_questions;
+create trigger set_rating_questions_updated_at
+  before update on public.rating_questions
+  for each row execute function public.set_updated_at();
+
+create table if not exists public.rating_answers (
+  id          uuid primary key default gen_random_uuid(),
+  rating_id   uuid not null references public.ratings(id) on delete cascade,
+  question_id uuid not null references public.rating_questions(id) on delete cascade,
+  stars       int  not null check (stars between 1 and 5),
+  created_at  timestamptz not null default now(),
+  unique (rating_id, question_id)
+);
+
+create index if not exists idx_rating_answers_rating   on public.rating_answers (rating_id);
+create index if not exists idx_rating_answers_question on public.rating_answers (question_id);
+
+alter table public.rating_questions enable row level security;
+alter table public.rating_answers   enable row level security;
+
+drop policy if exists rating_questions_select_all on public.rating_questions;
+create policy rating_questions_select_all on public.rating_questions
+  for select using (true);
+
+drop policy if exists rating_answers_select_involved on public.rating_answers;
+create policy rating_answers_select_involved on public.rating_answers
+  for select using (
+    exists (
+      select 1 from public.ratings r
+      where r.id = rating_answers.rating_id
+        and (r.rater_id = auth.uid() or r.ratee_id = auth.uid())
+    )
+    or exists (
+      select 1 from public.profiles p
+      where p.id = auth.uid() and p.user_type in ('super_admin', 'admin', 'support')
+    )
+  );
+
+drop policy if exists rating_answers_insert_rater on public.rating_answers;
+create policy rating_answers_insert_rater on public.rating_answers
+  for insert with check (
+    exists (
+      select 1 from public.ratings r
+      where r.id = rating_answers.rating_id and r.rater_id = auth.uid()
+    )
+  );
+
+insert into public.rating_questions (question, target, sort_order) values
+  ('نظافة المركبة',            'driver',    1),
+  ('القيادة الآمنة',           'driver',    2),
+  ('الالتزام بالموعد',         'driver',    3),
+  ('حسن التعامل واللباقة',     'driver',    4),
+  ('حسن التعامل',              'passenger', 1),
+  ('الالتزام بموعد الانطلاق',  'passenger', 2),
+  ('دقة موقع الالتقاط',        'passenger', 3)
+on conflict (question, target) do nothing;
+
+-- ===== 0015_allow_staff_role_change.sql (تغيير دور الموظف عبر اللوحة) =====
+
+create or replace function public.enforce_immutable_user_type()
+returns trigger language plpgsql security definer set search_path = public as $$
+declare
+  v_staff constant text[] := array['super_admin', 'admin', 'support'];
+  v_req_role text := nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'role';
+begin
+  if tg_op = 'UPDATE' then
+    if new.user_type <> old.user_type then
+      if not (old.user_type::text = any(v_staff) and new.user_type::text = any(v_staff)) then
+        raise exception 'IMMUTABLE_USER_TYPE: لا يُسمح بتغيير نوع الحساب إلا بين أدوار الموظفين.'
+          using errcode = 'P0001';
+      end if;
+      if v_req_role is not null and v_req_role <> 'service_role' then
+        raise exception 'IMMUTABLE_USER_TYPE: تغيير الدور متاح من لوحة الإدارة فقط.'
+          using errcode = 'P0001';
+      end if;
+    end if;
+    if old.is_protected = true then
+      raise exception 'PROTECTED_PROFILE: هذا الحساب محمي ولا يمكن تعديله.'
+        using errcode = 'P0002';
+    end if;
+  end if;
+  if tg_op = 'DELETE' then
+    if old.is_protected = true then
+      raise exception 'PROTECTED_PROFILE: هذا الحساب محمي ولا يمكن حذفه.'
+        using errcode = 'P0002';
+    end if;
+  end if;
+  return coalesce(new, old);
+end;
+$$;
+
+drop trigger if exists trigger_immutable_user_type on public.profiles;
+create trigger trigger_immutable_user_type
+  before update or delete on public.profiles
+  for each row execute function public.enforce_immutable_user_type();

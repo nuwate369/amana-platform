@@ -23,7 +23,7 @@ export default function ForgotPasswordPage() {
   } = useForm<ForgotInput>({ resolver: zodResolver(emailOnlySchema) });
 
   const onSubmit = handleSubmit(async (values) => {
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    const siteUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000');
     const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
       redirectTo: `${siteUrl}/reset-password`,
     });

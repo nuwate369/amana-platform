@@ -62,6 +62,7 @@ export type AdminAction =
   | 'view_riders'       // عرض قائمة الراكبات
   | 'view_drivers'      // عرض قائمة السائقات
   | 'manage_drivers'    // تغيير حالة السائقة (قبول/رفض KYC)
+  | 'manage_users'      // حظر/رفع حظر الراكبات والسائقات (super_admin فقط)
   | 'view_rides'        // عرض الرحلات الحية
   | 'view_pricing'      // عرض صفحة التسعير
   | 'manage_pricing'    // تعديل التسعير
@@ -70,7 +71,10 @@ export type AdminAction =
   | 'view_notifications'// عرض الإشعارات
   | 'manage_notifications'// إرسال الإشعارات والإعلانات
   | 'view_staff'        // عرض قائمة الموظفين (/staff)
-  | 'invite_staff';     // دعوة/إدارة الموظفين (super_admin فقط)
+  | 'invite_staff'      // دعوة/إدارة الموظفين (super_admin فقط)
+  | 'view_audit_log'    // عرض سجل الحركات (super_admin + admin)
+  | 'view_ratings'      // عرض التقييمات وأسئلتها (super_admin + admin)
+  | 'manage_ratings';   // إدارة أسئلة التقييم (super_admin فقط)
 
 /**
  * الدالة المركزية للتحقق من الصلاحيات.
@@ -96,8 +100,10 @@ export function can(userType: UserType, action: AdminAction): boolean {
     // -----------------------------------------------------------------------
     case 'invite_staff':
     case 'manage_drivers':
+    case 'manage_users':
     case 'manage_pricing':
     case 'manage_notifications':
+    case 'manage_ratings':
       return false;
 
     // -----------------------------------------------------------------------
@@ -112,6 +118,8 @@ export function can(userType: UserType, action: AdminAction): boolean {
     case 'view_groups':
     case 'view_notifications':
     case 'view_staff':
+    case 'view_audit_log':
+    case 'view_ratings':
       if (userType === 'admin') return true;
       // -------------------------------------------------------------------
       // الدعم الفني (support): مجموعة شاشات محددة فقط

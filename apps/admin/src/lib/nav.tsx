@@ -9,6 +9,8 @@ import {
   Bell,
   Radio,
   UserCog,
+  ScrollText,
+  Star,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -28,8 +30,10 @@ export const NAV_ITEMS: NavItem[] = [
   { href: '/rides',               label: 'الرحلات الحية',                icon: Navigation      },
   { href: '/pricing',             label: 'التسعير',                      icon: BadgePercent    },
   { href: '/reports',             label: 'التقارير',                     icon: BarChart3       },
+  { href: '/ratings',             label: 'التقييمات',                    icon: Star,           description: 'إدارة أسئلة التقييم ومتابعة التقييمات الواردة من التطبيقات' },
   { href: '/groups',              label: 'مجموعات النقل المشتركة',      icon: UsersRound,     description: 'مجموعات تنسيق الرحلات بين الراكبات — للمراقبة والإشراف فقط' },
   { href: '/notifications',       label: 'الإعلانات والتنبيهات العامة',  icon: Radio,          description: 'إرسال رسائل تظهر داخل تطبيقي الراكبة والسائقة' },
   { href: '/staff',               label: 'فريق العمل',                   icon: UserCog         },
+  { href: '/audit-log',           label: 'سجل الحركات',                  icon: ScrollText,     description: 'سجلّ زمني لكل إجراء حسّاس على النظام — للمدير العام والمدير' },
   { href: '/system-notifications',label: 'الإشعارات',                     icon: Bell            },
 ];

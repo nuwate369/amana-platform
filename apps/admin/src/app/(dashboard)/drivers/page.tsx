@@ -1,39 +1,65 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Car, FileText, Image as ImageIcon, Check, X, ShieldCheck, Star } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Car, Check, X, ShieldCheck, Star, Ban, RotateCcw, Lock, Phone, Eye } from 'lucide-react';
 import { listDrivers, type DriverRow } from '@/app/actions/admin';
+import { banUser, unbanUser, approveDriver, rejectDriver } from '@/app/actions/moderation';
+import { ActionDialog } from '@/components/ActionDialog';
+import { UserDetailsModal } from '@/components/UserDetailsModal';
+import { useAuth } from '@/lib/auth';
+import { supabase } from '@/lib/supabase/client';
+import { notify } from '@/lib/toast';
+import type { UserType } from '@amana/shared-types';
 
 /**
- * صفحة إدارة السائقات — بيانات حقيقية (Supabase)، هوية أنثراسايت + ذهبي، RTL، دعم الوضع الداكن.
+ * إدارة السائقات — بيانات حقيقية (Supabase): مراجعة KYC (قبول/رفض) + حظر/رفع حظر،
+ * كل حركة تُسجَّل في audit_logs. هوية أنثراسايت + ذهبي، RTL، دعم الوضع الداكن.
  */
 
-const FILTERS = ['الكل', 'نشطة', 'قيد المراجعة', 'موقوفة'] as const;
+const FILTERS = ['الكل', 'نشطة', 'قيد المراجعة', 'مرفوضة', 'محظورة'] as const;
 type Filter = (typeof FILTERS)[number];
 
 const STATUS_LABELS: Record<string, string> = {
   approved: 'نشطة',
   pending: 'قيد المراجعة',
-  rejected: 'موقوفة',
+  rejected: 'مرفوضة',
 };
 
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ label }: { label: string }) {
   const map: Record<string, string> = {
     نشطة: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
     'قيد المراجعة': 'bg-primary/10 text-primary',
-    موقوفة: 'bg-destructive/10 text-destructive',
+    مرفوضة: 'bg-destructive/10 text-destructive',
   };
   return (
-    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${map[status] ?? ''}`}>
-      {status}
+    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${map[label] ?? 'bg-muted text-muted-foreground'}`}>
+      {label}
     </span>
   );
 }
 
+type BanTarget = { row: DriverRow; mode: 'ban' | 'unban' };
+type KycTarget = { row: DriverRow; mode: 'approve' | 'reject' };
+
 export default function DriversPage() {
+  const { user } = useAuth();
   const [active, setActive] = useState<Filter>('الكل');
   const [drivers, setDrivers] = useState<DriverRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [canManage, setCanManage] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  const [banTarget, setBanTarget] = useState<BanTarget | null>(null);
+  const [kycTarget, setKycTarget] = useState<KycTarget | null>(null);
+  const [detailsId, setDetailsId] = useState<string | null>(null);
+
+  const actorName =
+    (user?.user_metadata?.full_name as string | undefined) || user?.email || 'مسؤول';
+
+  async function reload() {
+    const data = await listDrivers();
+    setDrivers(data);
+  }
 
   useEffect(() => {
     let alive = true;
@@ -50,22 +76,74 @@ export default function DriversPage() {
     };
   }, []);
 
-  const rows =
-    active === 'الكل'
-      ? drivers
-      : drivers.filter((d) => STATUS_LABELS[d.status] === active);
+  // صلاحية الإدارة: super_admin فقط (متسامح قبل تطبيق الهجرة)
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from('profiles')
+      .select('user_type')
+      .eq('id', user.id)
+      .single()
+      .then(({ data, error }) => {
+        if (error?.code === '42703') { setCanManage(true); return; }
+        setCanManage((data?.user_type as UserType) === 'super_admin');
+      });
+  }, [user]);
+
+  const pending = useMemo(() => drivers.filter((d) => d.status === 'pending'), [drivers]);
+
+  const rows = useMemo(() => {
+    switch (active) {
+      case 'الكل':
+        return drivers;
+      case 'محظورة':
+        return drivers.filter((d) => !d.isActive);
+      default:
+        return drivers.filter((d) => STATUS_LABELS[d.status] === active);
+    }
+  }, [drivers, active]);
+
+  async function doBan(reason: string) {
+    if (!banTarget) return;
+    setBusy(true);
+    const { row, mode } = banTarget;
+    const res =
+      mode === 'ban'
+        ? await banUser(row.id, user?.id ?? null, reason)
+        : await unbanUser(row.id, user?.id ?? null);
+    setBusy(false);
+    if (!res.success) { notify.error(res.error); return; }
+    notify.success(mode === 'ban' ? 'تم حظر الحساب' : 'تم رفع الحظر');
+    setBanTarget(null);
+    await reload();
+  }
+
+  async function doKyc(reason: string) {
+    if (!kycTarget) return;
+    setBusy(true);
+    const { row, mode } = kycTarget;
+    const res =
+      mode === 'approve'
+        ? await approveDriver(row.id, user?.id ?? null)
+        : await rejectDriver(row.id, user?.id ?? null, reason);
+    setBusy(false);
+    if (!res.success) { notify.error(res.error); return; }
+    notify.success(mode === 'approve' ? 'تم قبول السائقة' : 'تم رفض الطلب');
+    setKycTarget(null);
+    await reload();
+  }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">إدارة السائقات</h1>
-        <p className="text-sm text-muted-foreground">
-          مراجعة طلبات الانضمام، متابعة الحالة، وإدارة السائقات المسجّلات
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <h1 className="text-xl font-bold text-foreground">إدارة السائقات</h1>
+        <span className="text-muted-foreground font-light">/</span>
+        <p className="text-sm text-muted-foreground pt-1">
+          إدارة طلبات وسائقات المنصة
         </p>
       </div>
 
-      {/* بطاقة طلبات KYC معلّقة */}
-      {/* TODO: بيانات حقيقية */}
+      {/* طلبات KYC معلّقة — بيانات حقيقية */}
       <div className="rounded-xl border border-border bg-card p-5">
         <div className="mb-4 flex items-center gap-2">
           <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15 text-primary">
@@ -73,43 +151,54 @@ export default function DriversPage() {
           </span>
           <h2 className="font-semibold text-foreground">طلبات KYC معلّقة</h2>
           <span className="rounded-full bg-primary/15 px-2 py-0.5 text-xs font-medium text-primary">
-            ٣
+            {pending.length}
           </span>
         </div>
 
-        <div className="flex flex-col gap-4 rounded-lg border border-border p-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <p className="font-medium text-foreground">عبير الشمري</p>
-            <p className="text-sm text-muted-foreground">تقدّمت بطلب انضمام كسائقة · ٠٥٠٤٤٥٥٦٦٧</p>
-          </div>
-
-          {/* صور المستندات (عناصر نائبة) */}
-          <div className="flex items-center gap-3">
-            {[
-              { label: 'الهوية', icon: ImageIcon },
-              { label: 'الرخصة', icon: ImageIcon },
-              { label: 'استمارة المركبة', icon: FileText },
-            ].map((doc) => (
-              <div key={doc.label} className="flex flex-col items-center gap-1">
-                <div className="flex h-16 w-20 items-center justify-center rounded-md border border-dashed border-border bg-muted/50 text-muted-foreground">
-                  <doc.icon size={20} />
+        {pending.length === 0 ? (
+          <p className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">
+            لا توجد طلبات قيد المراجعة حاليًا.
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {pending.map((d) => (
+              <div
+                key={d.id}
+                className="flex flex-col gap-4 rounded-lg border border-border p-4 lg:flex-row lg:items-center lg:justify-between"
+              >
+                <div>
+                  <p className="font-medium text-foreground">{d.fullName ?? '—'}</p>
+                  <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <Phone size={13} />
+                    {d.phone ?? '—'} · {d.vehicle}
+                    {d.plate ? ` · ${d.plate}` : ''}
+                  </p>
                 </div>
-                <span className="text-[11px] text-muted-foreground">{doc.label}</span>
+
+                {canManage ? (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setKycTarget({ row: d, mode: 'approve' })}
+                      className="flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700"
+                    >
+                      <Check size={16} />
+                      موافقة
+                    </button>
+                    <button
+                      onClick={() => setKycTarget({ row: d, mode: 'reject' })}
+                      className="flex items-center gap-1 rounded-lg border border-destructive/30 px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
+                    >
+                      <X size={16} />
+                      رفض
+                    </button>
+                  </div>
+                ) : (
+                  <span className="text-xs text-muted-foreground">عرض فقط</span>
+                )}
               </div>
             ))}
           </div>
-
-          <div className="flex items-center gap-2">
-            <button className="flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700">
-              <Check size={16} />
-              موافقة
-            </button>
-            <button className="flex items-center gap-1 rounded-lg border border-destructive/30 px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10">
-              <X size={16} />
-              رفض
-            </button>
-          </div>
-        </div>
+        )}
       </div>
 
       {/* شرائح التصفية */}
@@ -138,7 +227,6 @@ export default function DriversPage() {
                 <th className="px-5 py-3 font-medium">الاسم</th>
                 <th className="px-5 py-3 font-medium">الجوال</th>
                 <th className="px-5 py-3 font-medium">المركبة</th>
-                <th className="px-5 py-3 font-medium">التقييم</th>
                 <th className="px-5 py-3 font-medium">الحالة</th>
                 <th className="px-5 py-3 font-medium">إجراءات</th>
               </tr>
@@ -146,63 +234,127 @@ export default function DriversPage() {
             <tbody className="divide-y divide-border">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-5 py-8 text-center text-muted-foreground">
+                  <td colSpan={5} className="px-5 py-8 text-center text-muted-foreground">
                     جارٍ التحميل…
                   </td>
                 </tr>
               ) : rows.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-5 py-8 text-center text-muted-foreground">
+                  <td colSpan={5} className="px-5 py-8 text-center text-muted-foreground">
                     لا توجد بيانات
                   </td>
                 </tr>
               ) : (
-                rows.map((d) => {
-                  const label = STATUS_LABELS[d.status] ?? d.status;
-                  return (
-                    <tr key={d.id} className="text-foreground hover:bg-muted/50 transition-colors">
-                      <td className="px-5 py-3">
-                        <div className="flex items-center gap-2">
-                          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-muted-foreground">
-                            <Car size={15} />
-                          </span>
-                          <span className="font-medium text-foreground">
-                            {d.fullName ?? '—'}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-5 py-3 font-mono text-muted-foreground">
-                        {d.phone ?? '—'}
-                      </td>
-                      <td className="px-5 py-3">{d.vehicle}</td>
-                      <td className="px-5 py-3">
-                        <span className="inline-flex items-center gap-1">
-                          <Star size={14} className="text-primary" />
-                          —
+                rows.map((d) => (
+                  <tr key={d.id} className="text-foreground hover:bg-muted/50 transition-colors">
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-2">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                          <Car size={15} />
                         </span>
-                      </td>
-                      <td className="px-5 py-3">
-                        <StatusBadge status={label} />
-                      </td>
-                      <td className="px-5 py-3">
-                        {label === 'قيد المراجعة' ? (
-                          <button className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90">
-                            مراجعة KYC
+                        <span className="font-medium text-foreground flex items-center gap-1.5">
+                          {d.isProtected && <Lock size={13} className="text-amber-500" />}
+                          {d.fullName ?? '—'}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-5 py-3 font-mono text-muted-foreground">{d.phone ?? '—'}</td>
+                    <td className="px-5 py-3">{d.vehicle}</td>
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-1.5">
+                        <StatusBadge label={STATUS_LABELS[d.status] ?? d.status} />
+                        {!d.isActive && (
+                          <span
+                            className="rounded-full bg-destructive/10 px-2.5 py-0.5 text-xs font-medium text-destructive"
+                            title={d.banReason ?? undefined}
+                          >
+                            محظورة
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => setDetailsId(d.id)}
+                          title="عرض التفاصيل"
+                          className="inline-flex items-center justify-center rounded-lg border border-border p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-primary"
+                        >
+                          <Eye size={15} />
+                        </button>
+                        {!canManage ? null : d.isProtected ? (
+                          <span className="inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 font-medium">
+                            <Lock size={13} /> محمي
+                          </span>
+                        ) : d.isActive ? (
+                          <button
+                            onClick={() => setBanTarget({ row: d, mode: 'ban' })}
+                            className="inline-flex items-center gap-1 rounded-lg border border-destructive/30 px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10"
+                          >
+                            <Ban size={14} /> حظر
                           </button>
                         ) : (
-                          <button className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted">
-                            عرض
+                          <button
+                            onClick={() => setBanTarget({ row: d, mode: 'unban' })}
+                            className="inline-flex items-center gap-1 rounded-lg border border-emerald-500/30 px-3 py-1.5 text-xs font-medium text-emerald-600 transition-colors hover:bg-emerald-500/10"
+                          >
+                            <RotateCcw size={14} /> رفع الحظر
                           </button>
                         )}
-                      </td>
-                    </tr>
-                  );
-                })
+                      </div>
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>
         </div>
       </div>
+
+      {/* حوار الحظر / رفع الحظر */}
+      <ActionDialog
+        open={!!banTarget}
+        title={banTarget?.mode === 'ban' ? 'حظر السائقة' : 'رفع الحظر'}
+        variant={banTarget?.mode === 'ban' ? 'danger' : 'primary'}
+        targetName={banTarget?.row.fullName}
+        actorName={actorName}
+        requireReason={banTarget?.mode === 'ban'}
+        reasonLabel="سبب الحظر"
+        reasonPlaceholder="مثال: مخالفة شروط الاستخدام…"
+        description={
+          banTarget?.mode === 'unban' ? (
+            <>هل تريد رفع الحظر عن <strong>{banTarget?.row.fullName ?? 'هذا الحساب'}</strong> وإعادة تفعيله؟</>
+          ) : undefined
+        }
+        confirmLabel={banTarget?.mode === 'ban' ? 'تأكيد الحظر' : 'رفع الحظر'}
+        loading={busy}
+        onConfirm={doBan}
+        onClose={() => setBanTarget(null)}
+      />
+
+      {/* حوار قبول / رفض KYC */}
+      <ActionDialog
+        open={!!kycTarget}
+        title={kycTarget?.mode === 'approve' ? 'قبول السائقة' : 'رفض طلب KYC'}
+        variant={kycTarget?.mode === 'approve' ? 'primary' : 'danger'}
+        targetName={kycTarget?.row.fullName}
+        actorName={actorName}
+        requireReason={kycTarget?.mode === 'reject'}
+        reasonLabel="سبب الرفض"
+        reasonPlaceholder="مثال: المستندات غير واضحة…"
+        description={
+          kycTarget?.mode === 'approve' ? (
+            <>هل تريد قبول <strong>{kycTarget?.row.fullName ?? 'هذه السائقة'}</strong> وتفعيل حسابها؟</>
+          ) : undefined
+        }
+        confirmLabel={kycTarget?.mode === 'approve' ? 'قبول' : 'تأكيد الرفض'}
+        loading={busy}
+        onConfirm={doKyc}
+        onClose={() => setKycTarget(null)}
+      />
+
+      {/* نافذة التفاصيل */}
+      <UserDetailsModal userId={detailsId} kind="driver" onClose={() => setDetailsId(null)} />
     </div>
   );
 }

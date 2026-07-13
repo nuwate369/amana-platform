@@ -24,7 +24,7 @@ function StatCard({
           <Icon size={20} />
         </span>
         <div>
-          <p className="text-2xl font-bold text-foreground">{value}</p>
+          <p className="text-xl font-bold text-foreground">{value}</p>
           <p className="mt-0.5 text-sm text-muted-foreground">{label}</p>
         </div>
       </div>
@@ -58,7 +58,7 @@ export default function GroupsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">مجموعات النقل المشتركة</h1>
+        <h1 className="text-xl font-bold text-foreground">مجموعات النقل المشتركة</h1>
         <p className="text-sm text-muted-foreground">
           مجموعات تنسيق الرحلات بين الراكبات — للمراقبة والإشراف فقط
         </p>

@@ -24,7 +24,7 @@ function StatCard({
           <Icon size={20} />
         </span>
         <div>
-          <p className="text-2xl font-bold text-foreground">{value}</p>
+          <p className="text-xl font-bold text-foreground">{value}</p>
           <p className="mt-0.5 text-sm text-muted-foreground">{label}</p>
         </div>
       </div>
@@ -64,7 +64,7 @@ export default function RidesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">مراقبة الرحلات الحية</h1>
+        <h1 className="text-xl font-bold text-foreground">مراقبة الرحلات الحية</h1>
         <p className="text-sm text-muted-foreground">متابعة لحظية للرحلات الجارية على الخريطة</p>
       </div>
 

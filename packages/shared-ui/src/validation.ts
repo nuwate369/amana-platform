@@ -40,11 +40,17 @@ export const emailOnlySchema = z.object({
 });
 
 /**
- * دعوة موظف إداري جديد — بريد + نوع المستخدم المقيّد بثلاث قيم فقط.
- * القائمة المنسدلة في الواجهة تعرض هذه القيم فقط ولا تقبل أي نص حر.
+ * دعوة موظف إداري جديد — الاسم + البريد + الجوال (اختياري) + نوع المستخدم
+ * المقيّد بثلاث قيم فقط. القائمة المنسدلة تعرض هذه القيم ولا تقبل نصًا حرًا.
  */
 export const inviteStaffSchema = z.object({
+  fullName: z.string().min(1, 'validation.required'),
   email: z.string().min(1, 'validation.required').email('validation.invalidEmail'),
+  phone: z
+    .string()
+    .regex(/^0?\d{9,14}$/, 'validation.invalidPhone')
+    .optional()
+    .or(z.literal('')),
   userType: z.enum(['super_admin', 'admin', 'support'], {
     message: 'validation.required',
   }),

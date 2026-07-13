@@ -27,6 +27,7 @@
   "validation": {
     "required": "هذا الحقل مطلوب",
     "invalidEmail": "البريد الإلكتروني غير صالح",
+    "invalidPhone": "رقم الجوال غير صالح",
     "passwordMin": "كلمة المرور يجب أن تتكون من 6 أحرف على الأقل",
     "passwordMatch": "كلمة المرور غير متطابقة",
     "mfaCodeLength": "الرمز يجب أن يكون 6 أرقام",

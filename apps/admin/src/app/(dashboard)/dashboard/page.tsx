@@ -26,7 +26,7 @@ function StatCard({
           <Icon size={20} />
         </span>
       </div>
-      <p className="mt-4 text-2xl font-bold text-foreground">{value}</p>
+      <p className="mt-4 text-xl font-bold text-foreground">{value}</p>
       <p className="mt-1 text-sm text-muted-foreground">{label}</p>
     </div>
   );
@@ -93,7 +93,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">لوحة المعلومات</h1>
+        <h1 className="text-xl font-bold text-foreground">لوحة المعلومات</h1>
         <p className="text-sm text-muted-foreground">نظرة عامة على أداء المنصّة اليوم</p>
       </div>
 

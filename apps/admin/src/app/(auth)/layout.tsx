@@ -33,7 +33,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
           <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 shadow-sm mb-4">
             <ShieldCheck className="w-7 h-7 text-primary" />
           </div>
-          <h1 className="text-2xl font-bold text-foreground tracking-tight">
+          <h1 className="text-xl font-bold text-foreground tracking-tight">
             {t('admin.title', 'أمانة للإدارة')}
           </h1>
           <p className="text-muted-foreground mt-1 text-sm">

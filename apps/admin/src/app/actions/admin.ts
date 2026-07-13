@@ -42,6 +42,36 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   };
 }
 
+/** حقول الإشراف المشتركة (حالة النشاط + سياق الحظر + الحماية). */
+interface ModerationFields {
+  isActive: boolean;
+  isProtected: boolean;
+  banReason: string | null;
+  bannedAt: string | null;
+}
+
+const NO_MODERATION: ModerationFields = {
+  isActive: true,
+  isProtected: false,
+  banReason: null,
+  bannedAt: null,
+};
+
+function pickModeration(p: Record<string, unknown> | null | undefined): ModerationFields {
+  if (!p) return NO_MODERATION;
+  return {
+    isActive: p.is_active === undefined ? true : !!p.is_active,
+    isProtected: !!p.is_protected,
+    banReason: (p.ban_reason as string | null) ?? null,
+    bannedAt: (p.banned_at as string | null) ?? null,
+  };
+}
+
+/** يُميّز خطأ «العمود غير موجود» (قبل تطبيق هجرة 0013). */
+function isMissingColumn(error: { code?: string } | null): boolean {
+  return error?.code === '42703';
+}
+
 export interface DriverRow {
   id: string;
   fullName: string | null;
@@ -49,23 +79,34 @@ export interface DriverRow {
   status: string;
   vehicle: string;
   plate: string | null;
+  isActive: boolean;
+  isProtected: boolean;
+  banReason: string | null;
+  bannedAt: string | null;
 }
 
 export async function listDrivers(): Promise<DriverRow[]> {
   const db = getAdminSupabase();
-  const { data } = await db
-    .from('drivers')
-    .select('id, status, vehicle_make, vehicle_model, vehicle_plate, profiles(full_name, phone)')
-    .order('status');
-  return (data ?? []).map((d) => {
-    const profile = d.profiles as unknown as { full_name: string | null; phone: string | null } | null;
+  const rich =
+    'id, status, vehicle_make, vehicle_model, vehicle_plate, profiles(full_name, phone, is_active, is_protected, ban_reason, banned_at)';
+  const basic = 'id, status, vehicle_make, vehicle_model, vehicle_plate, profiles(full_name, phone)';
+
+  const first = await db.from('drivers').select(rich).order('status');
+  const res = first.error && isMissingColumn(first.error)
+    ? await db.from('drivers').select(basic).order('status')
+    : first;
+  const data = (res.data ?? []) as any[];
+
+  return data.map((d) => {
+    const profile = d.profiles as unknown as Record<string, unknown> | null;
     return {
       id: d.id,
-      fullName: profile?.full_name ?? null,
-      phone: profile?.phone ?? null,
+      fullName: (profile?.full_name as string | null) ?? null,
+      phone: (profile?.phone as string | null) ?? null,
       status: d.status,
       vehicle: [d.vehicle_make, d.vehicle_model].filter(Boolean).join(' ') || '—',
       plate: d.vehicle_plate,
+      ...pickModeration(profile),
     };
   });
 }
@@ -75,6 +116,10 @@ export interface ProfileRow {
   fullName: string | null;
   phone: string | null;
   createdAt: string;
+  isActive: boolean;
+  isProtected: boolean;
+  banReason: string | null;
+  bannedAt: string | null;
 }
 
 export async function listPassengers(): Promise<ProfileRow[]> {
@@ -85,15 +130,30 @@ async function listProfilesByType(
   userType: 'passenger' | 'driver',
 ): Promise<ProfileRow[]> {
   const db = getAdminSupabase();
-  const { data } = await db
+  const rich = 'id, full_name, phone, created_at, is_active, is_protected, ban_reason, banned_at';
+  const basic = 'id, full_name, phone, created_at';
+
+  // قبل الهجرة: عمود user_type غير موجود؛ فلترة الراكبات تسقط للاعتماد على role.
+  const first = await db
     .from('profiles')
-    .select('id, full_name, phone, created_at')
+    .select(rich)
     .eq('user_type', userType)
     .order('created_at', { ascending: false });
-  return (data ?? []).map((p) => ({
+
+  const res = first.error && isMissingColumn(first.error)
+    ? await db
+        .from('profiles')
+        .select(basic)
+        .eq('role', userType)
+        .order('created_at', { ascending: false })
+    : first;
+  const data = (res.data ?? []) as any[];
+
+  return data.map((p) => ({
     id: p.id,
     fullName: p.full_name,
     phone: p.phone,
     createdAt: p.created_at,
+    ...pickModeration(p as Record<string, unknown>),
   }));
 }
