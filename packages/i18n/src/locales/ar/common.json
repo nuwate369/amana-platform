@@ -15,7 +15,20 @@
     "theme": "المظهر",
     "light": "فاتح",
     "dark": "داكن",
-    "system": "تلقائي"
+    "system": "تلقائي",
+    "success": "تمت العملية بنجاح",
+    "error": "حدث خطأ غير متوقع، يرجى المحاولة مرة أخرى",
+    "saveSuccess": "تم حفظ البيانات بنجاح",
+    "deleteSuccess": "تم الحذف بنجاح",
+    "unsavedChanges": "لديك تغييرات لم تُحفظ، هل تريد المتابعة بدون حفظ؟",
+    "leave": "مغادرة",
+    "stay": "البقاء"
+  },
+  "validation": {
+    "required": "هذا الحقل مطلوب",
+    "invalidEmail": "البريد الإلكتروني غير صالح",
+    "passwordMin": "كلمة المرور يجب أن تتكون من 6 أحرف على الأقل",
+    "passwordMatch": "كلمة المرور غير متطابقة"
   },
   "auth": {
     "signInTitle": "تسجيل الدخول",
@@ -35,6 +48,41 @@
     "verifyEmailBody": "أرسلنا رابط تأكيد إلى بريدك. افتح الرابط لتفعيل حسابك.",
     "resendEmail": "إعادة إرسال البريد",
     "backToSignIn": "العودة لتسجيل الدخول"
+  },
+  "systemNotifications": {
+    "title": "إشعارات النظام",
+    "subtitle": "إشعارات أحداث المنصة الداخليّة",
+    "bell": "إشعارات النظام",
+    "viewAll": "عرض الكل",
+    "markAllRead": "تحديد الكل كمقروء",
+    "noNotifications": "لا توجد إشعارات جديدة",
+    "filterAll": "الكل",
+    "filterUnread": "غير مقروء",
+    "filterRead": "مقروء",
+    "filterType": "نوع الحدث",
+    "allTypes": "جميع الأنواع",
+    "type_new_driver": "سائقة جديدة",
+    "type_new_ride": "رحلة جديدة",
+    "type_staff_joined": "موظف جديد",
+    "type_document_expiring": "مستندات تنتهي",
+    "type_kyc_pending": "KYC معلّق",
+    "timeAgo": {
+      "justNow": "الآن",
+      "minutes": "منذ {{count}} دقيقة",
+      "minutes_other": "منذ {{count}} دقائق",
+      "hours": "منذ ساعة",
+      "hours_other": "منذ {{count}} ساعات",
+      "days": "منذ يوم",
+      "days_other": "منذ {{count}} أيام",
+      "weeks": "منذ أسبوع",
+      "weeks_other": "منذ {{count}} أسابيع"
+    },
+    "empty": "لا توجد إشعارات حالياً",
+    "emptyFiltered": "لا توجد إشعارات تطابق الفلتر المحدد",
+    "delete": "حذف",
+    "unreadCount": "{{count}} غير مقروء",
+    "unreadCount_other": "{{count}} غير مقروء",
+    "broadcastTitle": "بث الإشعارات للمستخدمين"
   },
   "payment": {
     "title": "تفاصيل الدفع",

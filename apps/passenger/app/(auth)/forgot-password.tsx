@@ -1,26 +1,37 @@
 import { Link } from 'expo-router';
 import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { emailOnlySchema, translateError } from '@amana/shared-ui/validation';
+import { z } from 'zod';
 import { supabase } from '@/lib/supabase';
+import { notify } from '@/lib/toast';
+
+type EmailOnlyInput = z.infer<typeof emailOnlySchema>;
 
 export default function ForgotPasswordScreen() {
   const { t } = useTranslation();
-  const [email, setEmail] = useState('');
-  const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  async function onSubmit() {
-    setLoading(true);
-    setError(null);
-    const { error } = await supabase.auth.resetPasswordForEmail(email);
-    setLoading(false);
+  const {
+    control,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<EmailOnlyInput>({
+    resolver: zodResolver(emailOnlySchema),
+    defaultValues: { email: '' },
+  });
+
+  async function onSubmit(values: EmailOnlyInput) {
+    const { error } = await supabase.auth.resetPasswordForEmail(values.email);
     if (error) {
-      setError(error.message);
+      notify.error(error.message || t('common.error'));
       return;
     }
+    notify.success(t('auth.verifyEmailBody'));
     setSent(true);
   }
 
@@ -35,21 +46,32 @@ export default function ForgotPasswordScreen() {
           <Text className="text-brand-500 dark:text-brand-200">{t('auth.verifyEmailBody')}</Text>
         ) : (
           <>
-            <TextInput
-              className="rounded-lg border border-brand-200 px-4 py-3 text-brand-900 dark:text-brand-50"
-              placeholder={t('auth.email')}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              value={email}
-              onChangeText={setEmail}
-            />
-            {error ? <Text className="text-sm text-red-500">{error}</Text> : null}
+            <View className="gap-1">
+              <Controller
+                control={control}
+                name="email"
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <TextInput
+                    className="rounded-lg border border-brand-200 px-4 py-3 text-brand-900 dark:text-brand-50"
+                    placeholder={t('auth.email')}
+                    autoCapitalize="none"
+                    keyboardType="email-address"
+                    value={value}
+                    onBlur={onBlur}
+                    onChangeText={onChange}
+                  />
+                )}
+              />
+              {errors.email ? (
+                <Text className="text-sm text-red-500">{translateError(t, errors.email.message)}</Text>
+              ) : null}
+            </View>
             <Pressable
               className="mt-2 items-center rounded-lg bg-brand-600 px-6 py-3"
-              disabled={loading}
-              onPress={onSubmit}
+              disabled={isSubmitting}
+              onPress={handleSubmit(onSubmit)}
             >
-              {loading ? (
+              {isSubmitting ? (
                 <ActivityIndicator color="#fff" />
               ) : (
                 <Text className="font-semibold text-white">{t('auth.sendResetLink')}</Text>

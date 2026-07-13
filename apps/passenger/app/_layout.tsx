@@ -11,6 +11,7 @@ import {
   IBMPlexSansArabic_600SemiBold,
   IBMPlexSansArabic_700Bold,
 } from '@expo-google-fonts/ibm-plex-sans-arabic';
+import Toast from 'react-native-toast-message';
 import { i18n } from '@/lib/i18n';
 import { AuthProvider } from '@/lib/auth';
 import { useProtectedRoute } from '@/lib/useProtectedRoute';
@@ -61,6 +62,7 @@ export default function RootLayout() {
         <SafeAreaProvider>
           <StatusBar style="auto" />
           <RootNavigator />
+          <Toast />
         </SafeAreaProvider>
       </AuthProvider>
     </I18nextProvider>

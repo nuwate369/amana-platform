@@ -1,34 +1,12 @@
 -- ============================================================
 -- منصة أمانة — تطبيق المخطط كاملًا (الصقه في Supabase SQL Editor ثم Run)
--- يجمع: 0001_init.sql (الجداول) + 0002_rls.sql (سياسات RLS)
+-- يجمع: 0001_init (الجداول الأساسية) + 0002_rls (سياسات RLS) +
+--        0007_user_type (user_type enum + حذف RBAC القديم)
 -- ============================================================
 
--- ===== 0001_init.sql =====
--- =============================================================================
--- منصة أمانة — المخطط الأساسي (core schema)
--- 0001_init.sql
--- Postgres 15 / Supabase
---
--- يعرّف هذا الملف: الامتدادات، الأنواع المعدودة (enums)، الجداول الأساسية،
--- الدوال والمشغّلات (triggers) الخاصة بـ updated_at وإنشاء ملف المستخدم،
--- الفهارس، وتفعيل Row Level Security على كل الجداول العامة.
--- =============================================================================
+-- ===== 0001_init.sql (النسخة المحدَّثة — بدون role القديم) =====
 
--- امتداد pgcrypto مطلوب لـ gen_random_uuid()
 create extension if not exists pgcrypto;
-
--- -----------------------------------------------------------------------------
--- الأنواع المعدودة (enums)
--- -----------------------------------------------------------------------------
-
--- دور المستخدم: راكبة / سائقة / مشرفة
-do $$
-begin
-  if not exists (select 1 from pg_type where typname = 'user_role') then
-    create type user_role as enum ('passenger', 'driver', 'admin');
-  end if;
-end
-$$;
 
 -- حالة توثيق السائقة
 do $$
@@ -48,23 +26,32 @@ begin
 end
 $$;
 
--- -----------------------------------------------------------------------------
--- جدول profiles — ملف تعريف كل مستخدم (يمتد من auth.users)
--- -----------------------------------------------------------------------------
+-- نوع المستخدم الجديد (يستبدل user_role القديم)
+do $$
+begin
+  if not exists (select 1 from pg_type where typname = 'user_type') then
+    create type user_type as enum (
+      'passenger', 'driver', 'super_admin', 'admin', 'support'
+    );
+  end if;
+end
+$$;
+
+-- جدول profiles
 create table if not exists public.profiles (
-  id          uuid primary key references auth.users(id) on delete cascade,
-  role        user_role   not null default 'passenger',
-  full_name   text,
-  phone       text,
-  locale      text        not null default 'ar' check (locale in ('ar', 'en')),
-  avatar_url  text,
-  created_at  timestamptz not null default now(),
-  updated_at  timestamptz not null default now()
+  id                 uuid primary key references auth.users(id) on delete cascade,
+  user_type          user_type   not null default 'passenger',
+  is_protected       boolean     not null default false,
+  full_name          text,
+  phone              text,
+  preferred_language text        not null default 'ar' check (preferred_language in ('ar', 'en')),
+  preferred_theme    text        not null default 'system' check (preferred_theme in ('light', 'dark', 'system')),
+  avatar_url         text,
+  created_at         timestamptz not null default now(),
+  updated_at         timestamptz not null default now()
 );
 
--- -----------------------------------------------------------------------------
--- جدول drivers — بيانات توثيق السائقة والمركبة (id يساوي profiles.id)
--- -----------------------------------------------------------------------------
+-- جدول drivers
 create table if not exists public.drivers (
   id                       uuid primary key references public.profiles(id) on delete cascade,
   status                   driver_status not null default 'pending',
@@ -78,9 +65,7 @@ create table if not exists public.drivers (
   updated_at               timestamptz   not null default now()
 );
 
--- -----------------------------------------------------------------------------
--- جدول rides — الرحلات
--- -----------------------------------------------------------------------------
+-- جدول rides
 create table if not exists public.rides (
   id              uuid primary key default gen_random_uuid(),
   passenger_id    uuid not null references public.profiles(id) on delete cascade,
@@ -100,9 +85,7 @@ create table if not exists public.rides (
   updated_at      timestamptz not null default now()
 );
 
--- -----------------------------------------------------------------------------
--- جدول ratings — تقييمات الرحلات (كل تقييم من مقيِّمة إلى مقيَّمة)
--- -----------------------------------------------------------------------------
+-- جدول ratings
 create table if not exists public.ratings (
   id         uuid primary key default gen_random_uuid(),
   ride_id    uuid not null references public.rides(id) on delete cascade,
@@ -113,9 +96,7 @@ create table if not exists public.ratings (
   created_at timestamptz not null default now()
 );
 
--- -----------------------------------------------------------------------------
--- جدول groups — مجموعات (مثل مجموعة عائلية أو مجموعة زميلات)
--- -----------------------------------------------------------------------------
+-- جدول groups
 create table if not exists public.groups (
   id         uuid primary key default gen_random_uuid(),
   name       text not null,
@@ -123,9 +104,7 @@ create table if not exists public.groups (
   created_at timestamptz not null default now()
 );
 
--- -----------------------------------------------------------------------------
--- جدول group_members — عضوية المجموعات (مفتاح مركّب)
--- -----------------------------------------------------------------------------
+-- جدول group_members
 create table if not exists public.group_members (
   group_id  uuid references public.groups(id) on delete cascade,
   member_id uuid references public.profiles(id) on delete cascade,
@@ -133,20 +112,15 @@ create table if not exists public.group_members (
   primary key (group_id, member_id)
 );
 
--- -----------------------------------------------------------------------------
--- الدالة set_updated_at() — تحدّث عمود updated_at عند كل UPDATE
--- -----------------------------------------------------------------------------
+-- دالة updated_at
 create or replace function public.set_updated_at()
-returns trigger
-language plpgsql
-as $$
+returns trigger language plpgsql as $$
 begin
   new.updated_at = now();
   return new;
 end;
 $$;
 
--- مشغّلات updated_at على الجداول التي تملك العمود
 drop trigger if exists set_profiles_updated_at on public.profiles;
 create trigger set_profiles_updated_at
   before update on public.profiles
@@ -162,46 +136,70 @@ create trigger set_rides_updated_at
   before update on public.rides
   for each row execute function public.set_updated_at();
 
--- -----------------------------------------------------------------------------
--- الدالة handle_new_user() — تُنشئ سطر profiles تلقائياً عند تسجيل مستخدم جديد
--- SECURITY DEFINER لتتجاوز RLS أثناء الإدراج من مشغّل auth.users
--- -----------------------------------------------------------------------------
+-- دالة handle_new_user (تقرأ user_type من metadata)
 create or replace function public.handle_new_user()
-returns trigger
-language plpgsql
-security definer
-set search_path = public
-as $$
+returns trigger language plpgsql security definer set search_path = public as $$
+declare
+  v_user_type user_type;
+  v_raw_type  text;
 begin
-  insert into public.profiles (id, role, full_name)
-  values (
-    new.id,
-    coalesce((new.raw_user_meta_data ->> 'role')::user_role, 'passenger'),
-    new.raw_user_meta_data ->> 'full_name'
-  );
+  v_raw_type := new.raw_user_meta_data ->> 'user_type';
+  v_user_type := case
+    when v_raw_type in ('passenger', 'driver', 'super_admin', 'admin', 'support')
+      then v_raw_type::user_type
+    else 'passenger'::user_type
+  end;
+  insert into public.profiles (id, user_type, full_name, is_protected)
+  values (new.id, v_user_type, new.raw_user_meta_data ->> 'full_name', false)
+  on conflict (id) do update set full_name = excluded.full_name;
   return new;
 end;
 $$;
 
--- مشغّل بعد الإدراج على auth.users
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
--- -----------------------------------------------------------------------------
--- الفهارس (indexes)
--- -----------------------------------------------------------------------------
-create index if not exists idx_rides_passenger_id on public.rides (passenger_id);
-create index if not exists idx_rides_driver_id    on public.rides (driver_id);
-create index if not exists idx_rides_status       on public.rides (status);
+-- Trigger حماية user_type + is_protected
+create or replace function public.enforce_immutable_user_type()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if tg_op = 'UPDATE' then
+    if new.user_type <> old.user_type then
+      raise exception 'IMMUTABLE_USER_TYPE: لا يُسمح بتغيير user_type بعد إنشاء الحساب.'
+        using errcode = 'P0001';
+    end if;
+    if old.is_protected = true then
+      raise exception 'PROTECTED_PROFILE: هذا الحساب محمي ولا يمكن تعديله.'
+        using errcode = 'P0002';
+    end if;
+  end if;
+  if tg_op = 'DELETE' then
+    if old.is_protected = true then
+      raise exception 'PROTECTED_PROFILE: هذا الحساب محمي ولا يمكن حذفه.'
+        using errcode = 'P0002';
+    end if;
+  end if;
+  return coalesce(new, old);
+end;
+$$;
+
+drop trigger if exists trigger_immutable_user_type on public.profiles;
+create trigger trigger_immutable_user_type
+  before update or delete on public.profiles
+  for each row execute function public.enforce_immutable_user_type();
+
+-- فهارس
+create index if not exists idx_rides_passenger_id   on public.rides (passenger_id);
+create index if not exists idx_rides_driver_id       on public.rides (driver_id);
+create index if not exists idx_rides_status          on public.rides (status);
 create index if not exists idx_ratings_ride_id       on public.ratings (ride_id);
 create index if not exists idx_group_members_member  on public.group_members (member_id);
+create index if not exists idx_profiles_user_type    on public.profiles (user_type);
+create index if not exists idx_profiles_is_protected on public.profiles (is_protected) where is_protected = true;
 
--- -----------------------------------------------------------------------------
--- تفعيل Row Level Security على كل الجداول العامة
--- (السياسات نفسها معرّفة في 0002_rls.sql)
--- -----------------------------------------------------------------------------
+-- تفعيل RLS
 alter table public.profiles      enable row level security;
 alter table public.drivers       enable row level security;
 alter table public.rides         enable row level security;
@@ -210,201 +208,171 @@ alter table public.groups        enable row level security;
 alter table public.group_members enable row level security;
 
 -- ===== 0002_rls.sql =====
--- =============================================================================
--- منصة أمانة — سياسات Row Level Security
--- 0002_rls.sql
--- Postgres 15 / Supabase — تعتمد جميع السياسات على auth.uid()
---
--- ملاحظة مهمة عن لوحة المشرفة (admin dashboard):
---   لوحة المشرفة تستخدم مفتاح service_role الذي يتجاوز RLS بالكامل
---   (service_role BYPASSES RLS)، لذلك لا حاجة لأي سياسات خاصة بدور admin هنا.
---   كل السياسات أدناه تخص الراكبة والسائقة (المستخدم العادي المصادَق).
---
--- تفعيل RLS نفسه تمّ في 0001_init.sql؛ هنا نُعرّف السياسات فقط.
--- =============================================================================
 
--- -----------------------------------------------------------------------------
--- profiles — كل مستخدم يقرأ ويحدّث ملفه فقط (الإدراج يتم عبر مشغّل handle_new_user)
--- -----------------------------------------------------------------------------
 drop policy if exists profiles_select_own on public.profiles;
 create policy profiles_select_own
-  on public.profiles
-  for select
+  on public.profiles for select
   using (id = auth.uid());
 
 drop policy if exists profiles_update_own on public.profiles;
 create policy profiles_update_own
-  on public.profiles
-  for update
+  on public.profiles for update
   using (id = auth.uid())
   with check (id = auth.uid());
 
--- -----------------------------------------------------------------------------
--- drivers — السائقة تقرأ وتُدرج وتحدّث سجلها فقط (id = auth.uid())
--- -----------------------------------------------------------------------------
 drop policy if exists drivers_select_own on public.drivers;
 create policy drivers_select_own
-  on public.drivers
-  for select
+  on public.drivers for select
   using (id = auth.uid());
 
 drop policy if exists drivers_insert_own on public.drivers;
 create policy drivers_insert_own
-  on public.drivers
-  for insert
+  on public.drivers for insert
   with check (id = auth.uid());
 
 drop policy if exists drivers_update_own on public.drivers;
 create policy drivers_update_own
-  on public.drivers
-  for update
+  on public.drivers for update
   using (id = auth.uid())
   with check (id = auth.uid());
 
--- -----------------------------------------------------------------------------
--- rides — سياسات الراكبة والسائقة
--- -----------------------------------------------------------------------------
-
--- الراكبة: تقرأ رحلاتها
 drop policy if exists rides_select_passenger on public.rides;
 create policy rides_select_passenger
-  on public.rides
-  for select
+  on public.rides for select
   using (passenger_id = auth.uid());
 
--- الراكبة: تُنشئ رحلة باسمها
 drop policy if exists rides_insert_passenger on public.rides;
 create policy rides_insert_passenger
-  on public.rides
-  for insert
+  on public.rides for insert
   with check (passenger_id = auth.uid());
 
--- الراكبة: تحدّث رحلاتها (مثل الإلغاء)
 drop policy if exists rides_update_passenger on public.rides;
 create policy rides_update_passenger
-  on public.rides
-  for update
+  on public.rides for update
   using (passenger_id = auth.uid())
   with check (passenger_id = auth.uid());
 
--- السائقة: تقرأ الرحلات المسندة إليها أو الرحلات المطلوبة (المتاحة للقبول)
 drop policy if exists rides_select_driver on public.rides;
 create policy rides_select_driver
-  on public.rides
-  for select
+  on public.rides for select
   using (driver_id = auth.uid() or status = 'requested');
 
--- السائقة: تحدّث الرحلات المسندة إليها
 drop policy if exists rides_update_driver on public.rides;
 create policy rides_update_driver
-  on public.rides
-  for update
+  on public.rides for update
   using (driver_id = auth.uid())
   with check (driver_id = auth.uid());
 
--- -----------------------------------------------------------------------------
--- ratings — القراءة لطرفي التقييم، والإدراج للمقيِّمة فقط
--- -----------------------------------------------------------------------------
 drop policy if exists ratings_select_involved on public.ratings;
 create policy ratings_select_involved
-  on public.ratings
-  for select
+  on public.ratings for select
   using (rater_id = auth.uid() or ratee_id = auth.uid());
 
 drop policy if exists ratings_insert_rater on public.ratings;
 create policy ratings_insert_rater
-  on public.ratings
-  for insert
+  on public.ratings for insert
   with check (rater_id = auth.uid());
 
--- -----------------------------------------------------------------------------
--- groups — المالكة تدير مجموعتها بالكامل، والأعضاء يقرؤون مجموعاتهم
--- -----------------------------------------------------------------------------
-
--- المالكة: كل العمليات (select/insert/update/delete) على مجموعاتها
 drop policy if exists groups_owner_all on public.groups;
 create policy groups_owner_all
-  on public.groups
-  for all
+  on public.groups for all
   using (owner_id = auth.uid())
   with check (owner_id = auth.uid());
 
--- الأعضاء: قراءة المجموعات التي ينتمون إليها
 drop policy if exists groups_select_member on public.groups;
 create policy groups_select_member
-  on public.groups
-  for select
+  on public.groups for select
   using (
     exists (
-      select 1
-      from public.group_members gm
-      where gm.group_id = groups.id
-        and gm.member_id = auth.uid()
+      select 1 from public.group_members gm
+      where gm.group_id = groups.id and gm.member_id = auth.uid()
     )
   );
 
--- -----------------------------------------------------------------------------
--- group_members — العضو يدير عضويته، ومالكة المجموعة تدير أعضاءها
--- -----------------------------------------------------------------------------
-
--- العضو: قراءة عضويته
 drop policy if exists group_members_select_own on public.group_members;
 create policy group_members_select_own
-  on public.group_members
-  for select
+  on public.group_members for select
   using (member_id = auth.uid());
 
--- العضو: الانضمام (إدراج عضويته)
 drop policy if exists group_members_insert_own on public.group_members;
 create policy group_members_insert_own
-  on public.group_members
-  for insert
+  on public.group_members for insert
   with check (member_id = auth.uid());
 
--- العضو: مغادرة (حذف عضويته)
 drop policy if exists group_members_delete_own on public.group_members;
 create policy group_members_delete_own
-  on public.group_members
-  for delete
+  on public.group_members for delete
   using (member_id = auth.uid());
 
--- مالكة المجموعة: قراءة أعضاء مجموعاتها
 drop policy if exists group_members_select_owner on public.group_members;
 create policy group_members_select_owner
-  on public.group_members
-  for select
+  on public.group_members for select
   using (
     exists (
-      select 1
-      from public.groups g
-      where g.id = group_members.group_id
-        and g.owner_id = auth.uid()
+      select 1 from public.groups g
+      where g.id = group_members.group_id and g.owner_id = auth.uid()
     )
   );
 
--- مالكة المجموعة: إدارة أعضاء مجموعاتها (إدراج/حذف)
 drop policy if exists group_members_insert_owner on public.group_members;
 create policy group_members_insert_owner
-  on public.group_members
-  for insert
+  on public.group_members for insert
   with check (
     exists (
-      select 1
-      from public.groups g
-      where g.id = group_members.group_id
-        and g.owner_id = auth.uid()
+      select 1 from public.groups g
+      where g.id = group_members.group_id and g.owner_id = auth.uid()
     )
   );
 
 drop policy if exists group_members_delete_owner on public.group_members;
 create policy group_members_delete_owner
-  on public.group_members
-  for delete
+  on public.group_members for delete
   using (
     exists (
-      select 1
-      from public.groups g
-      where g.id = group_members.group_id
-        and g.owner_id = auth.uid()
+      select 1 from public.groups g
+      where g.id = group_members.group_id and g.owner_id = auth.uid()
     )
   );
+
+-- ===== Storage Buckets & Policies =====
+
+insert into storage.buckets (id, name, public)
+values ('avatars', 'avatars', true)
+on conflict (id) do nothing;
+
+insert into storage.buckets (id, name, public)
+values ('kyc-documents', 'kyc-documents', false)
+on conflict (id) do nothing;
+
+create policy "Avatar images are publicly accessible."
+  on storage.objects for select using (bucket_id = 'avatars');
+
+create policy "Users can upload their own avatar."
+  on storage.objects for insert
+  with check (bucket_id = 'avatars' and auth.uid()::text = (storage.foldername(name))[1]);
+
+create policy "Users can update their own avatar."
+  on storage.objects for update
+  using (bucket_id = 'avatars' and auth.uid()::text = (storage.foldername(name))[1]);
+
+create policy "Users can delete their own avatar."
+  on storage.objects for delete
+  using (bucket_id = 'avatars' and auth.uid()::text = (storage.foldername(name))[1]);
+
+create policy "Users can upload their own kyc documents."
+  on storage.objects for insert
+  with check (bucket_id = 'kyc-documents' and auth.uid()::text = (storage.foldername(name))[1]);
+
+create policy "Users can read their own kyc documents."
+  on storage.objects for select
+  using (bucket_id = 'kyc-documents' and auth.uid()::text = (storage.foldername(name))[1]);
+
+create policy "Users can delete their own kyc documents."
+  on storage.objects for delete
+  using (bucket_id = 'kyc-documents' and auth.uid()::text = (storage.foldername(name))[1]);
+
+-- ===== تسمير حساب super_admin المحمي =====
+-- يُشغَّل مرة واحدة بعد إنشاء المخطط كاملاً
+update public.profiles
+set user_type = 'super_admin', is_protected = true
+where id in (select id from auth.users where email = 'nuwate369@gmail.com');

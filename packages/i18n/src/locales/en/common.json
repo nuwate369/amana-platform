@@ -15,7 +15,20 @@
     "theme": "Theme",
     "light": "Light",
     "dark": "Dark",
-    "system": "System"
+    "system": "System",
+    "success": "Operation successful",
+    "error": "An unexpected error occurred, please try again",
+    "saveSuccess": "Saved successfully",
+    "deleteSuccess": "Deleted successfully",
+    "unsavedChanges": "You have unsaved changes. Continue without saving?",
+    "leave": "Leave",
+    "stay": "Stay"
+  },
+  "validation": {
+    "required": "This field is required",
+    "invalidEmail": "Invalid email address",
+    "passwordMin": "Password must be at least 6 characters",
+    "passwordMatch": "Passwords do not match"
   },
   "auth": {
     "signInTitle": "Sign in",
@@ -35,6 +48,41 @@
     "verifyEmailBody": "We sent a confirmation link to your email. Open it to activate your account.",
     "resendEmail": "Resend email",
     "backToSignIn": "Back to sign in"
+  },
+  "systemNotifications": {
+    "title": "System Notifications",
+    "subtitle": "Internal platform event notifications",
+    "bell": "System Notifications",
+    "viewAll": "View All",
+    "markAllRead": "Mark all as read",
+    "noNotifications": "No new notifications",
+    "filterAll": "All",
+    "filterUnread": "Unread",
+    "filterRead": "Read",
+    "filterType": "Event type",
+    "allTypes": "All types",
+    "type_new_driver": "New driver",
+    "type_new_ride": "New ride",
+    "type_staff_joined": "New staff",
+    "type_document_expiring": "Expiring documents",
+    "type_kyc_pending": "Pending KYC",
+    "timeAgo": {
+      "justNow": "Just now",
+      "minutes": "{{count}} minutes ago",
+      "minutes_other": "{{count}} minutes ago",
+      "hours": "1 hour ago",
+      "hours_other": "{{count}} hours ago",
+      "days": "1 day ago",
+      "days_other": "{{count}} days ago",
+      "weeks": "1 week ago",
+      "weeks_other": "{{count}} weeks ago"
+    },
+    "empty": "No notifications at the moment",
+    "emptyFiltered": "No notifications match the selected filter",
+    "delete": "Delete",
+    "unreadCount": "{{count}} unread",
+    "unreadCount_other": "{{count}} unread",
+    "broadcastTitle": "Broadcast Notifications to Users"
   },
   "payment": {
     "title": "Payment details",

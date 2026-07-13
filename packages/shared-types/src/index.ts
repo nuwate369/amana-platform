@@ -1,10 +1,127 @@
 /**
  * أنواع مشتركة بين تطبيقات منصة أمانة (راكبة / سائقة / إدارة).
- * لا يوجد منطق أعمال هنا — تعريفات فقط.
+ * لا يوجد منطق أعمال هنا — تعريفات وقواعد صلاحيات ثابتة فقط.
  */
 
-/** الدور داخل المنصة. */
-export type UserRole = 'passenger' | 'driver' | 'admin';
+// =============================================================================
+// أنواع المستخدم
+// =============================================================================
+
+/**
+ * نوع المستخدم الثابت في المنصة — يُحدَّد عند إنشاء الحساب ولا يتغيّر أبداً.
+ * القيمة مخزّنة في profiles.user_type ومحمية بـ DB trigger.
+ *
+ * - 'passenger'  : راكبة تستخدم تطبيق الراكبة
+ * - 'driver'     : سائقة تستخدم تطبيق السائقة
+ * - 'super_admin': المدير العام — صلاحيات كاملة على كل شيء
+ * - 'admin'      : مدير — صلاحيات واسعة لكن لا يصل لإدارة الموظفين
+ * - 'support'    : دعم فني — صلاحيات قراءة فقط في معظم الأقسام
+ */
+export type UserType =
+  | 'passenger'
+  | 'driver'
+  | 'super_admin'
+  | 'admin'
+  | 'support';
+
+/** أنواع موظفي الإدارة (تُستخدم في /staff وفلترة القوائم). */
+export const STAFF_TYPES: UserType[] = ['super_admin', 'admin', 'support'];
+
+/** تسميات عربية لأنواع الموظفين (للعرض في الواجهة). */
+export const STAFF_TYPE_LABELS: Record<string, string> = {
+  super_admin: 'مدير عام',
+  admin: 'مدير',
+  support: 'دعم فني',
+};
+
+/** ألوان badges لأنواع الموظفين (Tailwind CSS classes). */
+export const STAFF_TYPE_COLORS: Record<string, string> = {
+  super_admin: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
+  admin: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
+  support: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300',
+};
+
+/** تحقّق: هل هذا النوع ينتمي لموظفي الإدارة؟ */
+export function isStaff(userType: UserType): boolean {
+  return STAFF_TYPES.includes(userType);
+}
+
+// =============================================================================
+// نظام الصلاحيات المركزي — can(userType, action)
+//
+// جميع قواعد الصلاحيات في مكان واحد؛ يُستدعى من middleware وRoute Guards
+// وأي مكان آخر في admin. لا تكرار للقواعد في الملفات الفردية.
+// =============================================================================
+
+/**
+ * الإجراءات المتاحة في لوحة الإدارة.
+ * لإضافة إجراء جديد: أضفه هنا وعدّل دالة can() أدناه.
+ */
+export type AdminAction =
+  | 'view_dashboard'    // عرض لوحة المعلومات الرئيسية
+  | 'view_riders'       // عرض قائمة الراكبات
+  | 'view_drivers'      // عرض قائمة السائقات
+  | 'manage_drivers'    // تغيير حالة السائقة (قبول/رفض KYC)
+  | 'view_rides'        // عرض الرحلات الحية
+  | 'view_pricing'      // عرض صفحة التسعير
+  | 'manage_pricing'    // تعديل التسعير
+  | 'view_reports'      // عرض التقارير والإحصائيات
+  | 'view_groups'       // عرض مجموعات المستخدمين
+  | 'view_notifications'// عرض الإشعارات وإرسالها
+  | 'view_staff'        // عرض قائمة الموظفين (/staff)
+  | 'invite_staff';     // دعوة موظف جديد (super_admin فقط)
+
+/**
+ * الدالة المركزية للتحقق من الصلاحيات.
+ *
+ * @param userType - نوع المستخدم من profiles.user_type
+ * @param action   - الإجراء المطلوب التحقق منه
+ * @returns true إذا كان مسموحاً بالإجراء، false إذا لم يكن مسموحاً
+ *
+ * @example
+ *   if (!can(profile.user_type, 'invite_staff')) redirect('/dashboard');
+ */
+export function can(userType: UserType, action: AdminAction): boolean {
+  // الزوار وغير الإداريين: لا صلاحيات على لوحة الإدارة
+  if (userType === 'passenger' || userType === 'driver') return false;
+
+  switch (action) {
+    // -----------------------------------------------------------------------
+    // super_admin: صلاحيات كاملة على كل شيء
+    // -----------------------------------------------------------------------
+    case 'invite_staff':
+      return userType === 'super_admin';
+
+    // -----------------------------------------------------------------------
+    // super_admin + admin: إدارة السائقات والتسعير
+    // -----------------------------------------------------------------------
+    case 'manage_drivers':
+    case 'manage_pricing':
+      return userType === 'super_admin' || userType === 'admin';
+
+    // -----------------------------------------------------------------------
+    // الجميع (super_admin, admin, support): قراءة كل الأقسام
+    // -----------------------------------------------------------------------
+    case 'view_dashboard':
+    case 'view_riders':
+    case 'view_drivers':
+    case 'view_rides':
+    case 'view_pricing':
+    case 'view_reports':
+    case 'view_groups':
+    case 'view_notifications':
+    case 'view_staff':
+      return true; // كل موظف وصل لهنا (نتجت عن الـ check أعلاه)
+
+    default:
+      // قاعدة آمنة: الرفض الافتراضي لأي إجراء غير معرَّف
+      return false;
+  }
+}
+
+// =============================================================================
+// الأنواع الأخرى المشتركة
+// =============================================================================
 
 /** اللغة المدعومة في الواجهات. */
 export type AppLocale = 'ar' | 'en';
@@ -18,8 +135,9 @@ export interface UserProfile {
   email: string;
   fullName: string | null;
   phone: string | null;
-  role: UserRole;
-  locale: AppLocale;
+  userType: UserType;
+  isProtected: boolean;
+  preferredLanguage: AppLocale;
   avatarUrl: string | null;
   createdAt: string;
   updatedAt: string;

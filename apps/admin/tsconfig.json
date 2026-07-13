@@ -20,6 +20,7 @@
       "@amana/shared-types": ["../../packages/shared-types/src"],
       "@amana/shared-ui": ["../../packages/shared-ui/src"],
       "@amana/shared-ui/tokens": ["../../packages/shared-ui/src/tokens"],
+      "@amana/shared-ui/validation": ["../../packages/shared-ui/src/validation"],
       "@amana/supabase-client": ["../../packages/supabase-client/src"],
       "@amana/i18n": ["../../packages/i18n/src"]
     }

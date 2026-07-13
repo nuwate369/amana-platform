@@ -3,7 +3,9 @@
 import { Send } from 'lucide-react';
 
 /**
- * صفحة إدارة الإشعارات — بطاقة إنشاء إشعار + قائمة الإشعارات المرسلة.
+ * صفحة بث الإشعارات للمستخدمين — بطاقة إنشاء إشعار + قائمة الإشعارات المرسلة.
+ * تُستخدم لإرسال رسائل للمستخدمين النهائيين (الراكبات/السائقات).
+ * مفصولة تماماً عن نظام الإشعارات الداخلي (system-notifications).
  * هوية أنثراسايت + ذهبي، RTL، دعم الوضع الداكن، بيانات ثابتة (mock).
  */
 
@@ -32,8 +34,8 @@ export default function NotificationsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-brand-900 dark:text-brand-50">إدارة الإشعارات</h1>
-        <p className="text-sm text-brand-500 dark:text-brand-300">إنشاء الإشعارات وإرسالها إلى مستخدمي المنصّة</p>
+        <h1 className="text-2xl font-bold text-brand-900 dark:text-brand-50">بث الإشعارات للمستخدمين</h1>
+        <p className="text-sm text-brand-500 dark:text-brand-300">إنشاء الإشعارات وإرسالها إلى مستخدمي المنصّة (الراكبات والסائقات)</p>
       </div>
 
       {/* بطاقة الإنشاء */}

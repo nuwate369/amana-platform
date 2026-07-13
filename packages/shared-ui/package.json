@@ -7,10 +7,14 @@
   "exports": {
     ".": "./src/index.ts",
     "./tailwind-preset": "./tailwind-preset.js",
-    "./tokens": "./src/tokens.ts"
+    "./tokens": "./src/tokens.ts",
+    "./validation": "./src/validation.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "4.4.3"
   },
   "peerDependencies": {
     "react": "*",

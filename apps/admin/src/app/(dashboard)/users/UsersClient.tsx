@@ -2,7 +2,6 @@ import { redirect } from 'next/navigation';
 
 /**
  * صفحة /users أُزيلت — الآن استخدم /staff لإدارة فريق العمل.
- * هذا Redirect يضمن عدم ظهور 404 للروابط القديمة.
  */
 export default function UsersRedirectPage() {
   redirect('/staff');
