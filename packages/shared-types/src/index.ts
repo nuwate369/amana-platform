@@ -67,9 +67,10 @@ export type AdminAction =
   | 'manage_pricing'    // تعديل التسعير
   | 'view_reports'      // عرض التقارير والإحصائيات
   | 'view_groups'       // عرض مجموعات المستخدمين
-  | 'view_notifications'// عرض الإشعارات وإرسالها
+  | 'view_notifications'// عرض الإشعارات
+  | 'manage_notifications'// إرسال الإشعارات والإعلانات
   | 'view_staff'        // عرض قائمة الموظفين (/staff)
-  | 'invite_staff';     // دعوة موظف جديد (super_admin فقط)
+  | 'invite_staff';     // دعوة/إدارة الموظفين (super_admin فقط)
 
 /**
  * الدالة المركزية للتحقق من الصلاحيات.
@@ -85,22 +86,22 @@ export function can(userType: UserType, action: AdminAction): boolean {
   // الزوار وغير الإداريين: لا صلاحيات على لوحة الإدارة
   if (userType === 'passenger' || userType === 'driver') return false;
 
+  // super_admin: صلاحيات كاملة على كل شيء بلا استثناء
+  if (userType === 'super_admin') return true;
+
   switch (action) {
     // -----------------------------------------------------------------------
-    // super_admin: صلاحيات كاملة على كل شيء
+    // كل إجراءات الإدارة/التعديل + إدارة الموظفين: super_admin فقط
+    // (عولجت أعلاه) — لذا هنا الرفض للمدير والدعم
     // -----------------------------------------------------------------------
     case 'invite_staff':
-      return userType === 'super_admin';
-
-    // -----------------------------------------------------------------------
-    // super_admin + admin: إدارة السائقات والتسعير
-    // -----------------------------------------------------------------------
     case 'manage_drivers':
     case 'manage_pricing':
-      return userType === 'super_admin' || userType === 'admin';
+    case 'manage_notifications':
+      return false;
 
     // -----------------------------------------------------------------------
-    // الجميع (super_admin, admin, support): قراءة كل الأقسام
+    // المدير (admin): مشاهدة كل الأقسام فقط (بلا أي تعديل)
     // -----------------------------------------------------------------------
     case 'view_dashboard':
     case 'view_riders':
@@ -111,7 +112,17 @@ export function can(userType: UserType, action: AdminAction): boolean {
     case 'view_groups':
     case 'view_notifications':
     case 'view_staff':
-      return true; // كل موظف وصل لهنا (نتجت عن الـ check أعلاه)
+      if (userType === 'admin') return true;
+      // -------------------------------------------------------------------
+      // الدعم الفني (support): مجموعة شاشات محددة فقط
+      // -------------------------------------------------------------------
+      return (
+        action === 'view_dashboard' ||
+        action === 'view_drivers' ||
+        action === 'view_riders' ||
+        action === 'view_rides' ||
+        action === 'view_reports'
+      );
 
     default:
       // قاعدة آمنة: الرفض الافتراضي لأي إجراء غير معرَّف

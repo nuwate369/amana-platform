@@ -20,8 +20,8 @@ const SENT = [
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
-    مُرسل: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
-    مجدول: 'bg-accent-100 text-accent-700 dark:bg-accent-900/40 dark:text-accent-300',
+    مُرسل: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+    مجدول: 'bg-primary/10 text-primary',
   };
   return (
     <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${map[status] ?? ''}`}>
@@ -34,48 +34,48 @@ export default function NotificationsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-brand-900 dark:text-brand-50">الإعلانات والتنبيهات العامة</h1>
-        <p className="text-sm text-brand-500 dark:text-brand-300">إرسال رسائل تظهر داخل تطبيقي الراكبة والسائقة</p>
+        <h1 className="text-2xl font-bold text-foreground">الإعلانات والتنبيهات العامة</h1>
+        <p className="text-sm text-muted-foreground">إرسال رسائل تظهر داخل تطبيقي الراكبة والسائقة</p>
       </div>
 
       {/* بطاقة الإنشاء */}
-      <div className="rounded-xl border border-brand-200 bg-white p-5 dark:border-brand-700 dark:bg-brand-800">
-        <h2 className="mb-4 font-semibold text-brand-800 dark:text-brand-100">إنشاء إشعار جديد</h2>
+      <div className="rounded-xl border border-border bg-card p-5">
+        <h2 className="mb-4 font-semibold text-foreground">إنشاء إشعار جديد</h2>
         <div className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm text-brand-600 dark:text-brand-200">العنوان</label>
+            <label className="mb-1 block text-sm text-muted-foreground">العنوان</label>
             <input
               type="text"
               placeholder="أدخل عنوان الإشعار"
-              className="w-full rounded-lg border border-brand-200 bg-white px-3 py-2 text-sm text-brand-800 placeholder:text-brand-400 dark:border-brand-600 dark:bg-brand-900 dark:text-brand-100"
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:ring-1 focus:ring-primary focus:outline-none"
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm text-brand-600 dark:text-brand-200">النوع</label>
-            <select className="w-full rounded-lg border border-brand-200 bg-white px-3 py-2 text-sm text-brand-800 dark:border-brand-600 dark:bg-brand-900 dark:text-brand-100">
+            <label className="mb-1 block text-sm text-muted-foreground">النوع</label>
+            <select className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:ring-1 focus:ring-primary focus:outline-none">
               <option value="announcement">إعلان عام</option>
               <option value="maintenance">صيانة</option>
               <option value="update">تحديث</option>
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-sm text-brand-600 dark:text-brand-200">نص الإشعار</label>
+            <label className="mb-1 block text-sm text-muted-foreground">نص الإشعار</label>
             <textarea
               rows={4}
               placeholder="اكتب محتوى الإشعار هنا"
-              className="w-full resize-none rounded-lg border border-brand-200 bg-white px-3 py-2 text-sm text-brand-800 placeholder:text-brand-400 dark:border-brand-600 dark:bg-brand-900 dark:text-brand-100"
+              className="w-full resize-none rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:ring-1 focus:ring-primary focus:outline-none"
             />
           </div>
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div className="w-full sm:w-64">
-              <label className="mb-1 block text-sm text-brand-600 dark:text-brand-200">الجمهور</label>
-              <select className="w-full rounded-lg border border-brand-200 bg-white px-3 py-2 text-sm text-brand-800 dark:border-brand-600 dark:bg-brand-900 dark:text-brand-100">
+              <label className="mb-1 block text-sm text-muted-foreground">الجمهور</label>
+              <select className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:ring-1 focus:ring-primary focus:outline-none">
                 <option>الكل</option>
                 <option>الراكبات</option>
                 <option>السائقات</option>
               </select>
             </div>
-            <button className="flex items-center gap-2 rounded-lg bg-accent-500 px-5 py-2 text-sm font-semibold text-white transition hover:bg-accent-600">
+            <button className="flex items-center gap-2 rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90">
               <Send size={16} />
               إرسال
             </button>
@@ -83,19 +83,19 @@ export default function NotificationsPage() {
         </div>
 
         {/* ملاحظة تحذيرية ثابتة */}
-        <div className="mt-5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
+        <div className="mt-5 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-600 dark:text-yellow-400">
           هذه رسائل إخبارية فقط ولا تُطبّق أي خصم أو تغيير سعر فعلي. نظام العروض الفعلية سيُضاف في مرحلة لاحقة.
         </div>
       </div>
 
       {/* الإشعارات المرسلة */}
-      <div className="overflow-hidden rounded-xl border border-brand-200 bg-white dark:border-brand-700 dark:bg-brand-800">
-        <div className="border-b border-brand-200 px-5 py-4 dark:border-brand-700">
-          <h2 className="font-semibold text-brand-800 dark:text-brand-100">الإشعارات المرسلة</h2>
+      <div className="overflow-hidden rounded-xl border border-border bg-card">
+        <div className="border-b border-border px-5 py-4">
+          <h2 className="font-semibold text-foreground">الإشعارات المرسلة</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-right text-sm">
-            <thead className="bg-brand-50 text-brand-500 dark:bg-brand-900/50 dark:text-brand-300">
+            <thead className="bg-muted/50 text-muted-foreground">
               <tr>
                 <th className="px-5 py-3 font-medium">العنوان</th>
                 <th className="px-5 py-3 font-medium">الجمهور</th>
@@ -103,12 +103,12 @@ export default function NotificationsPage() {
                 <th className="px-5 py-3 font-medium">الحالة</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-brand-100 dark:divide-brand-700">
+            <tbody className="divide-y divide-border">
               {SENT.map((n) => (
-                <tr key={n.title} className="text-brand-700 dark:text-brand-200">
+                <tr key={n.title} className="text-foreground hover:bg-muted/50 transition-colors">
                   <td className="px-5 py-3 font-medium">{n.title}</td>
                   <td className="px-5 py-3">{n.audience}</td>
-                  <td className="px-5 py-3 font-mono text-brand-400">{n.date}</td>
+                  <td className="px-5 py-3 font-mono text-muted-foreground">{n.date}</td>
                   <td className="px-5 py-3">
                     <StatusBadge status={n.status} />
                   </td>

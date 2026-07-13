@@ -194,17 +194,17 @@ export default function SystemNotificationsPage() {
       {/* العنوان */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-bold text-brand-900 dark:text-brand-50">
-            <Bell size={24} className="text-accent-500" />
+          <h1 className="flex items-center gap-2 text-2xl font-bold text-foreground">
+            <Bell size={24} className="text-primary" />
             {t('systemNotifications.title')}
           </h1>
-          <p className="mt-1 text-sm text-brand-500 dark:text-brand-300">
+          <p className="mt-1 text-sm text-muted-foreground">
             {t('systemNotifications.subtitle')}
           </p>
         </div>
         <button
           onClick={handleMarkAllRead}
-          className="flex items-center gap-2 rounded-lg border border-brand-200 bg-white px-4 py-2 text-sm font-medium text-brand-600 transition-colors hover:bg-brand-50 dark:border-brand-600 dark:bg-brand-800 dark:text-brand-200 dark:hover:bg-brand-700"
+          className="flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
         >
           <CheckCheck size={16} />
           {t('systemNotifications.markAllRead')}
@@ -214,15 +214,15 @@ export default function SystemNotificationsPage() {
       {/* الفلاتر */}
       <div className="flex flex-wrap items-center gap-3">
         {/* فلتر الحالة */}
-        <div className="flex rounded-lg border border-brand-200 dark:border-brand-600 overflow-hidden">
+        <div className="flex rounded-lg border border-border overflow-hidden">
           {(['all', 'unread', 'read'] as FilterRead[]).map((val) => (
             <button
               key={val}
               onClick={() => { setFilterRead(val); setPage(0); }}
               className={`px-4 py-2 text-xs font-medium transition-colors ${
                 filterRead === val
-                  ? 'bg-accent-500 text-white'
-                  : 'bg-white text-brand-600 hover:bg-brand-50 dark:bg-brand-800 dark:text-brand-300 dark:hover:bg-brand-700'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-background text-foreground hover:bg-muted'
               }`}
             >
               {val === 'all' ? t('systemNotifications.filterAll') : val === 'unread' ? t('systemNotifications.filterUnread') : t('systemNotifications.filterRead')}
@@ -232,11 +232,11 @@ export default function SystemNotificationsPage() {
 
         {/* فلتر النوع */}
         <div className="flex items-center gap-2">
-          <Filter size={14} className="text-brand-400" />
+          <Filter size={14} className="text-muted-foreground" />
           <select
             value={filterType}
             onChange={(e) => { setFilterType(e.target.value); setPage(0); }}
-            className="rounded-lg border border-brand-200 bg-white px-3 py-2 text-xs text-brand-700 dark:border-brand-600 dark:bg-brand-800 dark:text-brand-200"
+            className="rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground focus:ring-1 focus:ring-primary focus:outline-none"
           >
             <option value="">{t('systemNotifications.allTypes')}</option>
             {NOTIFICATION_TYPES.map((type) => (
@@ -249,30 +249,30 @@ export default function SystemNotificationsPage() {
       </div>
 
       {/* قائمة الإشعارات */}
-      <div className="rounded-xl border border-brand-200 bg-white dark:border-brand-700 dark:bg-brand-800 overflow-hidden">
+      <div className="rounded-xl border border-border bg-card overflow-hidden">
         {loading ? (
-          <div className="py-12 text-center text-sm text-brand-400">
+          <div className="py-12 text-center text-sm text-muted-foreground">
             {t('common.loading')}
           </div>
         ) : notifications.length === 0 ? (
           <div className="py-12 text-center">
-            <Bell size={48} className="mx-auto mb-3 text-brand-200 dark:text-brand-600" />
-            <p className="text-sm text-brand-400">
+            <Bell size={48} className="mx-auto mb-3 text-muted-foreground/30" />
+            <p className="text-sm text-muted-foreground">
               {filterRead !== 'all' || filterType
                 ? t('systemNotifications.emptyFiltered')
                 : t('systemNotifications.empty')}
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-brand-100 dark:divide-brand-700">
+          <div className="divide-y divide-border">
             {notifications.map((notif) => {
               const route = entityRoute(notif.related_entity_type, notif.related_entity_id);
               return (
                 <button
                   key={notif.id}
                   onClick={() => handleClick(notif)}
-                  className={`flex w-full items-start gap-4 px-5 py-4 text-start transition-colors hover:bg-brand-50 dark:hover:bg-brand-700/50 ${
-                    !notif.is_read ? 'bg-accent-500/5 dark:bg-accent-500/10' : ''
+                  className={`flex w-full items-start gap-4 px-5 py-4 text-start transition-colors hover:bg-muted/50 ${
+                    !notif.is_read ? 'bg-primary/5' : ''
                   }`}
                 >
                   {/* أيقونة */}
@@ -283,24 +283,24 @@ export default function SystemNotificationsPage() {
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="rounded-full bg-brand-100 dark:bg-brand-700 px-2 py-0.5 text-[10px] font-medium text-brand-500 dark:text-brand-400">
+                          <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
                             {typeLabel(notif.type, t)}
                           </span>
                           {!notif.is_read && (
-                            <span className="h-2 w-2 rounded-full bg-blue-500" />
+                            <span className="h-2 w-2 rounded-full bg-primary" />
                           )}
                         </div>
                         <p
                           className={`text-sm leading-snug ${
                             !notif.is_read
-                              ? 'font-semibold text-brand-900 dark:text-brand-50'
-                              : 'text-brand-600 dark:text-brand-300'
+                              ? 'font-semibold text-foreground'
+                              : 'text-muted-foreground'
                           }`}
                         >
                           {lang === 'ar' ? notif.title_ar : notif.title_en}
                         </p>
                         {(lang === 'ar' ? notif.body_ar : notif.body_en) && (
-                          <p className="mt-1 text-xs text-brand-400 dark:text-brand-500 line-clamp-2">
+                          <p className="mt-1 text-xs text-muted-foreground line-clamp-2">
                             {lang === 'ar' ? notif.body_ar : notif.body_en}
                           </p>
                         )}
@@ -309,13 +309,13 @@ export default function SystemNotificationsPage() {
                       {/* الإجراءات */}
                       <div className="flex items-center gap-1 shrink-0">
                         {route && (
-                          <span className="rounded-lg p-1.5 text-brand-300 dark:text-brand-600 hover:bg-brand-100 dark:hover:bg-brand-700">
+                          <span className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground">
                             <ExternalLink size={14} />
                           </span>
                         )}
                         <button
                           onClick={(e) => handleDelete(e, notif)}
-                          className="rounded-lg p-1.5 text-brand-300 hover:bg-red-50 hover:text-red-500 dark:text-brand-600 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-colors"
+                          className="rounded-lg p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
                           title={t('systemNotifications.delete')}
                         >
                           <Trash2 size={14} />
@@ -324,7 +324,7 @@ export default function SystemNotificationsPage() {
                     </div>
 
                     {/* الوقت */}
-                    <p className="mt-1.5 text-xs text-brand-400 dark:text-brand-500">
+                    <p className="mt-1.5 text-xs text-muted-foreground">
                       {timeAgo(notif.created_at, t)}
                     </p>
                   </div>
@@ -336,21 +336,21 @@ export default function SystemNotificationsPage() {
 
         {/* التنقل بين الصفحات */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-brand-100 dark:border-brand-700 px-5 py-3">
+          <div className="flex items-center justify-between border-t border-border px-5 py-3">
             <button
               onClick={() => setPage((p) => Math.max(0, p - 1))}
               disabled={page === 0}
-              className="flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-brand-600 transition-colors hover:bg-brand-50 disabled:opacity-40 dark:text-brand-300 dark:hover:bg-brand-700"
+              className="flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted disabled:opacity-40"
             >
               {isRtl ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
             </button>
-            <span className="text-xs text-brand-400">
+            <span className="text-xs text-muted-foreground">
               {page + 1} / {totalPages}
             </span>
             <button
               onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
               disabled={page >= totalPages - 1}
-              className="flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-brand-600 transition-colors hover:bg-brand-50 disabled:opacity-40 dark:text-brand-300 dark:hover:bg-brand-700"
+              className="flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted disabled:opacity-40"
             >
               {isRtl ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
             </button>

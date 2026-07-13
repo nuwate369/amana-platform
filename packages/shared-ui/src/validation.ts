@@ -59,6 +59,28 @@ export const STAFF_USER_TYPE_OPTIONS = [
 ] as const;
 
 /**
+ * قبول دعوة — تعيين كلمة المرور للمستخدم الجديد.
+ */
+export const acceptInviteSchema = z
+  .object({
+    password: z.string().min(6, 'validation.passwordMin'),
+    confirmPassword: z.string().min(1, 'validation.required'),
+  })
+  .refine((d) => d.password === d.confirmPassword, {
+    message: 'validation.passwordMatch',
+    path: ['confirmPassword'],
+  });
+export type AcceptInviteInput = z.infer<typeof acceptInviteSchema>;
+
+/**
+ * رمز التحقق بخطوتين — 6 أرقام.
+ */
+export const mfaCodeSchema = z.object({
+  code: z.string().length(6, 'validation.mfaCodeLength').regex(/^\d{6}$/, 'validation.mfaCodeDigits'),
+});
+export type MfaCodeInput = z.infer<typeof mfaCodeSchema>;
+
+/**
  * يترجم رسالة خطأ zod (مفتاح i18n) إلى نص بلغة المستخدم.
  * إن لم تكن مفتاحًا معروفًا تُعاد كما هي.
  */

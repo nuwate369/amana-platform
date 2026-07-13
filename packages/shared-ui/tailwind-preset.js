@@ -6,9 +6,13 @@
  *
  * كل تطبيق يمرّر اسمه فيحصل على `brand` (واللون `accent` للإدارة) كألوان
  * Tailwind، مع تفعيل الوضع الداكن عبر الصنف (class).
+ *
+ * ── الهوية الأصلية لأمانة ──
+ * Brand (admin)  = Anthracite grey (رمادي أنثراسايت — خلفيات + نصوص)
+ * Accent (admin) = Gold (ذهبي — أزرار + عناصر نشطة فقط)
+ * Layout density = مستوحى من Voice (كثافة البطاقات + المسافات)
  */
 
-// نكرّر قيم tokens.ts هنا بصيغة JS لأن ملفات إعداد Tailwind تُقرأ بـ CommonJS.
 const passengerPurple = {
   50: '#f6f2fd',
   100: '#ece2fb',
@@ -86,7 +90,14 @@ function createPreset(app) {
           sm: '6px',
           md: '10px',
           lg: '16px',
-          xl: '24px',
+          xl: '22px',
+        },
+        boxShadow: {
+          xs: '0 1px 0 rgba(20,23,28,0.04)',
+          sm: '0 1px 2px rgba(20,23,28,0.06), 0 1px 1px rgba(20,23,28,0.04)',
+          DEFAULT: '0 1px 2px rgba(20,23,28,0.06), 0 4px 12px rgba(20,23,28,0.06)',
+          lg: '0 8px 24px rgba(20,23,28,0.08), 0 2px 6px rgba(20,23,28,0.06)',
+          pop: '0 24px 48px rgba(20,23,28,0.12), 0 4px 12px rgba(20,23,28,0.08)',
         },
       },
     },

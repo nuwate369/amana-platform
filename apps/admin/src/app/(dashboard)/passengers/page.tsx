@@ -39,8 +39,8 @@ export default function PassengersPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-brand-900 dark:text-brand-50">إدارة الراكبات</h1>
-        <p className="text-sm text-brand-500 dark:text-brand-300">
+        <h1 className="text-2xl font-bold text-foreground">إدارة الراكبات</h1>
+        <p className="text-sm text-muted-foreground">
           قائمة الراكبات المسجّلات في المنصّة ونشاطهنّ
         </p>
       </div>
@@ -49,22 +49,22 @@ export default function PassengersPage() {
       <div className="relative max-w-md">
         <Search
           size={18}
-          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-brand-400"
+          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
         />
         <input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="ابحثي بالاسم أو رقم الجوال…"
-          className="w-full rounded-lg border border-brand-200 bg-white py-2.5 pr-10 pl-4 text-sm text-brand-900 placeholder:text-brand-400 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/20 dark:border-brand-700 dark:bg-brand-800 dark:text-brand-50"
+          className="w-full rounded-lg border border-border bg-background py-2.5 pr-10 pl-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
         />
       </div>
 
       {/* جدول الراكبات */}
-      <div className="overflow-hidden rounded-xl border border-brand-200 bg-white dark:border-brand-700 dark:bg-brand-800">
+      <div className="overflow-hidden rounded-xl border border-border bg-card">
         <div className="overflow-x-auto">
           <table className="w-full text-right text-sm">
-            <thead className="bg-brand-50 text-brand-500 dark:bg-brand-900/50 dark:text-brand-300">
+            <thead className="bg-muted/50 text-muted-foreground">
               <tr>
                 <th className="px-5 py-3 font-medium">الاسم</th>
                 <th className="px-5 py-3 font-medium">الجوال</th>
@@ -72,37 +72,37 @@ export default function PassengersPage() {
                 <th className="px-5 py-3 font-medium">تاريخ الانضمام</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-brand-100 dark:divide-brand-700">
+            <tbody className="divide-y divide-border">
               {loading ? (
                 <tr>
-                  <td colSpan={4} className="px-5 py-8 text-center text-brand-500 dark:text-brand-300">
+                  <td colSpan={4} className="px-5 py-8 text-center text-muted-foreground">
                     جارٍ التحميل…
                   </td>
                 </tr>
               ) : rows.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-5 py-8 text-center text-brand-500 dark:text-brand-300">
+                  <td colSpan={4} className="px-5 py-8 text-center text-muted-foreground">
                     لا توجد بيانات
                   </td>
                 </tr>
               ) : (
                 rows.map((p) => (
-                  <tr key={p.id} className="text-brand-700 dark:text-brand-200">
+                  <tr key={p.id} className="text-foreground hover:bg-muted/50 transition-colors">
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-2">
-                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-brand-500 dark:bg-brand-700 dark:text-brand-300">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-muted-foreground">
                           <User size={15} />
                         </span>
-                        <span className="font-medium text-brand-900 dark:text-brand-50">
+                        <span className="font-medium text-foreground">
                           {p.fullName ?? '—'}
                         </span>
                       </div>
                     </td>
-                    <td className="px-5 py-3 font-mono text-brand-500 dark:text-brand-300">
+                    <td className="px-5 py-3 font-mono text-muted-foreground">
                       {p.phone ?? '—'}
                     </td>
                     <td className="px-5 py-3">—</td>
-                    <td className="px-5 py-3 text-brand-500 dark:text-brand-300">
+                    <td className="px-5 py-3 text-muted-foreground">
                       {new Date(p.createdAt).toLocaleDateString('ar-SA')}
                     </td>
                   </tr>

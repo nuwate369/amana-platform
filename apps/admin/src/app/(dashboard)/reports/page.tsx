@@ -20,9 +20,9 @@ function StatCard({
   icon: LucideIcon;
 }) {
   return (
-    <div className="rounded-xl border border-brand-200 bg-white p-5 dark:border-brand-700 dark:bg-brand-800">
+    <div className="rounded-xl border border-border bg-card p-5">
       <div className="flex items-center justify-between">
-        <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-500/15 text-accent-600 dark:text-accent-400">
+        <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/15 text-primary">
           <Icon size={20} />
         </span>
         <span className="flex items-center gap-1 text-xs font-medium text-emerald-600">
@@ -30,8 +30,8 @@ function StatCard({
           {delta}
         </span>
       </div>
-      <p className="mt-4 text-2xl font-bold text-brand-900 dark:text-brand-50">{value}</p>
-      <p className="mt-1 text-sm text-brand-500 dark:text-brand-300">{label}</p>
+      <p className="mt-4 text-2xl font-bold text-foreground">{value}</p>
+      <p className="mt-1 text-sm text-muted-foreground">{label}</p>
     </div>
   );
 }
@@ -65,8 +65,8 @@ export default function ReportsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-brand-900 dark:text-brand-50">التقارير</h1>
-        <p className="text-sm text-brand-500 dark:text-brand-300">تحليلات الإيرادات والرحلات وأداء المنصّة</p>
+        <h1 className="text-2xl font-bold text-foreground">التقارير</h1>
+        <p className="text-sm text-muted-foreground">تحليلات الإيرادات والرحلات وأداء المنصّة</p>
       </div>
 
       {/* تبويبات */}
@@ -76,8 +76,8 @@ export default function ReportsPage() {
             key={t}
             className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
               i === 0
-                ? 'bg-accent-500 text-white'
-                : 'bg-white text-brand-600 hover:bg-brand-100 dark:bg-brand-800 dark:text-brand-200 dark:hover:bg-brand-700'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-background text-foreground hover:bg-muted'
             }`}
           >
             {t}
@@ -86,26 +86,26 @@ export default function ReportsPage() {
       </div>
 
       {/* نطاق التاريخ + تصدير */}
-      <div className="flex flex-wrap items-end justify-between gap-4 rounded-xl border border-brand-200 bg-white p-4 dark:border-brand-700 dark:bg-brand-800">
+      <div className="flex flex-wrap items-end justify-between gap-4 rounded-xl border border-border bg-card p-4">
         <div className="flex flex-wrap items-end gap-4">
           <div>
-            <label className="mb-1 block text-xs text-brand-500 dark:text-brand-300">من تاريخ</label>
+            <label className="mb-1 block text-xs text-muted-foreground">من تاريخ</label>
             <input
               type="date"
               defaultValue="2026-01-01"
-              className="rounded-lg border border-brand-200 bg-white px-3 py-2 text-sm text-brand-800 dark:border-brand-600 dark:bg-brand-900 dark:text-brand-100"
+              className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:ring-1 focus:ring-primary focus:outline-none"
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs text-brand-500 dark:text-brand-300">إلى تاريخ</label>
+            <label className="mb-1 block text-xs text-muted-foreground">إلى تاريخ</label>
             <input
               type="date"
               defaultValue="2026-07-12"
-              className="rounded-lg border border-brand-200 bg-white px-3 py-2 text-sm text-brand-800 dark:border-brand-600 dark:bg-brand-900 dark:text-brand-100"
+              className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:ring-1 focus:ring-primary focus:outline-none"
             />
           </div>
         </div>
-        <button className="flex items-center gap-2 rounded-lg bg-accent-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-accent-600">
+        <button className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90">
           <Download size={16} />
           تصدير CSV
         </button>
@@ -120,33 +120,33 @@ export default function ReportsPage() {
       </div>
 
       {/* رسم الإيرادات الشهرية */}
-      <div className="rounded-xl border border-brand-200 bg-white p-5 dark:border-brand-700 dark:bg-brand-800">
-        <h2 className="mb-4 font-semibold text-brand-800 dark:text-brand-100">الإيرادات الشهرية</h2>
+      <div className="rounded-xl border border-border bg-card p-5">
+        <h2 className="mb-4 font-semibold text-foreground">الإيرادات الشهرية</h2>
         <div className="flex h-56 items-end justify-between gap-1.5">
           {MONTHS.map((b) => (
             <div key={b.m} className="flex flex-1 flex-col items-center gap-2">
               <div className="flex w-full flex-1 items-end">
                 <div
                   className={`w-full rounded-t-md transition-all ${
-                    b.v === 100 ? 'bg-accent-500' : 'bg-accent-500/60 hover:bg-accent-500'
+                    b.v === 100 ? 'bg-primary' : 'bg-primary/60 hover:bg-primary'
                   }`}
                   style={{ height: `${b.v}%` }}
                 />
               </div>
-              <span className="text-[10px] text-brand-400">{b.m}</span>
+              <span className="text-[10px] text-muted-foreground">{b.m}</span>
             </div>
           ))}
         </div>
       </div>
 
       {/* أفضل السائقات */}
-      <div className="overflow-hidden rounded-xl border border-brand-200 bg-white dark:border-brand-700 dark:bg-brand-800">
-        <div className="border-b border-brand-200 px-5 py-4 dark:border-brand-700">
-          <h2 className="font-semibold text-brand-800 dark:text-brand-100">أفضل السائقات</h2>
+      <div className="overflow-hidden rounded-xl border border-border bg-card">
+        <div className="border-b border-border px-5 py-4">
+          <h2 className="font-semibold text-foreground">أفضل السائقات</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-right text-sm">
-            <thead className="bg-brand-50 text-brand-500 dark:bg-brand-900/50 dark:text-brand-300">
+            <thead className="bg-muted/50 text-muted-foreground">
               <tr>
                 <th className="px-5 py-3 font-medium">الاسم</th>
                 <th className="px-5 py-3 font-medium">الرحلات</th>
@@ -154,15 +154,15 @@ export default function ReportsPage() {
                 <th className="px-5 py-3 font-medium">التقييم</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-brand-100 dark:divide-brand-700">
+            <tbody className="divide-y divide-border">
               {TOP_DRIVERS.map((d) => (
-                <tr key={d.name} className="text-brand-700 dark:text-brand-200">
+                <tr key={d.name} className="text-foreground hover:bg-muted/50 transition-colors">
                   <td className="px-5 py-3 font-medium">{d.name}</td>
                   <td className="px-5 py-3">{d.rides}</td>
                   <td className="px-5 py-3">{d.revenue}</td>
                   <td className="px-5 py-3">
-                    <span className="flex items-center gap-1 text-brand-700 dark:text-brand-200">
-                      <Star size={14} className="fill-accent-500 text-accent-500" />
+                    <span className="flex items-center gap-1 text-foreground">
+                      <Star size={14} className="fill-primary text-primary" />
                       {d.rating}
                     </span>
                   </td>

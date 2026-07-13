@@ -18,14 +18,14 @@ function StatCard({
   icon: LucideIcon;
 }) {
   return (
-    <div className="rounded-xl border border-brand-200 bg-white p-5 dark:border-brand-700 dark:bg-brand-800">
+    <div className="rounded-xl border border-border bg-card p-5">
       <div className="flex items-center gap-3">
-        <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-500/15 text-accent-600 dark:text-accent-400">
+        <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/15 text-primary">
           <Icon size={20} />
         </span>
         <div>
-          <p className="text-2xl font-bold text-brand-900 dark:text-brand-50">{value}</p>
-          <p className="mt-0.5 text-sm text-brand-500 dark:text-brand-300">{label}</p>
+          <p className="text-2xl font-bold text-foreground">{value}</p>
+          <p className="mt-0.5 text-sm text-muted-foreground">{label}</p>
         </div>
       </div>
     </div>
@@ -43,9 +43,9 @@ const GROUPS = [
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
-    نشطة: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
-    'قيد المراجعة': 'bg-accent-100 text-accent-700 dark:bg-accent-900/40 dark:text-accent-300',
-    موقوفة: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',
+    نشطة: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+    'قيد المراجعة': 'bg-primary/10 text-primary',
+    موقوفة: 'bg-destructive/10 text-destructive',
   };
   return (
     <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${map[status] ?? ''}`}>
@@ -58,8 +58,8 @@ export default function GroupsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-brand-900 dark:text-brand-50">مجموعات النقل المشتركة</h1>
-        <p className="text-sm text-brand-500 dark:text-brand-300">
+        <h1 className="text-2xl font-bold text-foreground">مجموعات النقل المشتركة</h1>
+        <p className="text-sm text-muted-foreground">
           مجموعات تنسيق الرحلات بين الراكبات — للمراقبة والإشراف فقط
         </p>
       </div>
@@ -72,13 +72,13 @@ export default function GroupsPage() {
       </div>
 
       {/* جدول المجموعات */}
-      <div className="overflow-hidden rounded-xl border border-brand-200 bg-white dark:border-brand-700 dark:bg-brand-800">
-        <div className="border-b border-brand-200 px-5 py-4 dark:border-brand-700">
-          <h2 className="font-semibold text-brand-800 dark:text-brand-100">جميع المجموعات</h2>
+      <div className="overflow-hidden rounded-xl border border-border bg-card">
+        <div className="border-b border-border px-5 py-4">
+          <h2 className="font-semibold text-foreground">جميع المجموعات</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-right text-sm">
-            <thead className="bg-brand-50 text-brand-500 dark:bg-brand-900/50 dark:text-brand-300">
+            <thead className="bg-muted/50 text-muted-foreground">
               <tr>
                 <th className="px-5 py-3 font-medium">اسم المجموعة</th>
                 <th className="px-5 py-3 font-medium">المالكة</th>
@@ -87,10 +87,10 @@ export default function GroupsPage() {
                 <th className="px-5 py-3 font-medium">إجراء</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-brand-100 dark:divide-brand-700">
+            <tbody className="divide-y divide-border">
               {GROUPS.map((g) => (
-                <tr key={g.id} className="text-brand-700 dark:text-brand-200">
-                  <td className="px-5 py-3.5 font-medium text-brand-800 dark:text-brand-100">{g.name}</td>
+                <tr key={g.id} className="text-foreground hover:bg-muted/50 transition-colors">
+                  <td className="px-5 py-3.5 font-medium">{g.name}</td>
                   <td className="px-5 py-3.5">{g.owner}</td>
                   <td className="px-5 py-3.5">{g.members.toLocaleString('ar-SA')}</td>
                   <td className="px-5 py-3.5">
@@ -99,7 +99,7 @@ export default function GroupsPage() {
                   <td className="px-5 py-3.5">
                     <button
                       type="button"
-                      className="inline-flex items-center gap-1 rounded-lg bg-accent-500/15 px-3 py-1.5 text-xs font-semibold text-accent-700 transition hover:bg-accent-500/25 dark:text-accent-300"
+                      className="inline-flex items-center gap-1 rounded-lg bg-primary/15 px-3 py-1.5 text-xs font-semibold text-primary transition hover:bg-primary/25"
                     >
                       مراجعة
                       <ArrowLeft size={14} />

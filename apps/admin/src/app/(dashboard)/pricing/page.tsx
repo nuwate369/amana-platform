@@ -19,15 +19,15 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-sm font-medium text-brand-700 dark:text-brand-200">{label}</span>
+      <span className="mb-1.5 block text-sm font-medium text-foreground">{label}</span>
       {children}
-      {hint ? <span className="mt-1 block text-xs text-brand-400">{hint}</span> : null}
+      {hint ? <span className="mt-1 block text-xs text-muted-foreground">{hint}</span> : null}
     </label>
   );
 }
 
 const inputCls =
-  'w-full rounded-lg border border-brand-200 bg-white px-3 py-2 text-sm text-brand-900 outline-none transition focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-brand-700 dark:bg-brand-900 dark:text-brand-50';
+  'w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20';
 
 function SectionCard({
   title,
@@ -39,12 +39,12 @@ function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-brand-200 bg-white p-5 dark:border-brand-700 dark:bg-brand-800">
+    <div className="rounded-xl border border-border bg-card p-5">
       <div className="mb-4 flex items-center gap-2">
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-500/15 text-accent-600 dark:text-accent-400">
+        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/15 text-primary">
           <Icon size={16} />
         </span>
-        <h2 className="font-semibold text-brand-800 dark:text-brand-100">{title}</h2>
+        <h2 className="font-semibold text-foreground">{title}</h2>
       </div>
       {children}
     </div>
@@ -55,8 +55,8 @@ export default function PricingPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-brand-900 dark:text-brand-50">إعدادات التسعير الديناميكي</h1>
-        <p className="text-sm text-brand-500 dark:text-brand-300">
+        <h1 className="text-2xl font-bold text-foreground">إعدادات التسعير الديناميكي</h1>
+        <p className="text-sm text-muted-foreground">
           ضبط التعرفة الأساسية ومضاعِفات الذروة لحساب أسعار الرحلات
         </p>
       </div>
@@ -88,7 +88,7 @@ export default function PricingPage() {
                   max="3"
                   step="0.1"
                   defaultValue="1.5"
-                  className="h-2 w-full cursor-pointer appearance-none rounded-full bg-brand-200 accent-accent-500 dark:bg-brand-700"
+                  className="h-2 w-full cursor-pointer appearance-none rounded-full bg-border accent-primary"
                 />
                 <input type="number" defaultValue="1.5" min="1" max="3" step="0.1" className={`${inputCls} w-20`} />
               </div>
@@ -141,20 +141,20 @@ export default function PricingPage() {
       </div>
 
       {/* شريط الحفظ */}
-      <div className="flex items-center justify-end gap-3 border-t border-brand-200 pt-4 dark:border-brand-700">
-        <span className="ml-auto flex items-center gap-1.5 text-xs text-brand-400">
+      <div className="flex items-center justify-end gap-3 border-t border-border pt-4">
+        <span className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground">
           <Clock size={14} />
           آخر تحديث: اليوم ١٠:٤٢ صباحًا
         </span>
         <button
           type="button"
-          className="rounded-lg border border-brand-200 px-4 py-2 text-sm font-medium text-brand-700 transition hover:bg-brand-100 dark:border-brand-700 dark:text-brand-200 dark:hover:bg-brand-700"
+          className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition hover:bg-muted"
         >
           إلغاء
         </button>
         <button
           type="button"
-          className="rounded-lg bg-accent-500 px-5 py-2 text-sm font-semibold text-brand-900 transition hover:bg-accent-400"
+          className="rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
         >
           حفظ التغييرات
         </button>

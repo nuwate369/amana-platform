@@ -26,7 +26,10 @@ export default function ForgotPasswordScreen() {
   });
 
   async function onSubmit(values: EmailOnlyInput) {
-    const { error } = await supabase.auth.resetPasswordForEmail(values.email);
+    // Mobile apps redirect to admin web for password reset (deep links not yet configured)
+    const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
+      redirectTo: 'http://localhost:3000/auth/reset-password',
+    });
     if (error) {
       notify.error(error.message || t('common.error'));
       return;

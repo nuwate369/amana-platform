@@ -20,14 +20,14 @@ function StatCard({
   icon: LucideIcon;
 }) {
   return (
-    <div className="rounded-xl border border-brand-200 bg-white p-5 dark:border-brand-700 dark:bg-brand-800">
+    <div className="rounded-xl border border-border bg-card p-5">
       <div className="flex items-center justify-between">
-        <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-500/15 text-accent-600 dark:text-accent-400">
+        <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
           <Icon size={20} />
         </span>
       </div>
-      <p className="mt-4 text-2xl font-bold text-brand-900 dark:text-brand-50">{value}</p>
-      <p className="mt-1 text-sm text-brand-500 dark:text-brand-300">{label}</p>
+      <p className="mt-4 text-2xl font-bold text-foreground">{value}</p>
+      <p className="mt-1 text-sm text-muted-foreground">{label}</p>
     </div>
   );
 }
@@ -53,9 +53,9 @@ const RECENT = [
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
-    مكتملة: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
-    جارية: 'bg-accent-100 text-accent-700 dark:bg-accent-900/40 dark:text-accent-300',
-    ملغاة: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',
+    مكتملة: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+    جارية: 'bg-primary/10 text-primary border border-primary/20',
+    ملغاة: 'bg-destructive/10 text-destructive border border-destructive/20',
   };
   return (
     <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${map[status] ?? ''}`}>
@@ -93,8 +93,8 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-brand-900 dark:text-brand-50">لوحة المعلومات</h1>
-        <p className="text-sm text-brand-500 dark:text-brand-300">نظرة عامة على أداء المنصّة اليوم</p>
+        <h1 className="text-2xl font-bold text-foreground">لوحة المعلومات</h1>
+        <p className="text-sm text-muted-foreground">نظرة عامة على أداء المنصّة اليوم</p>
       </div>
 
       {/* بطاقات المؤشرات */}
@@ -108,43 +108,43 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* رسم الرحلات الأسبوعي */}
         {/* TODO: بيانات حقيقية */}
-        <div className="rounded-xl border border-brand-200 bg-white p-5 lg:col-span-2 dark:border-brand-700 dark:bg-brand-800">
-          <h2 className="mb-4 font-semibold text-brand-800 dark:text-brand-100">الرحلات هذا الأسبوع</h2>
+        <div className="rounded-xl border border-border bg-card p-5 lg:col-span-2">
+          <h2 className="mb-4 font-semibold text-foreground">الرحلات هذا الأسبوع</h2>
           <div className="flex h-48 items-end justify-between gap-2">
             {WEEK.map((b) => (
               <div key={b.d} className="flex flex-1 flex-col items-center gap-2">
                 <div className="flex w-full flex-1 items-end">
                   <div
-                    className="w-full rounded-t-md bg-accent-500/80 transition-all hover:bg-accent-500"
+                    className="w-full rounded-t-md bg-primary/80 transition-all hover:bg-primary"
                     style={{ height: `${b.v}%` }}
                   />
                 </div>
-                <span className="text-xs text-brand-400">{b.d}</span>
+                <span className="text-xs text-muted-foreground">{b.d}</span>
               </div>
             ))}
           </div>
         </div>
 
         {/* ملخص سريع */}
-        <div className="rounded-xl border border-brand-200 bg-white p-5 dark:border-brand-700 dark:bg-brand-800">
-          <h2 className="mb-4 font-semibold text-brand-800 dark:text-brand-100">ملخّص</h2>
+        <div className="rounded-xl border border-border bg-card p-5">
+          <h2 className="mb-4 font-semibold text-foreground">ملخّص</h2>
           <ul className="space-y-3 text-sm">
             <li className="flex justify-between">
-              <span className="text-brand-500 dark:text-brand-300">طلبات KYC معلّقة</span>
-              <span className="font-semibold text-accent-600 dark:text-accent-400">{pendingKyc}</span>
+              <span className="text-muted-foreground">طلبات KYC معلّقة</span>
+              <span className="font-semibold text-primary">{pendingKyc}</span>
             </li>
             {/* TODO: بيانات حقيقية */}
             <li className="flex justify-between">
-              <span className="text-brand-500 dark:text-brand-300">بلاغات طوارئ اليوم</span>
-              <span className="font-semibold text-brand-900 dark:text-brand-50">٠</span>
+              <span className="text-muted-foreground">بلاغات طوارئ اليوم</span>
+              <span className="font-semibold text-foreground">٠</span>
             </li>
             <li className="flex justify-between">
-              <span className="text-brand-500 dark:text-brand-300">متوسط التقييم</span>
-              <span className="font-semibold text-brand-900 dark:text-brand-50">٤.٩</span>
+              <span className="text-muted-foreground">متوسط التقييم</span>
+              <span className="font-semibold text-foreground">٤.٩</span>
             </li>
             <li className="flex justify-between">
-              <span className="text-brand-500 dark:text-brand-300">مجموعات نشطة</span>
-              <span className="font-semibold text-brand-900 dark:text-brand-50">١٨</span>
+              <span className="text-muted-foreground">مجموعات نشطة</span>
+              <span className="font-semibold text-foreground">١٨</span>
             </li>
           </ul>
         </div>
@@ -152,13 +152,13 @@ export default function DashboardPage() {
 
       {/* آخر الرحلات */}
       {/* TODO: بيانات حقيقية */}
-      <div className="overflow-hidden rounded-xl border border-brand-200 bg-white dark:border-brand-700 dark:bg-brand-800">
-        <div className="border-b border-brand-200 px-5 py-4 dark:border-brand-700">
-          <h2 className="font-semibold text-brand-800 dark:text-brand-100">آخر الرحلات</h2>
+      <div className="overflow-hidden rounded-xl border border-border bg-card">
+        <div className="border-b border-border px-5 py-4">
+          <h2 className="font-semibold text-foreground">آخر الرحلات</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-right text-sm">
-            <thead className="bg-brand-50 text-brand-500 dark:bg-brand-900/50 dark:text-brand-300">
+            <thead className="bg-muted text-muted-foreground">
               <tr>
                 <th className="px-5 py-3 font-medium">الرقم</th>
                 <th className="px-5 py-3 font-medium">الراكبة</th>
@@ -167,10 +167,10 @@ export default function DashboardPage() {
                 <th className="px-5 py-3 font-medium">المبلغ</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-brand-100 dark:divide-brand-700">
+            <tbody className="divide-y divide-border">
               {RECENT.map((r) => (
-                <tr key={r.id} className="text-brand-700 dark:text-brand-200">
-                  <td className="px-5 py-3 font-mono text-brand-400">{r.id}</td>
+                <tr key={r.id} className="text-foreground">
+                  <td className="px-5 py-3 font-mono text-muted-foreground">{r.id}</td>
                   <td className="px-5 py-3">{r.passenger}</td>
                   <td className="px-5 py-3">{r.driver}</td>
                   <td className="px-5 py-3">

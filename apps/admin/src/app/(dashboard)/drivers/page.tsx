@@ -19,9 +19,9 @@ const STATUS_LABELS: Record<string, string> = {
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
-    نشطة: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
-    'قيد المراجعة': 'bg-accent-100 text-accent-700 dark:bg-accent-900/40 dark:text-accent-300',
-    موقوفة: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',
+    نشطة: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+    'قيد المراجعة': 'bg-primary/10 text-primary',
+    موقوفة: 'bg-destructive/10 text-destructive',
   };
   return (
     <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${map[status] ?? ''}`}>
@@ -58,29 +58,29 @@ export default function DriversPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-brand-900 dark:text-brand-50">إدارة السائقات</h1>
-        <p className="text-sm text-brand-500 dark:text-brand-300">
+        <h1 className="text-2xl font-bold text-foreground">إدارة السائقات</h1>
+        <p className="text-sm text-muted-foreground">
           مراجعة طلبات الانضمام، متابعة الحالة، وإدارة السائقات المسجّلات
         </p>
       </div>
 
       {/* بطاقة طلبات KYC معلّقة */}
       {/* TODO: بيانات حقيقية */}
-      <div className="rounded-xl border border-brand-200 bg-white p-5 dark:border-brand-700 dark:bg-brand-800">
+      <div className="rounded-xl border border-border bg-card p-5">
         <div className="mb-4 flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-500/15 text-accent-600 dark:text-accent-400">
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15 text-primary">
             <ShieldCheck size={18} />
           </span>
-          <h2 className="font-semibold text-brand-800 dark:text-brand-100">طلبات KYC معلّقة</h2>
-          <span className="rounded-full bg-accent-500/15 px-2 py-0.5 text-xs font-medium text-accent-600 dark:text-accent-400">
+          <h2 className="font-semibold text-foreground">طلبات KYC معلّقة</h2>
+          <span className="rounded-full bg-primary/15 px-2 py-0.5 text-xs font-medium text-primary">
             ٣
           </span>
         </div>
 
-        <div className="flex flex-col gap-4 rounded-lg border border-brand-200 p-4 dark:border-brand-700 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-4 rounded-lg border border-border p-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="font-medium text-brand-900 dark:text-brand-50">عبير الشمري</p>
-            <p className="text-sm text-brand-500 dark:text-brand-300">تقدّمت بطلب انضمام كسائقة · ٠٥٠٤٤٥٥٦٦٧</p>
+            <p className="font-medium text-foreground">عبير الشمري</p>
+            <p className="text-sm text-muted-foreground">تقدّمت بطلب انضمام كسائقة · ٠٥٠٤٤٥٥٦٦٧</p>
           </div>
 
           {/* صور المستندات (عناصر نائبة) */}
@@ -91,10 +91,10 @@ export default function DriversPage() {
               { label: 'استمارة المركبة', icon: FileText },
             ].map((doc) => (
               <div key={doc.label} className="flex flex-col items-center gap-1">
-                <div className="flex h-16 w-20 items-center justify-center rounded-md border border-dashed border-brand-300 bg-brand-50 text-brand-400 dark:border-brand-600 dark:bg-brand-900/50">
+                <div className="flex h-16 w-20 items-center justify-center rounded-md border border-dashed border-border bg-muted/50 text-muted-foreground">
                   <doc.icon size={20} />
                 </div>
-                <span className="text-[11px] text-brand-500 dark:text-brand-300">{doc.label}</span>
+                <span className="text-[11px] text-muted-foreground">{doc.label}</span>
               </div>
             ))}
           </div>
@@ -104,7 +104,7 @@ export default function DriversPage() {
               <Check size={16} />
               موافقة
             </button>
-            <button className="flex items-center gap-1 rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 dark:border-red-900/50 dark:text-red-400 dark:hover:bg-red-900/20">
+            <button className="flex items-center gap-1 rounded-lg border border-destructive/30 px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10">
               <X size={16} />
               رفض
             </button>
@@ -120,8 +120,8 @@ export default function DriversPage() {
             onClick={() => setActive(f)}
             className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
               active === f
-                ? 'bg-accent-500 text-white'
-                : 'border border-brand-200 bg-white text-brand-600 hover:bg-brand-50 dark:border-brand-700 dark:bg-brand-800 dark:text-brand-300 dark:hover:bg-brand-700'
+                ? 'bg-primary text-primary-foreground'
+                : 'border border-border bg-card text-foreground hover:bg-muted'
             }`}
           >
             {f}
@@ -130,10 +130,10 @@ export default function DriversPage() {
       </div>
 
       {/* جدول السائقات */}
-      <div className="overflow-hidden rounded-xl border border-brand-200 bg-white dark:border-brand-700 dark:bg-brand-800">
+      <div className="overflow-hidden rounded-xl border border-border bg-card">
         <div className="overflow-x-auto">
           <table className="w-full text-right text-sm">
-            <thead className="bg-brand-50 text-brand-500 dark:bg-brand-900/50 dark:text-brand-300">
+            <thead className="bg-muted/50 text-muted-foreground">
               <tr>
                 <th className="px-5 py-3 font-medium">الاسم</th>
                 <th className="px-5 py-3 font-medium">الجوال</th>
@@ -143,16 +143,16 @@ export default function DriversPage() {
                 <th className="px-5 py-3 font-medium">إجراءات</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-brand-100 dark:divide-brand-700">
+            <tbody className="divide-y divide-border">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-5 py-8 text-center text-brand-500 dark:text-brand-300">
+                  <td colSpan={6} className="px-5 py-8 text-center text-muted-foreground">
                     جارٍ التحميل…
                   </td>
                 </tr>
               ) : rows.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-5 py-8 text-center text-brand-500 dark:text-brand-300">
+                  <td colSpan={6} className="px-5 py-8 text-center text-muted-foreground">
                     لا توجد بيانات
                   </td>
                 </tr>
@@ -160,24 +160,24 @@ export default function DriversPage() {
                 rows.map((d) => {
                   const label = STATUS_LABELS[d.status] ?? d.status;
                   return (
-                    <tr key={d.id} className="text-brand-700 dark:text-brand-200">
+                    <tr key={d.id} className="text-foreground hover:bg-muted/50 transition-colors">
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-2">
-                          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-brand-500 dark:bg-brand-700 dark:text-brand-300">
+                          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-muted-foreground">
                             <Car size={15} />
                           </span>
-                          <span className="font-medium text-brand-900 dark:text-brand-50">
+                          <span className="font-medium text-foreground">
                             {d.fullName ?? '—'}
                           </span>
                         </div>
                       </td>
-                      <td className="px-5 py-3 font-mono text-brand-500 dark:text-brand-300">
+                      <td className="px-5 py-3 font-mono text-muted-foreground">
                         {d.phone ?? '—'}
                       </td>
                       <td className="px-5 py-3">{d.vehicle}</td>
                       <td className="px-5 py-3">
                         <span className="inline-flex items-center gap-1">
-                          <Star size={14} className="text-accent-500" />
+                          <Star size={14} className="text-primary" />
                           —
                         </span>
                       </td>
@@ -186,11 +186,11 @@ export default function DriversPage() {
                       </td>
                       <td className="px-5 py-3">
                         {label === 'قيد المراجعة' ? (
-                          <button className="rounded-lg bg-accent-500 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-accent-600">
+                          <button className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90">
                             مراجعة KYC
                           </button>
                         ) : (
-                          <button className="rounded-lg border border-brand-200 px-3 py-1.5 text-xs font-medium text-brand-600 transition-colors hover:bg-brand-50 dark:border-brand-700 dark:text-brand-300 dark:hover:bg-brand-700">
+                          <button className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted">
                             عرض
                           </button>
                         )}

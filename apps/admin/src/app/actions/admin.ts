@@ -1,6 +1,5 @@
 'use server';
 
-import { adminUserSchema } from '@amana/shared-ui/validation';
 import { getAdminSupabase } from '@/lib/supabase/admin';
 
 /**
@@ -96,51 +95,5 @@ async function listProfilesByType(
     fullName: p.full_name,
     phone: p.phone,
     createdAt: p.created_at,
-  }));
-}
-
-/**
- * إنشاء مستخدم إداري حقيقي عبر Supabase Auth Admin (يتجاوز RLS).
- * طبقة تحقّق ثانية على الخادم عبر adminUserSchema — لا نثق بمدخلات العميل.
- * email_confirm:true يفعّل الحساب مباشرة دون رسالة تأكيد.
- */
-export async function createAdminUser(input: {
-  fullName: string;
-  email: string;
-  password: string;
-}): Promise<{ ok: boolean; error?: string }> {
-  const parsed = adminUserSchema.safeParse(input);
-  if (!parsed.success) {
-    return { ok: false, error: 'validation' };
-  }
-
-  const db = getAdminSupabase();
-  const { error } = await db.auth.admin.createUser({
-    email: parsed.data.email,
-    password: parsed.data.password,
-    email_confirm: true,
-    user_metadata: { full_name: parsed.data.fullName, user_type: 'admin' },
-  });
-
-  return { ok: !error, error: error?.message };
-}
-
-export interface AllProfileRow {
-  id: string;
-  fullName: string | null;
-  userType: string;
-}
-
-/** كل الملفّات الشخصية (id, full_name, user_type) مرتّبة بالأحدث. */
-export async function listAllProfiles(): Promise<AllProfileRow[]> {
-  const db = getAdminSupabase();
-  const { data } = await db
-    .from('profiles')
-    .select('id, full_name, user_type')
-    .order('created_at', { ascending: false });
-  return (data ?? []).map((p) => ({
-    id: p.id,
-    fullName: p.full_name,
-    userType: p.user_type,
   }));
 }
