@@ -58,9 +58,9 @@ export default function GroupsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-brand-900 dark:text-brand-50">إدارة المجموعات المغلقة</h1>
+        <h1 className="text-2xl font-bold text-brand-900 dark:text-brand-50">مجموعات النقل المشتركة</h1>
         <p className="text-sm text-brand-500 dark:text-brand-300">
-          المجموعات المجتمعية الخاصة وطلبات الانضمام والمراجعة
+          مجموعات تنسيق الرحلات بين الراكبات — للمراقبة والإشراف فقط
         </p>
       </div>
 

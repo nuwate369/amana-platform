@@ -15,22 +15,21 @@ import {
 export interface NavItem {
   href: string;
   label: string;
+  /** وصف مختصر يظهر تحت العنوان في القائمة الجانبية (اختياري). */
+  description?: string;
   icon: LucideIcon;
-  /** علامة مميزة اختيارية (مثل عدد الإشعارات غير المقروءة). */
-  badge?: number;
 }
 
 /** عناصر التنقّل في القائمة الجانبية للوحة الإدارة. */
 export const NAV_ITEMS: NavItem[] = [
-  { href: '/dashboard',           label: 'لوحة المعلومات',              icon: LayoutDashboard },
-  { href: '/drivers',             label: 'السائقات',                    icon: Car             },
-  { href: '/passengers',          label: 'الركاب',                      icon: Users           },
-  { href: '/rides',               label: 'الرحلات الحية',              icon: Navigation      },
-  { href: '/pricing',             label: 'التسعير',                    icon: BadgePercent    },
-  { href: '/reports',             label: 'التقارير',                   icon: BarChart3       },
-  { href: '/groups',              label: 'مجموعات المستخدمين',        icon: UsersRound      },
-  { href: '/system-notifications',label: 'إشعارات النظام',             icon: Bell            },
-  { href: '/notifications',       label: 'بث الإشعارات للمستخدمين',   icon: Radio           },
-  { href: '/staff',               label: 'فريق العمل',                 icon: UserCog         },
-  // ملاحظة: لا يوجد عنصر /roles — تم حذف شاشة الصلاحيات نهائياً
+  { href: '/dashboard',           label: 'لوحة المعلومات',                icon: LayoutDashboard },
+  { href: '/drivers',             label: 'السائقات',                      icon: Car             },
+  { href: '/passengers',          label: 'الركاب',                        icon: Users           },
+  { href: '/rides',               label: 'الرحلات الحية',                icon: Navigation      },
+  { href: '/pricing',             label: 'التسعير',                      icon: BadgePercent    },
+  { href: '/reports',             label: 'التقارير',                     icon: BarChart3       },
+  { href: '/groups',              label: 'مجموعات النقل المشتركة',      icon: UsersRound,     description: 'مجموعات تنسيق الرحلات بين الراكبات — للمراقبة والإشراف فقط' },
+  { href: '/notifications',       label: 'الإعلانات والتنبيهات العامة',  icon: Radio,          description: 'إرسال رسائل تظهر داخل تطبيقي الراكبة والسائقة' },
+  { href: '/staff',               label: 'فريق العمل',                   icon: UserCog         },
+  { href: '/system-notifications',label: 'الإشعارات',                     icon: Bell            },
 ];

@@ -63,7 +63,7 @@ export default function StaffClient({
         <div>
           <h1 className="text-2xl font-bold text-brand-900 dark:text-brand-50 flex items-center gap-2">
             <Users className="w-6 h-6 text-accent-500 shrink-0" />
-            <span>فريق العمل الإداري</span>
+            <span>فريق العمل</span>
           </h1>
           <p className="text-sm text-brand-500 dark:text-brand-400 mt-1">
             الموظفون الذين يديرون لوحة أمانة — المديرون والدعم الفني

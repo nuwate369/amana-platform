@@ -49,10 +49,24 @@
     "resendEmail": "Resend email",
     "backToSignIn": "Back to sign in"
   },
+  "nav": {
+    "dashboard": "Dashboard",
+    "drivers": "Drivers",
+    "passengers": "Passengers",
+    "rides": "Live Rides",
+    "pricing": "Pricing",
+    "reports": "Reports",
+    "groups": "Shared Ride Groups",
+    "groupsDesc": "Ride coordination groups between passengers — for monitoring only",
+    "appNotifications": "Announcements & Alerts",
+    "appNotificationsDesc": "Send messages that appear inside the passenger and driver apps",
+    "staff": "Staff",
+    "notifications": "Notifications"
+  },
   "systemNotifications": {
-    "title": "System Notifications",
+    "title": "Notifications",
     "subtitle": "Internal platform event notifications",
-    "bell": "System Notifications",
+    "bell": "Notifications",
     "viewAll": "View All",
     "markAllRead": "Mark all as read",
     "noNotifications": "No new notifications",
@@ -82,7 +96,7 @@
     "delete": "Delete",
     "unreadCount": "{{count}} unread",
     "unreadCount_other": "{{count}} unread",
-    "broadcastTitle": "Broadcast Notifications to Users"
+    "broadcastTitle": "Announcements & Alerts"
   },
   "payment": {
     "title": "Payment details",

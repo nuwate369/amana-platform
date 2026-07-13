@@ -4,16 +4,33 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { Moon, Sun, Languages, LogOut, UserCircle, Menu, X, LayoutDashboard, Headset } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { RequireAuth } from '@/components/RequireAuth';
 import { NotificationBell } from '@/components/NotificationBell';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase/client';
 import { NAV_ITEMS } from '@/lib/nav';
 import { STAFF_TYPE_LABELS, type UserType } from '@amana/shared-types';
+import { useTranslation } from 'react-i18next';
+
+/** مفاتيح الترجمة لكل عنصر في القائمة الجانبية — يُستخدم المفتاح العربي كقيمة افتراضية. */
+const NAV_I18N: Record<string, { ar: string; en: string; descAr?: string; descEn?: string }> = {
+  '/dashboard':           { ar: 'لوحة المعلومات',              en: 'Dashboard' },
+  '/drivers':             { ar: 'السائقات',                    en: 'Drivers' },
+  '/passengers':          { ar: 'الركاب',                      en: 'Passengers' },
+  '/rides':               { ar: 'الرحلات الحية',              en: 'Live Rides' },
+  '/pricing':             { ar: 'التسعير',                    en: 'Pricing' },
+  '/reports':             { ar: 'التقارير',                   en: 'Reports' },
+  '/groups':              { ar: 'مجموعات النقل المشتركة',    en: 'Shared Ride Groups', descAr: 'مجموعات تنسيق الرحلات بين الراكبات — للمراقبة والإشراف فقط', descEn: 'Ride coordination groups between passengers — for monitoring only' },
+  '/notifications':       { ar: 'الإعلانات والتنبيهات العامة', en: 'Announcements & Alerts', descAr: 'إرسال رسائل تظهر داخل تطبيقي الراكبة والسائقة', descEn: 'Send messages that appear inside the passenger and driver apps' },
+  '/staff':               { ar: 'فريق العمل',                 en: 'Staff' },
+  '/system-notifications':{ ar: 'الإشعارات',                   en: 'Notifications' },
+};
 
 function Sidebar({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
   const pathname = usePathname();
+  const { i18n } = useTranslation();
+  const lang = i18n.language === 'ar' ? 'ar' : 'en';
   
   // Close sidebar when route changes on mobile
   useEffect(() => {
@@ -46,21 +63,31 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) 
           </button>
         </div>
         <nav className="flex-1 space-y-1 overflow-y-auto p-3">
-          {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+          {NAV_ITEMS.map(({ href, icon: Icon }) => {
             const active = pathname === href || pathname.startsWith(href + '/');
+            const i18nKey = NAV_I18N[href];
+            const label = i18nKey ? (lang === 'ar' ? i18nKey.ar : i18nKey.en) : href;
+            const tooltip = i18nKey ? (lang === 'ar' ? i18nKey.descAr : i18nKey.descEn) : undefined;
             return (
-              <Link
-                key={href}
-                href={href}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition ${
-                  active
-                    ? 'bg-accent-500/15 font-semibold text-accent-400'
-                    : 'text-brand-200 hover:bg-white/5 hover:text-white'
-                }`}
-              >
-                <Icon size={18} strokeWidth={active ? 2.4 : 2} />
-                {label}
-              </Link>
+              <div key={href} className="relative group">
+                <Link
+                  href={href}
+                  className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition ${
+                    active
+                      ? 'bg-accent-500/15 font-semibold text-accent-400'
+                      : 'text-brand-200 hover:bg-white/5 hover:text-white'
+                  }`}
+                >
+                  <Icon size={18} strokeWidth={active ? 2.4 : 2} className="shrink-0" />
+                  <span className="truncate">{label}</span>
+                </Link>
+                {tooltip && (
+                  <div className="pointer-events-none absolute start-full top-1/2 z-[60] ms-3 -translate-y-1/2 whitespace-nowrap rounded-lg bg-brand-900 px-3 py-1.5 text-xs text-brand-100 opacity-0 shadow-lg transition-opacity group-hover:opacity-100 dark:bg-brand-700 dark:text-brand-50">
+                    {tooltip}
+                    <div className="absolute top-1/2 -start-1.5 -translate-y-1/2 border-4 border-transparent border-e-brand-900 dark:border-e-brand-700" />
+                  </div>
+                )}
+              </div>
             );
           })}
         </nav>
@@ -73,8 +100,26 @@ function Topbar({ onMenuToggle }: { onMenuToggle: () => void }) {
   const { theme, setTheme } = useTheme();
   const { user } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
   // قراءة user_type من ملف المستخدم مباشرةً (بدون جداول RBAC)
   const [userTypeLabel, setUserTypeLabel] = useState('مسؤول');
+
+  // إغلاق القائمة عند الضغط خارجها (أي مكان في الشاشة)
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(e.target as Node) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(e.target as Node)
+      ) {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -135,8 +180,11 @@ function Topbar({ onMenuToggle }: { onMenuToggle: () => void }) {
         {/* User Dropdown */}
         <div className="relative">
           <button
-            onClick={() => setMenuOpen(!menuOpen)}
+            ref={buttonRef}
+            onClick={() => setMenuOpen((prev) => !prev)}
             className="flex items-center justify-center w-10 h-10 rounded-full border border-brand-200 dark:border-brand-700 bg-brand-50 hover:bg-brand-100 dark:bg-brand-900/50 dark:hover:bg-brand-900 transition-colors overflow-hidden"
+            aria-label="قائمة المستخدم"
+            aria-expanded={menuOpen}
           >
             <div className="w-full h-full bg-accent-500/10 text-accent-600 flex items-center justify-center">
               <UserCircle size={20} />
@@ -144,7 +192,11 @@ function Topbar({ onMenuToggle }: { onMenuToggle: () => void }) {
           </button>
 
           {menuOpen && (
-            <div className="absolute end-0 top-full mt-2 w-64 rounded-xl bg-white dark:bg-brand-800 border border-brand-200 dark:border-brand-700 shadow-xl z-50 animate-in fade-in zoom-in duration-200">
+            <div
+              dir="rtl"
+              ref={menuRef}
+              className="absolute end-0 top-full mt-2 w-64 rounded-xl bg-white dark:bg-brand-800 border border-brand-200 dark:border-brand-700 shadow-xl z-50 animate-in fade-in zoom-in duration-200"
+            >
               
               <div className="px-4 py-4 border-b border-brand-100 dark:border-brand-700 flex flex-col items-center text-center">
                 <h3 className="font-bold text-lg text-brand-900 dark:text-brand-50 mb-0.5">

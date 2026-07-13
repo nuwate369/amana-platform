@@ -3,7 +3,7 @@
 import { Send } from 'lucide-react';
 
 /**
- * صفحة بث الإشعارات للمستخدمين — بطاقة إنشاء إشعار + قائمة الإشعارات المرسلة.
+ * صفحة إرسال إشعارات للتطبيقات — بطاقة إنشاء إشعار + قائمة الإشعارات المرسلة.
  * تُستخدم لإرسال رسائل للمستخدمين النهائيين (الراكبات/السائقات).
  * مفصولة تماماً عن نظام الإشعارات الداخلي (system-notifications).
  * هوية أنثراسايت + ذهبي، RTL، دعم الوضع الداكن، بيانات ثابتة (mock).
@@ -34,8 +34,8 @@ export default function NotificationsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-brand-900 dark:text-brand-50">بث الإشعارات للمستخدمين</h1>
-        <p className="text-sm text-brand-500 dark:text-brand-300">إنشاء الإشعارات وإرسالها إلى مستخدمي المنصّة (الراكبات والסائقات)</p>
+        <h1 className="text-2xl font-bold text-brand-900 dark:text-brand-50">الإعلانات والتنبيهات العامة</h1>
+        <p className="text-sm text-brand-500 dark:text-brand-300">إرسال رسائل تظهر داخل تطبيقي الراكبة والسائقة</p>
       </div>
 
       {/* بطاقة الإنشاء */}
@@ -49,6 +49,14 @@ export default function NotificationsPage() {
               placeholder="أدخل عنوان الإشعار"
               className="w-full rounded-lg border border-brand-200 bg-white px-3 py-2 text-sm text-brand-800 placeholder:text-brand-400 dark:border-brand-600 dark:bg-brand-900 dark:text-brand-100"
             />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm text-brand-600 dark:text-brand-200">النوع</label>
+            <select className="w-full rounded-lg border border-brand-200 bg-white px-3 py-2 text-sm text-brand-800 dark:border-brand-600 dark:bg-brand-900 dark:text-brand-100">
+              <option value="announcement">إعلان عام</option>
+              <option value="maintenance">صيانة</option>
+              <option value="update">تحديث</option>
+            </select>
           </div>
           <div>
             <label className="mb-1 block text-sm text-brand-600 dark:text-brand-200">نص الإشعار</label>
@@ -72,6 +80,11 @@ export default function NotificationsPage() {
               إرسال
             </button>
           </div>
+        </div>
+
+        {/* ملاحظة تحذيرية ثابتة */}
+        <div className="mt-5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
+          هذه رسائل إخبارية فقط ولا تُطبّق أي خصم أو تغيير سعر فعلي. نظام العروض الفعلية سيُضاف في مرحلة لاحقة.
         </div>
       </div>
 

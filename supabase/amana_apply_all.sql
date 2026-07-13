@@ -373,6 +373,15 @@ create policy "Users can delete their own kyc documents."
 
 -- ===== تسمير حساب super_admin المحمي =====
 -- يُشغَّل مرة واحدة بعد إنشاء المخطط كاملاً
+-- نُسقط الـ Trigger مؤقتاً ثم نعيد إنشاءه بعد التحديث
+-- لأن enforce_immutable_user_type يمنع تغيير user_type بعد الإنشاء
+drop trigger if exists trigger_immutable_user_type on public.profiles;
+
 update public.profiles
 set user_type = 'super_admin', is_protected = true
 where id in (select id from auth.users where email = 'nuwate369@gmail.com');
+
+-- إعادة إنشاء الـ Trigger بعد التسمير
+create trigger trigger_immutable_user_type
+  before update or delete on public.profiles
+  for each row execute function public.enforce_immutable_user_type();

@@ -49,10 +49,24 @@
     "resendEmail": "إعادة إرسال البريد",
     "backToSignIn": "العودة لتسجيل الدخول"
   },
+  "nav": {
+    "dashboard": "لوحة المعلومات",
+    "drivers": "السائقات",
+    "passengers": "الركاب",
+    "rides": "الرحلات الحية",
+    "pricing": "التسعير",
+    "reports": "التقارير",
+    "groups": "مجموعات النقل المشتركة",
+    "groupsDesc": "مجموعات تنسيق الرحلات بين الراكبات — للمراقبة والإشراف فقط",
+    "appNotifications": "الإعلانات والتنبيهات العامة",
+    "appNotificationsDesc": "إرسال رسائل تظهر داخل تطبيقي الراكبة والسائقة",
+    "staff": "فريق العمل",
+    "notifications": "الإشعارات"
+  },
   "systemNotifications": {
-    "title": "إشعارات النظام",
+    "title": "الإشعارات",
     "subtitle": "إشعارات أحداث المنصة الداخليّة",
-    "bell": "إشعارات النظام",
+    "bell": "الإشعارات",
     "viewAll": "عرض الكل",
     "markAllRead": "تحديد الكل كمقروء",
     "noNotifications": "لا توجد إشعارات جديدة",
@@ -82,7 +96,7 @@
     "delete": "حذف",
     "unreadCount": "{{count}} غير مقروء",
     "unreadCount_other": "{{count}} غير مقروء",
-    "broadcastTitle": "بث الإشعارات للمستخدمين"
+    "broadcastTitle": "الإعلانات والتنبيهات العامة"
   },
   "payment": {
     "title": "تفاصيل الدفع",

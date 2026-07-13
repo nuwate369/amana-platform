@@ -67,8 +67,6 @@ export function NotificationBell() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const bellRef = useRef<HTMLButtonElement>(null);
 
-  const isRtl = i18n.language === 'ar';
-
   /** جلب عدد غير المقروءة. */
   const refreshUnread = useCallback(async () => {
     if (!user) return;
@@ -192,10 +190,9 @@ export function NotificationBell() {
       {/* القائمة المنسدلة */}
       {open && (
         <div
+          dir="rtl"
           ref={dropdownRef}
-          className={`absolute top-full mt-2 z-50 w-80 md:w-96 rounded-xl bg-white dark:bg-brand-800 border border-brand-200 dark:border-brand-700 shadow-2xl animate-in fade-in zoom-in duration-200 overflow-hidden ${
-            isRtl ? 'start-0' : 'end-0'
-          }`}
+          className="absolute end-0 top-full mt-2 z-50 w-80 md:w-96 max-w-[calc(100vw-1rem)] rounded-xl bg-white dark:bg-brand-800 border border-brand-200 dark:border-brand-700 shadow-2xl animate-in fade-in zoom-in duration-200 overflow-hidden"
         >
           {/* رأس القائمة */}
           <div className="flex items-center justify-between border-b border-brand-100 dark:border-brand-700 px-4 py-3">
