@@ -8,6 +8,7 @@ import { useAuth } from '@/lib/auth';
 import { useTranslation } from 'react-i18next';
 import { PrimaryButton, CancelButton } from './ui/ActionButtons';
 import { notify } from '@/lib/toast';
+import { translateSupabaseError } from '@/lib/supabase-errors';
 
 interface ChangePasswordModalProps {
   open: boolean;
@@ -84,7 +85,7 @@ export function ChangePasswordModal({ open, onClose }: ChangePasswordModalProps)
       router.push('/login');
 
     } catch (err: any) {
-      setError(err.message || t('common.error', 'حدث خطأ غير متوقع'));
+      setError(translateSupabaseError(err.message, t));
     } finally {
       setLoading(false);
     }

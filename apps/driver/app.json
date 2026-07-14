@@ -24,7 +24,15 @@
         "backgroundColor": "#0f1e3d"
       }
     },
-    "plugins": ["expo-router"],
+    "plugins": [
+      "expo-router",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "يستخدم تطبيق أمانة صورك لرفع مستندات التحقّق (الهوية، الرخصة، الاستمارة)."
+        }
+      ]
+    ],
     "experiments": {
       "typedRoutes": true
     },

@@ -18,23 +18,23 @@ export default function NotFound() {
         <div className="absolute top-[30%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] rounded-full bg-accent-900/5 blur-[120px]" />
       </div>
 
-      <div className="relative z-10 w-full max-w-md bg-white rounded-3xl shadow-xl p-10 flex flex-col items-center text-center border border-brand-100">
+      <div className="relative z-10 w-full max-w-md bg-white rounded-3xl shadow-xl p-10 flex flex-col items-center text-center border border-border">
         
         {/* Background 404 Text */}
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 text-[120px] font-black text-brand-900/5 select-none pointer-events-none z-0">
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 text-[120px] font-black text-muted-foreground opacity-5 select-none pointer-events-none z-0">
           404
         </div>
 
         {/* Icon */}
-        <div className="relative z-10 flex items-center justify-center w-20 h-20 rounded-full bg-accent-50 border-[6px] border-accent-100/50 mb-6 mt-4">
-          <FileQuestion className="w-10 h-10 text-accent-600" strokeWidth={2.5} />
+        <div className="relative z-10 flex items-center justify-center w-20 h-20 rounded-full bg-primary/10 border-[6px] border-primary/20 mb-6 mt-4">
+          <FileQuestion className="w-10 h-10 text-primary" strokeWidth={2.5} />
         </div>
 
         {/* Content */}
-        <h1 className="relative z-10 text-2xl font-extrabold text-brand-950 mb-3">
+        <h1 className="relative z-10 text-2xl font-extrabold text-foreground mb-3">
           {t('errors.notFoundTitle', 'عذراً، الصفحة غير موجودة')}
         </h1>
-        <p className="relative z-10 text-brand-500 text-sm leading-relaxed mb-8 max-w-[280px]">
+        <p className="relative z-10 text-muted-foreground text-sm leading-relaxed mb-8 max-w-[280px]">
           {t('errors.notFoundDesc', 'يبدو أنك وصلت إلى رابط غير صحيح أو تم حذف الصفحة. لا تقلق، يمكنك العودة للوحة التحكم أو المحاولة مرة أخرى.')}
         </p>
 
@@ -42,7 +42,7 @@ export default function NotFound() {
         <div className="relative z-10 w-full space-y-3">
           <Link 
             href="/dashboard"
-            className="w-full flex items-center justify-center gap-2 rounded-xl bg-accent-600 hover:bg-accent-500 text-white px-6 py-3.5 font-bold transition-colors shadow-lg shadow-accent-600/20 active:scale-[0.98]"
+            className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3.5 font-bold transition-colors shadow-lg shadow-primary/20 active:scale-[0.98]"
           >
             <LayoutDashboard className="w-5 h-5" />
             <span>{t('errors.returnToDashboard', 'العودة للوحة التحكم')}</span>
@@ -50,7 +50,7 @@ export default function NotFound() {
           
           <button 
             onClick={() => router.back()}
-            className="w-full flex items-center justify-center gap-2 rounded-xl bg-white border border-brand-200 text-brand-700 hover:bg-brand-50 hover:text-brand-900 px-6 py-3.5 font-bold transition-colors active:scale-[0.98]"
+            className="w-full flex items-center justify-center gap-2 rounded-xl bg-background border border-border text-foreground hover:bg-muted px-6 py-3.5 font-bold transition-colors active:scale-[0.98]"
           >
             {isRtl ? <ArrowRight className="w-5 h-5" /> : <ArrowLeft className="w-5 h-5" />}
             <span>{t('errors.goBack', 'الرجوع للصفحة السابقة')}</span>

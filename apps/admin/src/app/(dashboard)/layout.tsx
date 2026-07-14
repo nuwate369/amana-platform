@@ -14,7 +14,7 @@ import { supabase } from '@/lib/supabase/client';
 import { DangerButton, CancelButton } from '@/components/ui/ActionButtons';
 import { ChangePasswordModal } from '@/components/ChangePasswordModal';
 import { NAV_ITEMS } from '@/lib/nav';
-import { STAFF_TYPE_LABELS, type UserType } from '@amana/shared-types';
+import { STAFF_TYPE_LABELS, can } from '@amana/shared-types';
 import { useTranslation } from 'react-i18next';
 
 /** مفاتيح الترجمة لكل عنصر في القائمة الجانبية — يُستخدم المفتاح العربي كقيمة افتراضية. */
@@ -38,8 +38,12 @@ const NAV_I18N: Record<string, { ar: string; en: string; descAr?: string; descEn
 function Sidebar({ isOpen, onClose, isCollapsed }: { isOpen: boolean, onClose: () => void, isCollapsed: boolean }) {
   const pathname = usePathname();
   const { i18n, t } = useTranslation();
+  const { role } = useAuth();
   const lang = i18n.language === 'ar' ? 'ar' : 'en';
   const isRtl = lang === 'ar';
+
+  // إظهار العناصر التي يملك المستخدم صلاحيتها فقط (بلا صلاحية = متاح للجميع).
+  const items = NAV_ITEMS.filter((item) => !item.permission || (role != null && can(role, item.permission)));
   
   // Close sidebar when route changes on mobile
   useEffect(() => {
@@ -85,7 +89,7 @@ function Sidebar({ isOpen, onClose, isCollapsed }: { isOpen: boolean, onClose: (
           )}
         </div>
         <nav className="flex-1 space-y-1 overflow-y-auto overflow-x-hidden p-3">
-          {NAV_ITEMS.map(({ href, icon: Icon }) => {
+          {items.map(({ href, icon: Icon }) => {
             const active = pathname === href || pathname.startsWith(href + '/');
             const i18nKey = NAV_I18N[href];
             const label = i18nKey ? (lang === 'ar' ? i18nKey.ar : i18nKey.en) : href;
@@ -136,16 +140,15 @@ function Topbar({
   onDesktopMenuToggle: () => void
 }) {
   const { theme, setTheme } = useTheme();
-  const { user } = useAuth();
+  const { user, role, avatarUrl } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const { t, i18n } = useTranslation();
-  // قراءة user_type من ملف المستخدم مباشرةً (بدون جداول RBAC)
-  const [userTypeLabel, setUserTypeLabel] = useState(t('app.adminRole', 'مسؤول'));
+  // تسمية الدور من السياق مباشرةً (مصدر واحد — بلا جلب مكرّر).
+  const userTypeLabel = (role && STAFF_TYPE_LABELS[role]) || t('app.adminRole', 'مسؤول');
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [userRole, setUserRole] = useState<UserType | null>(null);
   const lang = i18n.language === 'ar' ? 'ar' : 'en';
 
   // إغلاق القائمة عند الضغط خارجها (أي مكان في الشاشة)
@@ -163,22 +166,6 @@ function Topbar({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  useEffect(() => {
-    if (user) {
-      supabase
-        .from('profiles')
-        .select('user_type')
-        .eq('id', user.id)
-        .single()
-        .then(({ data }) => {
-          if (data?.user_type) {
-            const label = STAFF_TYPE_LABELS[data.user_type as UserType];
-            if (label) setUserTypeLabel(label);
-          }
-        });
-    }
-  }, [user]);
 
   function toggleLang() {
     const nextLang = i18n.language === 'ar' ? 'en' : 'ar';
@@ -242,8 +229,13 @@ function Topbar({
             aria-label="قائمة المستخدم"
             aria-expanded={menuOpen}
           >
-            <div className="w-full h-full bg-primary/10 text-primary flex items-center justify-center">
-              <UserCircle size={20} />
+            <div className="w-full h-full bg-primary/10 text-primary flex items-center justify-center overflow-hidden">
+              {avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <UserCircle size={20} />
+              )}
             </div>
           </button>
 
@@ -254,15 +246,19 @@ function Topbar({
             >
               
               <div className="px-4 py-4 border-b border-border flex flex-col items-center text-center">
+                <div className="w-16 h-16 mb-3 rounded-full overflow-hidden border border-border bg-primary/10 text-primary flex items-center justify-center">
+                  {avatarUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <UserCircle size={34} />
+                  )}
+                </div>
                 <h3 className="font-bold text-lg text-foreground mb-0.5">
                   {user?.user_metadata?.full_name || t('app.defaultAdmin', 'مسؤول أمانة')}
                 </h3>
                 <p className="text-sm text-muted-foreground mb-3">{user?.email}</p>
-                
-                <span className="px-3 py-1 mb-3 bg-muted text-muted-foreground rounded-lg border border-border text-xs font-mono tracking-wider">
-                  HQ-{(user?.id || '0000').substring(0, 5).toUpperCase()}
-                </span>
-                
+
                 <span className="bg-primary text-primary-foreground px-4 py-1.5 rounded-full text-xs font-bold w-full shadow-sm">
                   {userTypeLabel}
                 </span>

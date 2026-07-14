@@ -28,15 +28,15 @@
     "leave": "Leave",
     "stay": "Stay",
     "refresh": "Refresh",
-    "viewOnly": "عرض فقط",
-    "noData": "لا توجد بيانات",
-    "viewDetails": "عرض التفاصيل",
-    "protected": "محمي",
-    "allGroups": "جميع المجموعات",
-    "review": "مراجعة",
+    "viewOnly": "View Only",
+    "noData": "No Data",
+    "viewDetails": "View Details",
+    "protected": "Protected",
+    "allGroups": "All Groups",
+    "review": "Review",
     "all": "All",
-    "save": "حفظ التعديلات",
-    "delete": "حذف"
+    "save": "Save Changes",
+    "delete": "Delete"
   },
   "validation": {
     "required": "This field is required",
@@ -98,7 +98,22 @@
     "logoutAllConfirm": "You will be signed out from all registered devices. You'll need to sign in again on each device.",
     "logoutAllSuccess": "Signed out of all devices successfully",
     "logout": "Logout",
-    "logoutConfirm": "Are you sure you want to logout?"
+    "logoutConfirm": "Are you sure you want to logout?",
+    "inviteInvalidOrExpired": "Invite link is invalid or expired.",
+    "inviteInvalidCheckEmail": "Invalid invite link. Check your email and click the link again.",
+    "unexpectedErrorTryAgain": "An unexpected error occurred. Try again.",
+    "activationFailedContactAdmin": "Password set, but account activation failed. Contact admin.",
+    "passwordSetSuccess": "Password set and account activated successfully!",
+    "verifyingLink": "Verifying link...",
+    "invalidInviteTitle": "Invalid Invite Link",
+    "goToLogin": "Go to Login",
+    "passwordSetTitle": "Password Set!",
+    "redirectingToLogin": "Redirecting to login...",
+    "setPasswordTitle": "Set Password",
+    "setPasswordSubtitle": "Welcome! Enter a password to create your account on Amana platform.",
+    "passwordPlaceholder": "At least 6 characters",
+    "confirmPasswordPlaceholder": "Re-enter password",
+    "confirmAndCreateAccount": "Confirm and Create Account"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -665,6 +680,19 @@
     "notFoundTitle": "Sorry, page not found",
     "notFoundDesc": "It seems you reached an invalid link or the page was deleted. Don't worry, you can return to the dashboard or try again.",
     "returnToDashboard": "Return to Dashboard",
-    "goBack": "Go Back"
+    "goBack": "Go Back",
+    "auth": {
+      "invalidCredentials": "Invalid email or password. Please check your credentials.",
+      "emailNotConfirmed": "Email address not confirmed yet.",
+      "userAlreadyExists": "This email is already registered.",
+      "weakPassword": "Password is too weak (at least 6 characters).",
+      "invalidEmail": "Invalid email format.",
+      "rateLimit": "Too many attempts. Please wait a moment and try again.",
+      "samePassword": "New password must be different from the old one.",
+      "expiredToken": "The link or code has expired. Request a new one.",
+      "userNotFound": "Account not found.",
+      "networkError": "Cannot reach the server. Check your internet connection.",
+      "generic": "An unexpected error occurred. Please try again."
+    }
   }
 }

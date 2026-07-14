@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { emailOnlySchema, translateError } from '@amana/shared-ui/validation';
 import { supabase } from '@/lib/supabase/client';
 import { notify } from '@/lib/toast';
+import { translateSupabaseError } from '@/lib/supabase-errors';
 
 type ForgotInput = z.infer<typeof emailOnlySchema>;
 
@@ -28,7 +29,7 @@ export default function ForgotPasswordPage() {
       redirectTo: `${siteUrl}/reset-password`,
     });
     if (error) {
-      notify.error(error.message || t('common.error'));
+      notify.error(translateSupabaseError(error.message, t));
       return;
     }
     notify.success(t('common.success'));

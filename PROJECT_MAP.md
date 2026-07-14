@@ -57,6 +57,24 @@
 - **درس مُصلَح:** `detectSchema()` كان يخزّن نتيجة «ما قبل الهجرة» في كاش الخادم فيعطّل التبديل بصمت — الآن لا يُخزَّن إلا المخطط المكتمل، والتبديل يفشل بخطأ صريح بدل التخطي الصامت.
 - مكوّنات معاد استخدامها: `ActionDialog.tsx` (تأكيد + سبب + اسم المنفِّذ)، `UserDetailsModal.tsx`، `lib/audit-meta.tsx` (تسميات/أيقونات أنواع حركات السجل — مصدر واحد).
 
+## خريطة تطبيق السائقة (`apps/driver`) — المرحلة أ (مبنية ومربوطة فعليًا)
+
+أُعيد بناء تطبيق السائقة من الصفر لتغطية **دورة الالتحاق والاعتماد** بالكامل، مربوطًا ببيانات Supabase حقيقية (لا mock). اللون الأزرق الداكن (`driverNavy`) وخط IBM Plex Sans Arabic.
+
+| المسار | الوصف |
+|---|---|
+| `index` (الجذر "/") | شاشة البداية (Splash) — تُعرض أثناء قراءة الجلسة وحالة السائقة ثم توجّه البوابة |
+| `(auth)/sign-in, sign-up, forgot-password, verify-email` | المصادقة عبر Supabase Auth؛ التسجيل يمرّر `user_type='driver'` |
+| `kyc` | **رفع مستندات KYC فعليًا** إلى bucket `kyc-documents` (اختيار صورة → base64 → Storage) وحفظ المسار في أعمدة `drivers.{national_id_url,license_url,vehicle_registration_url}` عبر upsert؛ زر «إرسال للتدقيق» يضبط `status='pending'` |
+| `pending` | «قيد المراجعة» — تقرأ `drivers.status` الفعلية، وزر «تحديث الحالة» يعيد الجلب |
+| `(tabs)/home` | الشاشة الرئيسية — تُعرض فقط بعد `status='approved'` (تبويب واحد؛ بقية التبويبات مؤجّلة للمرحلة ب) |
+
+- **البوابة (`src/lib/useProtectedRoute.ts`):** تمنع الوصول لأي شاشة قبل الاعتماد. الوجهة تُحسب من `destinationFor(driver)`: لا صف/مرفوضة/ناقصة ⇐ `/kyc`؛ مكتملة قيد المراجعة ⇐ `/pending`؛ `approved` ⇐ `/(tabs)/home`؛ لا جلسة ⇐ `/(auth)/sign-in`.
+- **سياق المصادقة (`src/lib/auth.tsx`):** يجلب الجلسة + صف السائقة (الحالة + روابط المستندات) ويعرض `refreshDriver()` و`signOut()`.
+- **منطق الرفع (`src/lib/kyc.ts`):** `expo-image-picker` (base64) + `base64-arraybuffer` (decode) → `supabase.storage.upload`. يُخزَّن **مسار** الكائن (bucket خاص) لا رابط عام.
+- الاعتماد من `apps/admin` (قبول/رفض KYC) أو بضبط `drivers.status` مباشرة؛ ثم «تحديث الحالة» في شاشة pending ينقل السائقة للرئيسية.
+- **مؤجّل للمرحلة ب:** ميزات القيادة (استقبال الطلبات/الأرباح/الرحلات)، eas build والتوزيع التجريبي، آلية التحديث الإجباري. حُذفت شاشات mock سابقة (active-ride/documents/earnings/ride-history/profile) وتُبنى في ب.
+
 ## ملغى/محذوف (deprecated)
 - **MFA بالكامل:** صفحات `setup-mfa`/`verify-mfa`/`manage-mfa` + قسم الملف الشخصي + تبعية `qrcode.react` — حُذفت (كانت معطوبة وتعيق الدخول).
 - **نظام admin_roles:** جداول `admin_roles/admin_users/...` + صفحتا `(dashboard)/users` و`/roles` + `actions/admins.ts` + دوال `createAdminUser/listAllProfiles` — حُذفت، استُبدلت بـ`/staff` + `user_type`.

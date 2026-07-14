@@ -13,6 +13,7 @@ import {
   markAsRead,
   type SystemNotification,
 } from '@/app/actions/notifications';
+import { NOTIFICATIONS_CHANGED, emitNotificationsChanged } from '@/lib/notifications-events';
 
 /** تحويل الوقت لنسيان نسبي (منذ X دقائق/ساعات/أيام). */
 function timeAgo(dateStr: string, t: (key: string, opts?: Record<string, unknown>) => string): string {
@@ -94,6 +95,16 @@ export function NotificationBell() {
     refreshList();
   }, [refreshUnread, refreshList]);
 
+  /** مزامنة مع شاشة الإشعارات (تحديد كمقروء/حذف) عبر حدث المتصفّح. */
+  useEffect(() => {
+    const onChanged = () => {
+      refreshUnread();
+      refreshList();
+    };
+    window.addEventListener(NOTIFICATIONS_CHANGED, onChanged);
+    return () => window.removeEventListener(NOTIFICATIONS_CHANGED, onChanged);
+  }, [refreshUnread, refreshList]);
+
   /** Supabase Realtime: الاشتراك في التغييرات اللحظية. */
   useEffect(() => {
     if (!user) return;
@@ -161,6 +172,7 @@ export function NotificationBell() {
         prev.map((n) => (n.id === notif.id ? { ...n, is_read: true } : n))
       );
       setUnreadCount((prev) => Math.max(0, prev - 1));
+      emitNotificationsChanged();
     }
 
     // التنقل للسجل المرتبط

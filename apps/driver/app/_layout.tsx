@@ -25,11 +25,8 @@ function RootNavigator() {
       <Stack.Screen name="index" />
       <Stack.Screen name="(auth)" />
       <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="active-ride" />
       <Stack.Screen name="kyc" />
-      <Stack.Screen name="documents" />
       <Stack.Screen name="pending" />
-      <Stack.Screen name="splash" />
     </Stack>
   );
 }

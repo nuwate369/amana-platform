@@ -1,47 +1,148 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
+
+/** حالة اعتماد السائقة كما في enum `driver_status` بقاعدة البيانات. */
+export type DriverStatus = 'pending' | 'approved' | 'rejected';
+
+/** صف السائقة من جدول `public.drivers` (الحقول التي يهمّنا قراءتها). */
+export interface DriverRecord {
+  id: string;
+  status: DriverStatus;
+  national_id_url: string | null;
+  license_url: string | null;
+  vehicle_registration_url: string | null;
+}
+
+/** هل رُفعت المستندات الثلاثة كلها؟ */
+export function docsComplete(driver: DriverRecord | null): boolean {
+  return Boolean(
+    driver?.national_id_url && driver?.license_url && driver?.vehicle_registration_url,
+  );
+}
 
 /** قيمة سياق المصادقة المشتركة عبر شاشات تطبيق السائقة. */
 interface AuthContextValue {
   session: Session | null;
   user: User | null;
+  /** صف السائقة الحالي (null إن لم يُجلب بعد أو لا جلسة). */
+  driver: DriverRecord | null;
+  /** يُحمّل أثناء قراءة الجلسة أو صف السائقة لأول مرة. */
   isLoading: boolean;
+  /** يعيد جلب صف السائقة من القاعدة (بعد رفع مستندات مثلًا) ويُعيد أحدث صف. */
+  refreshDriver: () => Promise<DriverRecord | null>;
+  /** تسجيل الخروج. */
+  signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+const DRIVER_COLUMNS = 'id, status, national_id_url, license_url, vehicle_registration_url';
+
 /**
- * مزوّد المصادقة: يقرأ الجلسة الحالية عند التركيب ثم يستمع لتغيّرات الحالة.
+ * مزوّد المصادقة: يقرأ الجلسة الحالية عند التركيب ثم يستمع لتغيّرات الحالة،
+ * ويجلب صف السائقة المرتبط (الحالة + روابط المستندات) لتقرّره بوابة التوجيه.
  */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
+  const [driver, setDriver] = useState<DriverRecord | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const mounted = useRef(true);
 
+  /** يجلب صف السائقة لمعرّف مستخدم معيّن. */
+  const fetchDriver = useCallback(async (userId: string): Promise<DriverRecord | null> => {
+    const { data, error } = await supabase
+      .from('drivers')
+      .select(DRIVER_COLUMNS)
+      .eq('id', userId)
+      .maybeSingle();
+    if (error) {
+      // لا نُسقط التطبيق: نُعيد null فتوجّه البوابة للسائقة إلى شاشة رفع المستندات.
+      console.warn('[driver] تعذّر جلب صف السائقة:', error.message);
+      return null;
+    }
+    return (data as DriverRecord | null) ?? null;
+  }, []);
+
+  /** يعيد جلب صف السائقة الحالية (يُستدعى بعد الرفع/الإرسال). */
+  const refreshDriver = useCallback(async () => {
+    const uid = session?.user?.id;
+    if (!uid) {
+      setDriver(null);
+      return null;
+    }
+    const next = await fetchDriver(uid);
+    if (mounted.current) setDriver(next);
+    return next;
+  }, [session?.user?.id, fetchDriver]);
+
+  const signOut = useCallback(async () => {
+    await supabase.auth.signOut();
+    if (mounted.current) setDriver(null);
+  }, []);
+
+  // 1) قراءة الجلسة الأولى + الاشتراك في تغيّراتها.
   useEffect(() => {
-    let mounted = true;
+    mounted.current = true;
 
     supabase.auth.getSession().then(({ data }) => {
-      if (!mounted) return;
+      if (!mounted.current) return;
       setSession(data.session);
-      setIsLoading(false);
+      if (!data.session) setIsLoading(false);
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      if (!mounted.current) return;
       setSession(nextSession);
-      setIsLoading(false);
+      if (!nextSession) {
+        setDriver(null);
+        setIsLoading(false);
+      }
     });
 
     return () => {
-      mounted = false;
+      mounted.current = false;
       subscription.unsubscribe();
     };
   }, []);
 
+  // 2) عند توفّر جلسة نجلب صف السائقة المرتبط بها.
+  useEffect(() => {
+    const uid = session?.user?.id;
+    if (!uid) return;
+    let active = true;
+    setIsLoading(true);
+    fetchDriver(uid).then((rec) => {
+      if (!active || !mounted.current) return;
+      setDriver(rec);
+      setIsLoading(false);
+    });
+    return () => {
+      active = false;
+    };
+  }, [session?.user?.id, fetchDriver]);
+
   return (
-    <AuthContext.Provider value={{ session, user: session?.user ?? null, isLoading }}>
+    <AuthContext.Provider
+      value={{
+        session,
+        user: session?.user ?? null,
+        driver,
+        isLoading,
+        refreshDriver,
+        signOut,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

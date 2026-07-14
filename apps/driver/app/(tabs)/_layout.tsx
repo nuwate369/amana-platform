@@ -3,8 +3,8 @@ import { Tabs } from 'expo-router';
 import { driverNavy } from '@amana/shared-ui/tokens';
 
 /**
- * تبويبات السائق السفلية — أربعة تبويبات بأيقونات MaterialIcons وتسميات عربية.
- * اللون النشط: الأزرق الداكن (Navy)، وغير النشط رمادي محايد.
+ * تبويبات السائقة السفلية — في المرحلة أ تبويب «الرئيسية» فقط
+ * (تُضاف بقية التبويبات: الأرباح/الرحلات/الحساب في المرحلة ب).
  */
 export default function TabsLayout() {
   return (
@@ -13,46 +13,14 @@ export default function TabsLayout() {
         headerShown: false,
         tabBarActiveTintColor: driverNavy[600],
         tabBarInactiveTintColor: '#9ca3af',
-        tabBarLabelStyle: {
-          fontFamily: 'IBMPlexSansArabic_500Medium',
-          fontSize: 11,
-        },
+        tabBarLabelStyle: { fontFamily: 'IBMPlexSansArabic_500Medium', fontSize: 11 },
       }}
     >
       <Tabs.Screen
         name="home"
         options={{
           title: 'الرئيسية',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="home" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="earnings"
-        options={{
-          title: 'الأرباح',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="account-balance-wallet" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="ride-history"
-        options={{
-          title: 'رحلاتي',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="history" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'حسابي',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="person" size={size} color={color} />
-          ),
+          tabBarIcon: ({ color, size }) => <MaterialIcons name="home" size={size} color={color} />,
         }}
       />
     </Tabs>

@@ -21,7 +21,6 @@ import {
   type QuestionStats,
   type QuestionTarget,
 } from '@/app/actions/ratings';
-import { NotifyBanner } from '@/components/NotifyBanner';
 import { ActionDialog } from '@/components/ActionDialog';
 import { PrimaryButton, CancelButton } from '@/components/ui/ActionButtons';
 import { useAuth } from '@/lib/auth';

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Search, User, Ban, RotateCcw, Lock, Eye, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { listPassengers, type ProfileRow } from '@/app/actions/admin';
@@ -29,6 +30,13 @@ export default function PassengersPage() {
   const [busy, setBusy] = useState(false);
   const [banTarget, setBanTarget] = useState<BanTarget | null>(null);
   const [detailsId, setDetailsId] = useState<string | null>(null);
+
+  // فتح تفاصيل مستخدم محدد عند القدوم من إشعار (?highlight=<id>).
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    const h = searchParams.get('highlight');
+    if (h) setDetailsId(h);
+  }, [searchParams]);
 
   const actorName =
     (user?.user_metadata?.full_name as string | undefined) || user?.email || 'مسؤول';

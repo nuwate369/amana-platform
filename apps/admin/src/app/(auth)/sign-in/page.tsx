@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { signInSchema, translateError, type SignInInput } from '@amana/shared-ui/validation';
 import { supabase } from '@/lib/supabase/client';
 import { notify } from '@/lib/toast';
+import { translateSupabaseError } from '@/lib/supabase-errors';
 import { Mail, Lock, LogIn, ShieldCheck, Eye, EyeOff, Globe } from 'lucide-react';
 import { i18n } from '@/lib/i18n';
 
@@ -39,7 +40,7 @@ export default function SignInPage() {
     });
 
     if (error) {
-      notify.error(error.message || t('common.error'));
+      notify.error(translateSupabaseError(error.message, t));
       return;
     }
 

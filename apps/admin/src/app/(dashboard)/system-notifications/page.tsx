@@ -21,6 +21,7 @@ import {
   deleteNotification,
   type SystemNotification,
 } from '@/app/actions/notifications';
+import { emitNotificationsChanged } from '@/lib/notifications-events';
 
 /** أنواع الإشعارات المتاحة للفلتر. */
 const NOTIFICATION_TYPES = [
@@ -166,6 +167,7 @@ export default function SystemNotificationsPage() {
       setNotifications((prev) =>
         prev.map((n) => (n.id === notif.id ? { ...n, is_read: true } : n))
       );
+      emitNotificationsChanged();
     }
     const route = entityRoute(notif.related_entity_type, notif.related_entity_id);
     if (route) router.push(route);
@@ -176,6 +178,7 @@ export default function SystemNotificationsPage() {
     if (!user) return;
     await markAllAsRead(user.id);
     setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+    emitNotificationsChanged();
   };
 
   /** حذف إشعار. */
@@ -185,6 +188,7 @@ export default function SystemNotificationsPage() {
     await deleteNotification(notif.id, user.id);
     setNotifications((prev) => prev.filter((n) => n.id !== notif.id));
     setTotal((prev) => prev - 1);
+    emitNotificationsChanged();
   };
 
   const totalPages = Math.ceil(total / PAGE_SIZE);

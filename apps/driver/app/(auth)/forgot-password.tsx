@@ -1,3 +1,4 @@
+import { MaterialIcons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -7,6 +8,7 @@ import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-nativ
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { emailOnlySchema, translateError } from '@amana/shared-ui/validation';
 import { z } from 'zod';
+import { driverNavy } from '@amana/shared-ui/tokens';
 import { supabase } from '@/lib/supabase';
 import { notify } from '@/lib/toast';
 
@@ -26,8 +28,7 @@ export default function ForgotPasswordScreen() {
   });
 
   async function onSubmit(values: EmailOnlyInput) {
-    // Mobile apps redirect to admin web for password reset (deep links not yet configured)
-    const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
+    const { error } = await supabase.auth.resetPasswordForEmail(values.email.trim(), {
       redirectTo: 'http://localhost:3000/auth/reset-password',
     });
     if (error) {
@@ -39,14 +40,24 @@ export default function ForgotPasswordScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white dark:bg-brand-900">
-      <View className="flex-1 justify-center gap-4 px-6">
-        <Text className="mb-2 text-2xl font-bold text-brand-700 dark:text-brand-100">
-          {t('auth.forgotPasswordTitle')}
-        </Text>
+    <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-900">
+      <View className="flex-1 justify-center gap-5 px-6">
+        <View className="mb-2 items-center gap-3">
+          <View className="h-20 w-20 items-center justify-center rounded-full border-2 border-brand-100 bg-white shadow-sm dark:border-neutral-700 dark:bg-neutral-800">
+            <MaterialIcons name="lock-reset" size={40} color={driverNavy[700]} />
+          </View>
+          <Text className="font-plex-bold text-2xl text-brand-700 dark:text-brand-200">
+            {t('auth.forgotPasswordTitle')}
+          </Text>
+        </View>
 
         {sent ? (
-          <Text className="text-brand-500 dark:text-brand-200">{t('auth.verifyEmailBody')}</Text>
+          <View className="items-center gap-2 rounded-xl border border-green-200 bg-green-50 p-5 dark:border-green-800 dark:bg-green-900/20">
+            <MaterialIcons name="mark-email-read" size={32} color="#16a34a" />
+            <Text className="text-center font-plex text-base text-green-800 dark:text-green-300">
+              {t('auth.verifyEmailBody')}
+            </Text>
+          </View>
         ) : (
           <>
             <View className="gap-1">
@@ -55,8 +66,9 @@ export default function ForgotPasswordScreen() {
                 name="email"
                 render={({ field: { onChange, onBlur, value } }) => (
                   <TextInput
-                    className="rounded-lg border border-brand-200 px-4 py-3 text-brand-900 dark:text-brand-50"
+                    className="h-14 rounded-xl border border-neutral-200 bg-white px-4 font-plex text-base text-neutral-900 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-50"
                     placeholder={t('auth.email')}
+                    placeholderTextColor="#9ca3af"
                     autoCapitalize="none"
                     keyboardType="email-address"
                     value={value}
@@ -66,24 +78,29 @@ export default function ForgotPasswordScreen() {
                 )}
               />
               {errors.email ? (
-                <Text className="text-sm text-red-500">{translateError(t, errors.email.message)}</Text>
+                <Text className="font-plex text-sm text-red-500">
+                  {translateError(t, errors.email.message)}
+                </Text>
               ) : null}
             </View>
             <Pressable
-              className="mt-2 items-center rounded-lg bg-brand-600 px-6 py-3"
+              className="h-14 items-center justify-center rounded-xl bg-brand-700 active:scale-[0.98] dark:bg-brand-600"
               disabled={isSubmitting}
               onPress={handleSubmit(onSubmit)}
             >
               {isSubmitting ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text className="font-semibold text-white">{t('auth.sendResetLink')}</Text>
+                <Text className="font-plex-semibold text-lg text-white">{t('auth.sendResetLink')}</Text>
               )}
             </Pressable>
           </>
         )}
 
-        <Link href="/(auth)/sign-in" className="mt-4 text-center text-brand-500">
+        <Link
+          href="/(auth)/sign-in"
+          className="mt-2 text-center font-plex-medium text-brand-600 dark:text-brand-300"
+        >
           {t('auth.backToSignIn')}
         </Link>
       </View>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Car, Check, X, ShieldCheck, Star, Ban, RotateCcw, Lock, Phone, Eye, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { listDrivers, type DriverRow } from '@/app/actions/admin';
@@ -60,6 +61,13 @@ type KycTarget = { row: DriverRow; mode: 'approve' | 'reject' };
   const [banTarget, setBanTarget] = useState<BanTarget | null>(null);
   const [kycTarget, setKycTarget] = useState<KycTarget | null>(null);
   const [detailsId, setDetailsId] = useState<string | null>(null);
+
+  // فتح تفاصيل مستخدم محدد عند القدوم من إشعار (?highlight=<id>).
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    const h = searchParams.get('highlight');
+    if (h) setDetailsId(h);
+  }, [searchParams]);
 
   const actorName =
     (user?.user_metadata?.full_name as string | undefined) || user?.email || 'مسؤول';

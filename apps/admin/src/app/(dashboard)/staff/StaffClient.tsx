@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Users, Plus, Mail, Shield, X, Lock, Pencil, Trash2, User as UserIcon,
   RotateCcw, AlertTriangle, Eye, Phone, CheckCircle, Ban, Clock,
@@ -154,6 +154,13 @@ export default function StaffClient({ initialStaff }: { initialStaff: StaffRow[]
   const [statusDialogAction, setStatusDialogAction] = useState<'approve' | 'suspend' | 'disable' | 'reactivate' | null>(null);
 
   const [detailsId, setDetailsId] = useState<string | null>(null);
+
+  // فتح تفاصيل موظف محدد عند القدوم من إشعار (?highlight=<id>).
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    const h = searchParams.get('highlight');
+    if (h) setDetailsId(h);
+  }, [searchParams]);
   const [deleteTarget, setDeleteTarget] = useState<StaffRow | null>(null);
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
 
