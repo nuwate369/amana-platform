@@ -2,7 +2,11 @@
   "app": {
     "passenger": "Amana",
     "driver": "Amana | Driver",
-    "admin": "Amana | Admin"
+    "admin": "Amana | Admin",
+    "copyright": "Amana Platform. All rights reserved.",
+    "adminPanel": "Admin Panel",
+    "adminRole": "Admin",
+    "defaultAdmin": "Amana Admin"
   },
   "common": {
     "continue": "Continue",
@@ -82,7 +86,9 @@
     "removeDeviceConfirm": "Are you sure you want to remove this device? You will be prompted to sign in again.",
     "logoutAllDevices": "Sign Out of All Devices",
     "logoutAllConfirm": "You will be signed out from all registered devices. You'll need to sign in again on each device.",
-    "logoutAllSuccess": "Signed out of all devices successfully"
+    "logoutAllSuccess": "Signed out of all devices successfully",
+    "logout": "Logout",
+    "logoutConfirm": "Are you sure you want to logout?"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -96,7 +102,42 @@
     "appNotifications": "Announcements & Alerts",
     "appNotificationsDesc": "Send messages to passenger and driver apps",
     "staff": "Staff",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "profile": "Profile",
+    "support": "Support"
+  },
+  "dashboard": {
+    "overview": "Platform performance overview today",
+    "rides": "Rides",
+    "activeDrivers": "Active Drivers",
+    "passengers": "Passengers",
+    "revenue": "Revenue",
+    "ridesThisWeek": "Rides This Week",
+    "summary": "Summary",
+    "pendingKyc": "Pending KYC Requests",
+    "emergencyReports": "Emergency Reports Today",
+    "averageRating": "Average Rating",
+    "activeGroups": "Active Groups",
+    "recentRides": "Recent Rides",
+    "table": {
+      "id": "ID",
+      "passenger": "Passenger",
+      "driver": "Driver",
+      "status": "Status",
+      "amount": "Amount"
+    },
+    "statusCompleted": "Completed",
+    "statusOngoing": "Ongoing",
+    "statusCancelled": "Cancelled",
+    "weekdays": {
+      "السبت": "Sat",
+      "الأحد": "Sun",
+      "الاثنين": "Mon",
+      "الثلاثاء": "Tue",
+      "الأربعاء": "Wed",
+      "الخميس": "Thu",
+      "الجمعة": "Fri"
+    }
   },
   "systemNotifications": {
     "title": "Notifications",

@@ -3,6 +3,7 @@
 import { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ShieldCheck, Globe } from 'lucide-react';
+import Image from 'next/image';
 import { i18n } from '@/lib/i18n';
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
@@ -10,9 +11,11 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
   const isRtl = i18n.language === 'ar';
 
   const toggleLanguage = () => {
-    i18n.changeLanguage(i18n.language === 'ar' ? 'en' : 'ar');
-    document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
-    document.documentElement.lang = i18n.language;
+    const nextLang = i18n.language === 'ar' ? 'en' : 'ar';
+    i18n.changeLanguage(nextLang);
+    localStorage.setItem('amana-lang', nextLang);
+    document.documentElement.dir = nextLang === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.lang = nextLang;
   };
 
   return (
@@ -30,8 +33,8 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       <div className="relative z-10 w-full max-w-md flex flex-col items-center">
         {/* Shared Logo & Header */}
         <div className="flex flex-col items-center mb-8">
-          <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 shadow-sm mb-4">
-            <ShieldCheck className="w-7 h-7 text-primary" />
+          <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/5 border border-primary/10 shadow-sm mb-4 overflow-hidden relative">
+            <Image src="/logo.png" alt="Amana Logo" fill className="object-contain p-2" />
           </div>
           <h1 className="text-xl font-bold text-foreground tracking-tight">
             {t('admin.title', 'أمانة للإدارة')}
@@ -48,7 +51,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
 
         {/* Footer info */}
         <p className="text-center text-muted-foreground text-xs mt-8">
-          © {new Date().getFullYear()} منصة أمانة. جميع الحقوق محفوظة.
+          © {new Date().getFullYear()} {t('app.copyright', 'منصة أمانة. جميع الحقوق محفوظة.')}
         </p>
       </div>
     </div>

@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { Moon, Sun, Languages, LogOut, UserCircle, Menu, X, LayoutDashboard, Headset, ChevronRight, ChevronLeft } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import type { Metadata } from 'next';
 import { RequireAuth } from '@/components/RequireAuth';
 import { NotificationBell } from '@/components/NotificationBell';
@@ -32,7 +33,7 @@ const NAV_I18N: Record<string, { ar: string; en: string; descAr?: string; descEn
 
 function Sidebar({ isOpen, onClose, isCollapsed }: { isOpen: boolean, onClose: () => void, isCollapsed: boolean }) {
   const pathname = usePathname();
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const lang = i18n.language === 'ar' ? 'ar' : 'en';
   const isRtl = lang === 'ar';
   
@@ -61,12 +62,17 @@ function Sidebar({ isOpen, onClose, isCollapsed }: { isOpen: boolean, onClose: (
         <div className={`flex h-16 shrink-0 items-center border-b border-border px-4 ${isCollapsed && !isOpen ? 'justify-center' : 'justify-between'}`}>
           {!(isCollapsed && !isOpen) ? (
             <div className="flex items-center gap-2">
-              <span className="text-xl font-bold text-primary">أمانة</span>
-              <span className="text-xs text-muted-foreground">لوحة الإدارة</span>
+              <div className="relative w-8 h-8">
+                <Image src="/logo.png" alt="Amana Logo" fill className="object-contain" />
+              </div>
+              <span className="text-xl font-bold text-primary">{t('app.passenger', 'أمانة')}</span>
+              <span className="text-xs text-muted-foreground">{t('app.adminPanel', 'لوحة الإدارة')}</span>
             </div>
           ) : (
             <div className="flex items-center justify-center">
-              <span className="text-xl font-bold text-primary">أ</span>
+              <div className="relative w-8 h-8">
+                <Image src="/logo.png" alt="Amana Logo" fill className="object-contain" />
+              </div>
             </div>
           )}
           {!(isCollapsed && !isOpen) && (
@@ -131,8 +137,9 @@ function Topbar({
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const { t, i18n } = useTranslation();
   // قراءة user_type من ملف المستخدم مباشرةً (بدون جداول RBAC)
-  const [userTypeLabel, setUserTypeLabel] = useState('مسؤول');
+  const [userTypeLabel, setUserTypeLabel] = useState(t('app.adminRole', 'مسؤول'));
 
   // إغلاق القائمة عند الضغط خارجها (أي مكان في الشاشة)
   useEffect(() => {
@@ -167,10 +174,13 @@ function Topbar({
   }, [user]);
 
   function toggleLang() {
+    const nextLang = i18n.language === 'ar' ? 'en' : 'ar';
+    i18n.changeLanguage(nextLang);
+    localStorage.setItem('amana-lang', nextLang);
+    
     const el = document.documentElement;
-    const next = el.dir === 'rtl' ? 'ltr' : 'rtl';
-    el.dir = next;
-    el.lang = next === 'rtl' ? 'ar' : 'en';
+    el.dir = nextLang === 'ar' ? 'rtl' : 'ltr';
+    el.lang = nextLang;
   }
 
   return (
@@ -234,7 +244,7 @@ function Topbar({
               
               <div className="px-4 py-4 border-b border-border flex flex-col items-center text-center">
                 <h3 className="font-bold text-lg text-foreground mb-0.5">
-                  {user?.user_metadata?.full_name || 'مسؤول أمانة'}
+                  {user?.user_metadata?.full_name || t('app.defaultAdmin', 'مسؤول أمانة')}
                 </h3>
                 <p className="text-sm text-muted-foreground mb-3">{user?.email}</p>
                 
@@ -250,16 +260,16 @@ function Topbar({
               <div className="py-2">
                 <Link href="/" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-5 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
                   <LayoutDashboard size={18} className="text-muted-foreground" />
-                  لوحة المعلومات
+                  {t('nav.dashboard', 'لوحة المعلومات')}
                 </Link>
                 <Link href="/profile" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-5 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
                   <UserCircle size={18} className="text-muted-foreground" />
-                  الملف الشخصي
+                  {t('nav.profile', 'الملف الشخصي')}
                 </Link>
 
                 <button className="w-full flex items-center gap-3 px-5 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
                   <Headset size={18} className="text-muted-foreground" />
-                  الدعم الفني
+                  {t('nav.support', 'الدعم الفني')}
                 </button>
 
               </div>
@@ -267,7 +277,7 @@ function Topbar({
               <div className="border-t border-border py-2">
                 <button 
                   onClick={() => { 
-                    if (window.confirm('هل أنت متأكد من تسجيل الخروج؟')) {
+                    if (window.confirm(t('auth.logoutConfirm', 'هل أنت متأكد من تسجيل الخروج؟'))) {
                       setMenuOpen(false); 
                       supabase.auth.signOut(); 
                     }
@@ -275,7 +285,7 @@ function Topbar({
                   className="w-full flex items-center gap-3 px-5 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                 >
                   <LogOut size={18} className="text-muted-foreground" />
-                  تسجيل خروج
+                  {t('auth.logout', 'تسجيل خروج')}
                 </button>
               </div>
             </div>
@@ -290,16 +300,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const pathname = usePathname();
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const lang = i18n.language === 'ar' ? 'ar' : 'en';
 
   // تحديث عنوان الصفحة ديناميكياً
   useEffect(() => {
     const i18nKey = NAV_I18N[pathname];
     if (i18nKey) {
-      document.title = `أمانة | ${lang === 'ar' ? i18nKey.ar : i18nKey.en}`;
+      document.title = `${t('app.passenger', 'أمانة')} | ${lang === 'ar' ? i18nKey.ar : i18nKey.en}`;
     } else {
-      document.title = 'أمانة | لوحة الإدارة';
+      document.title = `${t('app.passenger', 'أمانة')} | ${t('app.adminPanel', 'لوحة الإدارة')}`;
     }
   }, [pathname, lang]);
 

@@ -2,7 +2,11 @@
   "app": {
     "passenger": "أمانة",
     "driver": "أمانة | سائقة",
-    "admin": "أمانة | الإدارة"
+    "admin": "أمانة | الإدارة",
+    "copyright": "منصة أمانة. جميع الحقوق محفوظة.",
+    "adminPanel": "لوحة الإدارة",
+    "adminRole": "مسؤول",
+    "defaultAdmin": "مسؤول أمانة"
   },
   "common": {
     "continue": "متابعة",
@@ -82,7 +86,9 @@
     "removeDeviceConfirm": "هل أنت متأكد من إزالة هذا الجهاز؟ سيُطلب منك إعادة تسجيل الدخول عليه.",
     "logoutAllDevices": "تسجيل الخروج من كافة الأجهزة",
     "logoutAllConfirm": "سيتم تسجيل خروجك من جميع الأجهزة المسجلة. ستحتاج لإعادة تسجيل الدخول على كل جهاز.",
-    "logoutAllSuccess": "تم تسجيل الخروج من كافة الأجهزة"
+    "logoutAllSuccess": "تم تسجيل الخروج من كافة الأجهزة",
+    "logout": "تسجيل خروج",
+    "logoutConfirm": "هل أنت متأكد من تسجيل الخروج؟"
   },
   "nav": {
     "dashboard": "لوحة المعلومات",
@@ -96,7 +102,42 @@
     "appNotifications": "الإعلانات والتنبيهات العامة",
     "appNotificationsDesc": "إرسال رسائل تظهر داخل تطبيقي الراكبة والسائقة",
     "staff": "فريق العمل",
-    "notifications": "الإشعارات"
+    "notifications": "الإشعارات",
+    "profile": "الملف الشخصي",
+    "support": "الدعم الفني"
+  },
+  "dashboard": {
+    "overview": "نظرة عامة على أداء المنصة اليوم",
+    "rides": "الرحلات",
+    "activeDrivers": "السائقات النشطات",
+    "passengers": "الراكبات",
+    "revenue": "الإيرادات",
+    "ridesThisWeek": "الرحلات هذا الأسبوع",
+    "summary": "ملخّص",
+    "pendingKyc": "طلبات KYC معلّقة",
+    "emergencyReports": "بلاغات طوارئ اليوم",
+    "averageRating": "متوسط التقييم",
+    "activeGroups": "مجموعات نشطة",
+    "recentRides": "آخر الرحلات",
+    "table": {
+      "id": "الرقم",
+      "passenger": "الراكبة",
+      "driver": "السائقة",
+      "status": "الحالة",
+      "amount": "المبلغ"
+    },
+    "statusCompleted": "مكتملة",
+    "statusOngoing": "جارية",
+    "statusCancelled": "ملغاة",
+    "weekdays": {
+      "السبت": "السبت",
+      "الأحد": "الأحد",
+      "الاثنين": "الاثنين",
+      "الثلاثاء": "الثلاثاء",
+      "الأربعاء": "الأربعاء",
+      "الخميس": "الخميس",
+      "الجمعة": "الجمعة"
+    }
   },
   "systemNotifications": {
     "title": "الإشعارات",

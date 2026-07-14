@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Car, Users, Navigation, Wallet } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { getDashboardStats, type DashboardStats } from '@/app/actions/admin';
+import { useTranslation } from 'react-i18next';
 
 /**
  * صفحة النظرة العامة — المرجع التصميمي لبقية صفحات اللوحة.
@@ -52,19 +53,22 @@ const RECENT = [
 ];
 
 function StatusBadge({ status }: { status: string }) {
-  const map: Record<string, string> = {
-    مكتملة: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
-    جارية: 'bg-primary/10 text-primary border border-primary/20',
-    ملغاة: 'bg-destructive/10 text-destructive border border-destructive/20',
+  const { t } = useTranslation();
+  const map: Record<string, { className: string, i18nKey: string }> = {
+    'مكتملة': { className: 'bg-emerald-50 text-emerald-700 border border-emerald-200', i18nKey: 'dashboard.statusCompleted' },
+    'جارية': { className: 'bg-primary/10 text-primary border border-primary/20', i18nKey: 'dashboard.statusOngoing' },
+    'ملغاة': { className: 'bg-destructive/10 text-destructive border border-destructive/20', i18nKey: 'dashboard.statusCancelled' },
   };
+  const config = map[status] ?? { className: '', i18nKey: '' };
   return (
-    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${map[status] ?? ''}`}>
-      {status}
+    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${config.className}`}>
+      {config.i18nKey ? t(config.i18nKey, status) : status}
     </span>
   );
 }
 
 export default function DashboardPage() {
+  const { t } = useTranslation();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -93,23 +97,23 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-foreground">لوحة المعلومات</h1>
-        <p className="text-sm text-muted-foreground">نظرة عامة على أداء المنصّة اليوم</p>
+        <h1 className="text-xl font-bold text-foreground">{t('nav.dashboard', 'لوحة المعلومات')}</h1>
+        <p className="text-sm text-muted-foreground">{t('dashboard.overview', 'نظرة عامة على أداء المنصّة اليوم')}</p>
       </div>
 
       {/* بطاقات المؤشرات */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="الرحلات" value={totalRides} icon={Navigation} />
-        <StatCard label="السائقات النشطات" value={activeDrivers} icon={Car} />
-        <StatCard label="الراكبات" value={passengers} icon={Users} />
-        <StatCard label="الإيرادات" value={revenue} icon={Wallet} />
+        <StatCard label={t('dashboard.rides', 'الرحلات')} value={totalRides} icon={Navigation} />
+        <StatCard label={t('dashboard.activeDrivers', 'السائقات النشطات')} value={activeDrivers} icon={Car} />
+        <StatCard label={t('dashboard.passengers', 'الراكبات')} value={passengers} icon={Users} />
+        <StatCard label={t('dashboard.revenue', 'الإيرادات')} value={revenue} icon={Wallet} />
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* رسم الرحلات الأسبوعي */}
         {/* TODO: بيانات حقيقية */}
         <div className="rounded-xl border border-border bg-card p-5 lg:col-span-2">
-          <h2 className="mb-4 font-semibold text-foreground">الرحلات هذا الأسبوع</h2>
+          <h2 className="mb-4 font-semibold text-foreground">{t('dashboard.ridesThisWeek', 'الرحلات هذا الأسبوع')}</h2>
           <div className="flex h-48 items-end justify-between gap-2">
             {WEEK.map((b) => (
               <div key={b.d} className="flex flex-1 flex-col items-center gap-2">
@@ -119,7 +123,7 @@ export default function DashboardPage() {
                     style={{ height: `${b.v}%` }}
                   />
                 </div>
-                <span className="text-xs text-muted-foreground">{b.d}</span>
+                <span className="text-xs text-muted-foreground">{t(`dashboard.weekdays.${b.d}`, b.d)}</span>
               </div>
             ))}
           </div>
@@ -127,23 +131,23 @@ export default function DashboardPage() {
 
         {/* ملخص سريع */}
         <div className="rounded-xl border border-border bg-card p-5">
-          <h2 className="mb-4 font-semibold text-foreground">ملخّص</h2>
+          <h2 className="mb-4 font-semibold text-foreground">{t('dashboard.summary', 'ملخّص')}</h2>
           <ul className="space-y-3 text-sm">
             <li className="flex justify-between">
-              <span className="text-muted-foreground">طلبات KYC معلّقة</span>
+              <span className="text-muted-foreground">{t('dashboard.pendingKyc', 'طلبات KYC معلّقة')}</span>
               <span className="font-semibold text-primary">{pendingKyc}</span>
             </li>
             {/* TODO: بيانات حقيقية */}
             <li className="flex justify-between">
-              <span className="text-muted-foreground">بلاغات طوارئ اليوم</span>
+              <span className="text-muted-foreground">{t('dashboard.emergencyReports', 'بلاغات طوارئ اليوم')}</span>
               <span className="font-semibold text-foreground">٠</span>
             </li>
             <li className="flex justify-between">
-              <span className="text-muted-foreground">متوسط التقييم</span>
+              <span className="text-muted-foreground">{t('dashboard.averageRating', 'متوسط التقييم')}</span>
               <span className="font-semibold text-foreground">٤.٩</span>
             </li>
             <li className="flex justify-between">
-              <span className="text-muted-foreground">مجموعات نشطة</span>
+              <span className="text-muted-foreground">{t('dashboard.activeGroups', 'مجموعات نشطة')}</span>
               <span className="font-semibold text-foreground">١٨</span>
             </li>
           </ul>
@@ -154,17 +158,17 @@ export default function DashboardPage() {
       {/* TODO: بيانات حقيقية */}
       <div className="overflow-hidden rounded-xl border border-border bg-card">
         <div className="border-b border-border px-5 py-4">
-          <h2 className="font-semibold text-foreground">آخر الرحلات</h2>
+          <h2 className="font-semibold text-foreground">{t('dashboard.recentRides', 'آخر الرحلات')}</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-right text-sm">
             <thead className="bg-muted text-muted-foreground">
               <tr>
-                <th className="px-5 py-3 font-medium">الرقم</th>
-                <th className="px-5 py-3 font-medium">الراكبة</th>
-                <th className="px-5 py-3 font-medium">السائقة</th>
-                <th className="px-5 py-3 font-medium">الحالة</th>
-                <th className="px-5 py-3 font-medium">المبلغ</th>
+                <th className="px-5 py-3 font-medium">{t('dashboard.table.id', 'الرقم')}</th>
+                <th className="px-5 py-3 font-medium">{t('dashboard.table.passenger', 'الراكبة')}</th>
+                <th className="px-5 py-3 font-medium">{t('dashboard.table.driver', 'السائقة')}</th>
+                <th className="px-5 py-3 font-medium">{t('dashboard.table.status', 'الحالة')}</th>
+                <th className="px-5 py-3 font-medium">{t('dashboard.table.amount', 'المبلغ')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
