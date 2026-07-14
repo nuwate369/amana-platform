@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState, type ReactNode } from 'react';
-import { X, AlertTriangle, ShieldCheck, UserCog } from 'lucide-react';
+import { X, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { CancelButton, PrimaryButton, DangerButton } from './ui/ActionButtons';
 
 /**
  * حوار إجراء موحّد: تأكيد + سبب اختياري/إلزامي + عرض اسم المنفِّذ.
@@ -120,37 +121,17 @@ export function ActionDialog({
             </div>
           )}
 
-          {actorName && (
-            <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2 border border-border">
-              <UserCog className="w-3.5 h-3.5 shrink-0" />
-              <span>
-                سيُسجَّل هذا الإجراء باسمك: <strong className="text-foreground">{actorName}</strong>
-              </span>
-            </div>
-          )}
-
           <div className="pt-2 flex gap-3">
-            <button
-              onClick={handleConfirm}
-              disabled={loading}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg font-semibold transition-colors disabled:opacity-70 ${
-                isDanger
-                  ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground'
-                  : 'bg-emerald-600 hover:bg-emerald-700 text-white'
-              }`}
-            >
-              {loading ? (
-                <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-              ) : (
-                confirmLabel
-              )}
-            </button>
-            <button
-              onClick={onClose}
-              className="flex-1 bg-muted hover:bg-muted/80 text-foreground py-2 rounded-lg font-medium transition-colors"
-            >
-              إلغاء
-            </button>
+            {isDanger ? (
+              <DangerButton onClick={handleConfirm} loading={loading} fullWidth>
+                {confirmLabel}
+              </DangerButton>
+            ) : (
+              <PrimaryButton onClick={handleConfirm} loading={loading} fullWidth>
+                {confirmLabel}
+              </PrimaryButton>
+            )}
+            <CancelButton onClick={onClose} fullWidth />
           </div>
         </div>
       </div>

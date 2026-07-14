@@ -59,9 +59,9 @@ export type InviteStaffInput = z.infer<typeof inviteStaffSchema>;
 
 /** نوع مستخدم الموظف (للاستخدام في القائمة المنسدلة). */
 export const STAFF_USER_TYPE_OPTIONS = [
-  { value: 'super_admin', label: 'مدير عام' },
-  { value: 'admin',       label: 'مدير' },
-  { value: 'support',     label: 'دعم فني' },
+  { value: 'super_admin', label: 'مدير النظام' },
+  { value: 'admin',       label: 'مدير العمليات' },
+  { value: 'support',     label: 'مسؤول الدعم الفني' },
 ] as const;
 
 /**
@@ -85,6 +85,21 @@ export const mfaCodeSchema = z.object({
   code: z.string().length(6, 'validation.mfaCodeLength').regex(/^\d{6}$/, 'validation.mfaCodeDigits'),
 });
 export type MfaCodeInput = z.infer<typeof mfaCodeSchema>;
+
+/**
+ * إنشاء تذكرة دعم فني.
+ */
+export const createTicketSchema = z.object({
+  subject: z.string().min(1, 'validation.required').max(200, 'validation.maxLength'),
+  description: z.string().min(1, 'validation.required').max(5000, 'validation.maxLength'),
+  category: z.enum(['complaint', 'question', 'suggestion', 'technical'], {
+    message: 'validation.required',
+  }),
+  priority: z.enum(['high', 'medium', 'low'], {
+    message: 'validation.required',
+  }),
+});
+export type CreateTicketInput = z.infer<typeof createTicketSchema>;
 
 /**
  * يترجم رسالة خطأ zod (مفتاح i18n) إلى نص بلغة المستخدم.

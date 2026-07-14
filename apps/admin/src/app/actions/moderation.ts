@@ -28,7 +28,9 @@ export type AuditActionType =
   | 'delete_staff'
   | 'create_rating_question'
   | 'update_rating_question'
-  | 'delete_rating_question';
+  | 'delete_rating_question'
+  | 'create_ticket'
+  | 'update_ticket';
 
 export interface AuditLogRow {
   id: string;

@@ -27,7 +27,16 @@
     "unsavedChanges": "You have unsaved changes. Are you sure you want to proceed?",
     "leave": "Leave",
     "stay": "Stay",
-    "refresh": "Refresh"
+    "refresh": "Refresh",
+    "viewOnly": "عرض فقط",
+    "noData": "لا توجد بيانات",
+    "viewDetails": "عرض التفاصيل",
+    "protected": "محمي",
+    "allGroups": "جميع المجموعات",
+    "review": "مراجعة",
+    "all": "All",
+    "save": "حفظ التعديلات",
+    "delete": "حذف"
   },
   "validation": {
     "required": "This field is required",
@@ -235,13 +244,17 @@
     "form": {
       "title": "Announcement Title",
       "body": "Announcement Body",
-      "sendTo": "Send To"
+      "sendTo": "Send To",
+      "titlePlaceholder": "أدخل عنوان الإشعار",
+      "type": "النوع",
+      "bodyPlaceholder": "اكتب محتوى الإشعار هنا"
     },
     "send": "Send Announcement",
     "recent": "Recent Sent Announcements",
     "table": {
       "date": "Sent Date",
-      "target": "Target Audience"
+      "target": "Target Audience",
+      "status": "الحالة"
     },
     "targets": {
       "all": "All Users",
@@ -263,7 +276,8 @@
       "supervisor": "Supervisor",
       "members": "Members",
       "rides": "Rides",
-      "status": "Status"
+      "status": "Status",
+      "actions": "إجراء"
     },
     "status": {
       "open": "Open",
@@ -283,7 +297,10 @@
       "target": "Target",
       "type": "Type",
       "status": "Status",
-      "actions": "Actions"
+      "actions": "Actions",
+      "answers": "الإجابات",
+      "average": "المتوسط",
+      "lastAnswer": "آخر إجابة"
     }
   },
   "reports": {
@@ -292,17 +309,99 @@
     "tabs": {
       "revenue": "Revenue & Finance",
       "performance": "Operational Performance",
-      "users": "Users & Growth"
+      "users": "Users & Growth",
+      "rides": "الرحلات"
+    },
+    "filters": {
+      "fromDate": "From Date",
+      "toDate": "To Date"
+    },
+    "exportCsv": "Export CSV",
+    "stats": {
+      "revenue": "Total Revenue",
+      "ridesCount": "Total Rides",
+      "avgRideValue": "Avg Ride Value",
+      "cancellationRate": "Cancellation Rate"
+    },
+    "charts": {
+      "monthlyRevenue": "Monthly Revenue"
+    },
+    "tables": {
+      "topDrivers": "Top Drivers"
+    },
+    "tableCols": {
+      "name": "Name",
+      "rides": "Rides",
+      "revenue": "Revenue",
+      "rating": "Rating"
     }
   },
   "pricing": {
     "title": "Dynamic Pricing Settings",
     "subtitle": "Adjust base fare and peak multipliers for ride pricing",
     "sections": {
-      "baseFare": "Base Fare & Commission",
+      "baseFare": {
+        "0": "B",
+        "1": "a",
+        "2": "s",
+        "3": "e",
+        "4": " ",
+        "5": "F",
+        "6": "a",
+        "7": "r",
+        "8": "e",
+        "9": " ",
+        "10": "&",
+        "11": " ",
+        "12": "C",
+        "13": "o",
+        "14": "m",
+        "15": "m",
+        "16": "i",
+        "17": "s",
+        "18": "s",
+        "19": "i",
+        "20": "o",
+        "21": "n",
+        "title": "Base Fare",
+        "basePrice": "Base Fare (SAR)",
+        "basePriceHint": "Fixed fee at the start of each ride",
+        "perKm": "Price per Km (SAR)",
+        "perKmHint": "Added for each km traveled",
+        "minTrip": "Minimum Trip Fare (SAR)",
+        "minTripHint": "Minimum amount charged regardless of trip length"
+      },
       "peakMultipliers": "Peak Multipliers (Dynamic Pricing)",
-      "peakPeriods": "Peak Periods"
-    }
+      "peakPeriods": "Peak Periods",
+      "surge": {
+        "title": "Surge Pricing",
+        "multiplier": "Surge Multiplier",
+        "multiplierHint": "Multiplied by the fare during peak hours",
+        "start": "Surge Hours — From",
+        "end": "Surge Hours — To",
+        "pattern": "Application Pattern",
+        "daily": "Daily",
+        "workdays": "Workdays Only",
+        "weekend": "Weekend Only"
+      },
+      "service": {
+        "title": "Service Scope",
+        "city": "City",
+        "riyadh": "Riyadh",
+        "jeddah": "Jeddah",
+        "dammam": "Dammam",
+        "maxDist": "Max Trip Distance (km)",
+        "maxDistHint": "Requests exceeding this distance are not accepted"
+      },
+      "fees": {
+        "title": "Fees & Minimums",
+        "commission": "Platform Commission (%)",
+        "commissionHint": "Percentage deducted from each ride",
+        "waitFee": "Waiting Fee per Minute (SAR)"
+      }
+    },
+    "save": "Save Changes",
+    "lastUpdated": "Last Updated: Today 10:42 AM"
   },
   "liveRides": {
     "title": "Live Rides Monitoring",
@@ -321,11 +420,34 @@
     "searchPlaceholder": "Search by name or mobile number...",
     "table": {
       "name": "Name",
+      "phone": "Mobile",
+      "status": "Status",
+      "joinDate": "Join Date",
+      "actions": "Actions",
       "mobile": "Mobile",
       "rides": "Rides",
-      "rating": "Rating",
-      "status": "Status",
-      "joinDate": "Join Date"
+      "rating": "Rating"
+    },
+    "status": {
+      "active": "Active",
+      "banned": "Banned"
+    },
+    "actions": {
+      "ban": "Ban",
+      "unban": "Unban"
+    },
+    "ban": {
+      "title": "Ban Passenger",
+      "reasonLabel": "Ban Reason",
+      "reasonPlaceholder": "e.g., Violating terms of use...",
+      "confirmBtn": "Confirm Ban"
+    },
+    "unban": {
+      "title": "Unban Passenger",
+      "confirmDesc": "Do you want to unban ",
+      "thisAccount": "this account",
+      "confirmDescSuffix": " and reactivate it?",
+      "confirmBtn": "Unban"
     }
   },
   "drivers": {
@@ -334,11 +456,58 @@
     "searchPlaceholder": "Search by name, mobile, or ID number...",
     "table": {
       "name": "Name",
+      "phone": "Mobile",
       "vehicle": "Vehicle",
+      "status": "Status",
+      "actions": "Actions",
       "rides": "Rides",
       "rating": "Rating",
-      "kyc": "KYC Status",
-      "status": "Account Status"
+      "kyc": "KYC Status"
+    },
+    "filters": {
+      "all": "All",
+      "active": "Active",
+      "pending": "Pending",
+      "rejected": "Rejected",
+      "banned": "Banned"
+    },
+    "kyc": {
+      "pendingTitle": "Pending KYC Requests",
+      "noPending": "No pending requests at the moment.",
+      "approveBtn": "Approve",
+      "rejectBtn": "Reject",
+      "approveSuccess": "Driver approved",
+      "rejectSuccess": "Request rejected",
+      "approveTitle": "Approve Driver",
+      "rejectTitle": "Reject KYC Request",
+      "rejectReasonLabel": "Reject Reason",
+      "rejectReasonPlaceholder": "e.g., Documents are unclear...",
+      "approveConfirmDesc": "Do you want to approve ",
+      "thisDriver": "this driver",
+      "approveConfirmDescSuffix": " and activate her account?",
+      "approveConfirmBtn": "Approve",
+      "rejectConfirmBtn": "Confirm Reject"
+    },
+    "status": {
+      "active": "Active",
+      "banned": "Banned"
+    },
+    "actions": {
+      "ban": "Ban",
+      "unban": "Unban"
+    },
+    "ban": {
+      "title": "Ban Driver",
+      "reasonLabel": "Ban Reason",
+      "reasonPlaceholder": "e.g., Violating terms of use...",
+      "confirmBtn": "Confirm Ban"
+    },
+    "unban": {
+      "title": "Unban Driver",
+      "confirmDesc": "Do you want to unban ",
+      "thisAccount": "this account",
+      "confirmDescSuffix": " and reactivate it?",
+      "confirmBtn": "Unban"
     }
   },
   "notificationSettings": {
@@ -359,5 +528,143 @@
       "driver_document_expiring": "Driver documents expiring",
       "user_status_changed": "User status changed"
     }
+  },
+  "rides": {
+    "title": "Live Rides Monitoring",
+    "subtitle": "Real-time tracking of ongoing rides on the map",
+    "stats": {
+      "ongoing": "Ongoing Rides",
+      "onlineDrivers": "Online Drivers",
+      "pendingRequests": "Pending Requests"
+    },
+    "map": {
+      "title": "Live Map",
+      "placeholder": {
+        "title": "Live Rides Map",
+        "subtitle": "Real-time location of drivers and passengers appears here"
+      }
+    },
+    "list": {
+      "title": "Currently Ongoing Rides",
+      "passenger": "Passenger:",
+      "driver": "Driver:"
+    },
+    "status": {
+      "ongoing": "Ongoing",
+      "onTheWay": "On the way"
+    }
+  },
+  "profile": {
+    "title": "Profile",
+    "subtitle": "Manage your account information and preferences",
+    "loading": "Loading...",
+    "uploadingError": "You must select an image.",
+    "fillAllPasswords": "Please fill in all password fields.",
+    "passwordsMismatch": "New passwords do not match.",
+    "passwordLength": "Password must be at least 6 characters.",
+    "wrongOldPassword": "Incorrect old password.",
+    "unexpectedError": "An unexpected error occurred",
+    "successMessage": "Profile updated successfully!",
+    "sections": {
+      "basic": "Basic Information",
+      "preferences": "Preferences",
+      "password": "Change Password (Optional)"
+    },
+    "fields": {
+      "email": "Email",
+      "role": "Role",
+      "fullName": "Full Name",
+      "phone": "Mobile Number",
+      "language": "Preferred Language",
+      "theme": "Theme",
+      "oldPassword": "Current Password",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm New Password",
+      "languageOptions": {
+        "ar": "العربية (Arabic)",
+        "en": "English"
+      },
+      "themeOptions": {
+        "system": "System Default",
+        "light": "Light Mode",
+        "dark": "Dark Mode"
+      }
+    },
+    "passwordHint": "Leave fields empty if you do not want to change it.",
+    "save": "Save Changes"
+  },
+  "admin": {
+    "title": "Amana Admin",
+    "subtitle": "Unified control and operation system"
+  },
+  "moderation": {
+    "banSuccess": "Account has been banned",
+    "unbanSuccess": "Ban has been lifted"
+  },
+  "support": {
+    "ticketCreated": "Ticket created successfully",
+    "status": {
+      "open": "Open",
+      "inProgress": "In Progress",
+      "resolved": "Resolved",
+      "closed": "Closed"
+    },
+    "title": "Support",
+    "subtitle": "Support tickets from passengers and drivers",
+    "createTicket": "Create New Ticket",
+    "stats": {
+      "total": "Total Tickets",
+      "open": "New",
+      "inProgress": "In Progress",
+      "resolved": "Resolved"
+    },
+    "search": "Search tickets...",
+    "table": {
+      "subject": "Subject",
+      "user": "User",
+      "category": "Category",
+      "priority": "Priority",
+      "status": "Status",
+      "messages": "Messages",
+      "date": "Date"
+    },
+    "emptyFiltered": "No tickets match your search.",
+    "empty": "No support tickets currently.",
+    "pagination": {
+      "showing": "Showing",
+      "of": "of"
+    },
+    "form": {
+      "subject": "Subject",
+      "subjectPlaceholder": "e.g., Payment Issue",
+      "description": "Description",
+      "descriptionPlaceholder": "Describe the issue in detail...",
+      "category": "Category",
+      "priority": "Priority",
+      "submit": "Create Ticket"
+    },
+    "backToList": "Back to List",
+    "internalNote": "Internal Note",
+    "replyPlaceholder": "Type your reply here...",
+    "send": "Send",
+    "details": "Ticket Details",
+    "category": "Category",
+    "priority": "Priority",
+    "user": "User",
+    "userRole": "User Role",
+    "createdAt": "Created At",
+    "updatedAt": "Updated At",
+    "updateStatus": "Update Status",
+    "assign": "Assign Ticket",
+    "unassigned": "Unassigned",
+    "assignSelf": "Assign to Me",
+    "messageCount": "Message Count",
+    "internalCount": "Internal Notes"
+  },
+  "errors": {
+    "notFoundTitle": "Sorry, page not found",
+    "notFoundDesc": "It seems you reached an invalid link or the page was deleted. Don't worry, you can return to the dashboard or try again.",
+    "returnToDashboard": "Return to Dashboard",
+    "goBack": "Go Back"
   }
 }

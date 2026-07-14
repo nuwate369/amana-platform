@@ -39,6 +39,7 @@ function typeIcon(type: string): string {
     new_staff_joined: '👤',
     driver_document_expiring: '📋',
     kyc_pending_review: '⏳',
+    new_support_ticket_created: '🎧',
   };
   return map[type] ?? '🔔';
 }
@@ -51,9 +52,13 @@ function entityRoute(entityType: string | null, entityId: string | null): string
     ride: '/rides',
     staff: '/staff',
     passenger: '/passengers',
+    ticket: '/support',
   };
   const base = map[entityType];
-  return base ? `${base}?highlight=${entityId}` : null;
+  if (!base) return null;
+  // التذاكر → صفحة التفاصيل مباشرة
+  if (entityType === 'ticket') return `${base}/${entityId}`;
+  return `${base}?highlight=${entityId}`;
 }
 
 export function NotificationBell() {
@@ -190,7 +195,6 @@ export function NotificationBell() {
       {/* القائمة المنسدلة */}
       {open && (
         <div
-          dir="rtl"
           ref={dropdownRef}
           className="absolute end-0 top-full mt-2 z-50 w-80 md:w-96 max-w-[calc(100vw-1rem)] rounded-xl bg-white dark:bg-brand-800 border border-brand-200 dark:border-brand-700 shadow-2xl animate-in fade-in zoom-in duration-200 overflow-hidden"
         >

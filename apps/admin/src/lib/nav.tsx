@@ -12,6 +12,7 @@ import {
   ScrollText,
   Star,
   Settings,
+  Headphones,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -21,6 +22,8 @@ export interface NavItem {
   /** وصف مختصر يظهر تحت العنوان في القائمة الجانبية (اختياري). */
   description?: string;
   icon: LucideIcon;
+  /** صلاحية مطلوبة لعرض هذا العنصر (اختياري). */
+  permission?: string;
 }
 
 /** عناصر التنقّل في القائمة الجانبية للوحة الإدارة. */
@@ -32,6 +35,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: '/pricing',             label: 'التسعير',                      icon: BadgePercent    },
   { href: '/reports',             label: 'التقارير',                     icon: BarChart3       },
   { href: '/ratings',             label: 'التقييمات',                    icon: Star,           description: 'إدارة أسئلة التقييم ومتابعة التقييمات الواردة من التطبيقات' },
+  { href: '/support',             label: 'الدعم الفني',                   icon: Headphones,     description: 'تذاكر الدعم الفني — استقبال الأسئلة والشكاوى من الركاب والسائقين', permission: 'view_support' },
   { href: '/groups',              label: 'مجموعات النقل المشتركة',      icon: UsersRound,     description: 'مجموعات تنسيق الرحلات بين الراكبات — للمراقبة والإشراف فقط' },
   { href: '/notifications',       label: 'الإعلانات والتنبيهات العامة',  icon: Radio,          description: 'إرسال رسائل تظهر داخل تطبيقي الراكبة والسائقة' },
   { href: '/staff',               label: 'فريق العمل',                   icon: UserCog         },

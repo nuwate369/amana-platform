@@ -31,6 +31,7 @@ import {
 } from '@/app/actions/staff';
 import { UserDetailsModal } from '@/components/UserDetailsModal';
 import { useAuth } from '@/lib/auth';
+import { PrimaryButton, DangerButton, CancelButton } from '@/components/ui/ActionButtons';
 import { supabase } from '@/lib/supabase/client';
 import { notify } from '@/lib/toast';
 import { useUnsavedChanges } from '@/lib/useUnsavedChanges';
@@ -388,13 +389,10 @@ export default function StaffClient({ initialStaff }: { initialStaff: StaffRow[]
               {ROLE_DESCRIPTIONS[selectedRole] ?? ''}
             </p>
             <div className="pt-2 flex gap-3">
-              <button type="submit" disabled={inviteForm.formState.isSubmitting}
-                className="flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground py-2.5 rounded-full font-semibold transition-colors disabled:opacity-70">
-                {inviteForm.formState.isSubmitting ? <Spinner /> : 'إرسال الدعوة'}
-              </button>
-              <button type="button" onClick={closeInvite} className="flex-1 bg-muted hover:bg-muted/80 text-foreground py-2.5 rounded-full font-semibold transition-colors">
-                {t('common.cancel')}
-              </button>
+              <PrimaryButton type="submit" loading={inviteForm.formState.isSubmitting} fullWidth>
+                إرسال الدعوة
+              </PrimaryButton>
+              <CancelButton type="button" onClick={closeInvite} fullWidth />
             </div>
           </form>
         </Modal>
@@ -430,13 +428,10 @@ export default function StaffClient({ initialStaff }: { initialStaff: StaffRow[]
               {ROLE_DESCRIPTIONS[editType] ?? ''}
             </p>
             <div className="pt-2 flex gap-3">
-              <button onClick={submitEdit} disabled={loadingAction === 'edit'}
-                className="flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground py-2.5 rounded-full font-semibold transition-colors disabled:opacity-70">
-                {loadingAction === 'edit' ? <Spinner /> : 'حفظ التعديلات'}
-              </button>
-              <button onClick={() => setEditTarget(null)} className="flex-1 bg-muted hover:bg-muted/80 text-foreground py-2.5 rounded-full font-semibold transition-colors">
-                {t('common.cancel')}
-              </button>
+              <PrimaryButton type="button" onClick={submitEdit} loading={loadingAction === 'edit'} fullWidth>
+                حفظ التعديلات
+              </PrimaryButton>
+              <CancelButton type="button" onClick={() => setEditTarget(null)} fullWidth />
             </div>
           </div>
         </Modal>
@@ -455,13 +450,10 @@ export default function StaffClient({ initialStaff }: { initialStaff: StaffRow[]
               </div>
             </div>
             <div className="pt-4 flex gap-3">
-              <button onClick={confirmDelete} disabled={loadingAction === 'delete'}
-                className="flex-1 flex items-center justify-center gap-2 bg-background border border-border hover:bg-muted text-foreground py-2.5 rounded-full font-bold transition-colors disabled:opacity-70">
-                {loadingAction === 'delete' ? <Spinner /> : 'نعم، حذف'}
-              </button>
-              <button onClick={() => setDeleteTarget(null)} className="flex-1 bg-muted hover:bg-muted/80 text-foreground py-2.5 rounded-full font-bold transition-colors">
-                {t('common.cancel')}
-              </button>
+              <DangerButton type="button" onClick={confirmDelete} loading={loadingAction === 'delete'} fullWidth>
+                نعم، حذف
+              </DangerButton>
+              <CancelButton type="button" onClick={() => setDeleteTarget(null)} fullWidth />
             </div>
           </div>
         </Modal>
@@ -488,18 +480,16 @@ export default function StaffClient({ initialStaff }: { initialStaff: StaffRow[]
               </p>
             </div>
             <div className="pt-4 flex gap-3">
-              <button onClick={confirmStatusChange} disabled={loadingAction === `status-${statusDialogTarget.id}`}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-full font-bold transition-colors disabled:opacity-70 ${
-                  statusDialogAction === 'approve' || statusDialogAction === 'reactivate'
-                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                    : 'bg-orange-600 hover:bg-orange-700 text-white'
-                }`}>
-                {loadingAction === `status-${statusDialogTarget.id}` ? <Spinner /> : 'تأكيد'}
-              </button>
-              <button onClick={() => { setStatusDialogTarget(null); setStatusDialogAction(null); }}
-                className="flex-1 bg-muted hover:bg-muted/80 text-foreground py-2.5 rounded-full font-bold transition-colors">
-                {t('common.cancel')}
-              </button>
+              {statusDialogAction === 'approve' || statusDialogAction === 'reactivate' ? (
+                <PrimaryButton type="button" onClick={confirmStatusChange} loading={loadingAction === `status-${statusDialogTarget.id}`} fullWidth>
+                  تأكيد
+                </PrimaryButton>
+              ) : (
+                <DangerButton type="button" onClick={confirmStatusChange} loading={loadingAction === `status-${statusDialogTarget.id}`} fullWidth>
+                  تأكيد
+                </DangerButton>
+              )}
+              <CancelButton type="button" onClick={() => { setStatusDialogTarget(null); setStatusDialogAction(null); }} fullWidth />
             </div>
           </div>
         </Modal>

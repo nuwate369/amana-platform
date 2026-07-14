@@ -21,7 +21,9 @@ import {
   type QuestionStats,
   type QuestionTarget,
 } from '@/app/actions/ratings';
+import { NotifyBanner } from '@/components/NotifyBanner';
 import { ActionDialog } from '@/components/ActionDialog';
+import { PrimaryButton, CancelButton } from '@/components/ui/ActionButtons';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase/client';
 import { notify } from '@/lib/toast';
@@ -633,21 +635,17 @@ export default function RatingsClient({
               </div>
 
               <div className="pt-4 flex gap-3">
-                <button
+                <PrimaryButton
                   onClick={submitForm}
-                  disabled={busy}
-                  className="flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground py-2 rounded-lg font-semibold transition-colors disabled:opacity-70"
+                  loading={busy}
+                  fullWidth
                 >
-                  {busy ? (
-                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                  ) : form.id ? 'حفظ التعديلات' : 'إضافة السؤال'}
-                </button>
-                <button
+                  {form.id ? 'حفظ التعديلات' : 'إضافة السؤال'}
+                </PrimaryButton>
+                <CancelButton
                   onClick={() => setForm(null)}
-                  className="flex-1 bg-muted hover:bg-muted/80 text-foreground py-2 rounded-lg font-medium transition-colors"
-                >
-                  إلغاء
-                </button>
+                  fullWidth
+                />
               </div>
             </div>
           </div>

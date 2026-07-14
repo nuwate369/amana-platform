@@ -26,7 +26,17 @@
     "deleteSuccess": "تم الحذف بنجاح",
     "unsavedChanges": "لديك تغييرات لم تُحفظ، هل تريد المتابعة بدون حفظ؟",
     "leave": "مغادرة",
-    "stay": "البقاء"
+    "stay": "البقاء",
+    "refresh": "تحديث",
+    "viewOnly": "عرض فقط",
+    "noData": "لا توجد بيانات",
+    "viewDetails": "عرض التفاصيل",
+    "protected": "محمي",
+    "allGroups": "جميع المجموعات",
+    "review": "مراجعة",
+    "all": "All",
+    "save": "حفظ التعديلات",
+    "delete": "حذف"
   },
   "validation": {
     "required": "هذا الحقل مطلوب",
@@ -207,5 +217,389 @@
       "driver_document_expiring": "مستندات سائقة تنتهي صلاحيتها",
       "user_status_changed": "تغيير حالة مستخدم"
     }
+  },
+  "reports": {
+    "filters": {
+      "fromDate": "من تاريخ",
+      "toDate": "إلى تاريخ"
+    },
+    "exportCsv": "تصدير CSV",
+    "stats": {
+      "revenue": "إجمالي الإيرادات",
+      "ridesCount": "عدد الرحلات",
+      "avgRideValue": "متوسط قيمة الرحلة",
+      "cancellationRate": "معدل الإلغاء"
+    },
+    "charts": {
+      "monthlyRevenue": "الإيرادات الشهرية"
+    },
+    "tables": {
+      "topDrivers": "أفضل السائقات"
+    },
+    "tableCols": {
+      "name": "الاسم",
+      "rides": "الرحلات",
+      "revenue": "الإيراد",
+      "rating": "التقييم"
+    },
+    "tabs": {
+      "revenue": "الإيرادات",
+      "rides": "الرحلات",
+      "performance": "الأداء"
+    },
+    "title": "التقارير",
+    "subtitle": "تحليلات الإيرادات والرحلات وأداء المنصّة"
+  },
+  "pricing": {
+    "save": "حفظ التغييرات",
+    "lastUpdated": "آخر تحديث: اليوم 10:42 صباحًا",
+    "sections": {
+      "baseFare": {
+        "title": "التعرفة الأساسية",
+        "basePrice": "التعرفة الأساسية (ريال)",
+        "basePriceHint": "الرسوم الثابتة عند بدء كل رحلة",
+        "perKm": "سعر الكيلومتر (ريال)",
+        "perKmHint": "يُضاف عن كل كيلومتر مقطوع",
+        "minTrip": "الحد الأدنى للرحلة (ريال)",
+        "minTripHint": "أقل مبلغ يُحتسب مهما قصرت الرحلة"
+      },
+      "surge": {
+        "title": "تسعير وقت الذروة",
+        "multiplier": "مضاعِف وقت الذروة",
+        "multiplierHint": "يُضرب في السعر خلال ساعات الذروة",
+        "start": "ساعات الذروة — من",
+        "end": "ساعات الذروة — إلى",
+        "pattern": "نمط التطبيق",
+        "daily": "يوميًا",
+        "workdays": "أيام العمل فقط",
+        "weekend": "نهاية الأسبوع فقط"
+      },
+      "service": {
+        "title": "نطاق الخدمة",
+        "city": "المدينة",
+        "riyadh": "الرياض",
+        "jeddah": "جدة",
+        "dammam": "الدمّام",
+        "maxDist": "أقصى مسافة للرحلة (كم)",
+        "maxDistHint": "لا تُقبل الطلبات التي تتجاوز هذه المسافة"
+      },
+      "fees": {
+        "title": "الرسوم والحد الأدنى",
+        "commission": "نسبة عمولة المنصّة (%)",
+        "commissionHint": "النسبة المقتطعة من كل رحلة",
+        "waitFee": "رسوم الانتظار لكل دقيقة (ريال)"
+      }
+    },
+    "title": "إعدادات التسعير الديناميكي",
+    "subtitle": "ضبط التعرفة الأساسية ومضاعِفات الذروة لحساب أسعار الرحلات"
+  },
+  "passengers": {
+    "searchPlaceholder": "ابحثي بالاسم أو رقم الجوال…",
+    "table": {
+      "name": "الاسم",
+      "phone": "الجوال",
+      "status": "الحالة",
+      "joinDate": "تاريخ الانضمام",
+      "actions": "إجراءات"
+    },
+    "status": {
+      "active": "نشطة",
+      "banned": "محظورة"
+    },
+    "actions": {
+      "ban": "حظر",
+      "unban": "رفع الحظر"
+    },
+    "ban": {
+      "title": "حظر الراكبة",
+      "reasonLabel": "سبب الحظر",
+      "reasonPlaceholder": "مثال: سلوك مخالف لشروط الاستخدام…",
+      "confirmBtn": "تأكيد الحظر"
+    },
+    "unban": {
+      "title": "رفع الحظر",
+      "confirmDesc": "هل تريد رفع الحظر عن ",
+      "thisAccount": "هذا الحساب",
+      "confirmDescSuffix": " وإعادة تفعيله؟",
+      "confirmBtn": "رفع الحظر"
+    },
+    "title": "إدارة الراكبات",
+    "subtitle": "قائمة الراكبات المسجّلات ونشاطهنّ"
+  },
+  "drivers": {
+    "filters": {
+      "all": "الكل",
+      "active": "نشطة",
+      "pending": "قيد المراجعة",
+      "rejected": "مرفوضة",
+      "banned": "محظورة"
+    },
+    "kyc": {
+      "pendingTitle": "طلبات KYC معلّقة",
+      "noPending": "لا توجد طلبات قيد المراجعة حاليًا.",
+      "approveBtn": "موافقة",
+      "rejectBtn": "رفض",
+      "approveSuccess": "تم قبول السائقة",
+      "rejectSuccess": "تم رفض الطلب",
+      "approveTitle": "قبول السائقة",
+      "rejectTitle": "رفض طلب KYC",
+      "rejectReasonLabel": "سبب الرفض",
+      "rejectReasonPlaceholder": "مثال: المستندات غير واضحة…",
+      "approveConfirmDesc": "هل تريد قبول ",
+      "thisDriver": "هذه السائقة",
+      "approveConfirmDescSuffix": " وتفعيل حسابها؟",
+      "approveConfirmBtn": "قبول",
+      "rejectConfirmBtn": "تأكيد الرفض"
+    },
+    "table": {
+      "name": "الاسم",
+      "phone": "الجوال",
+      "vehicle": "المركبة",
+      "status": "الحالة",
+      "actions": "إجراءات"
+    },
+    "status": {
+      "active": "نشطة",
+      "banned": "محظورة"
+    },
+    "actions": {
+      "ban": "حظر",
+      "unban": "رفع الحظر"
+    },
+    "ban": {
+      "title": "حظر السائقة",
+      "reasonLabel": "سبب الحظر",
+      "reasonPlaceholder": "مثال: مخالفة شروط الاستخدام…",
+      "confirmBtn": "تأكيد الحظر"
+    },
+    "unban": {
+      "title": "رفع الحظر",
+      "confirmDesc": "هل تريد رفع الحظر عن ",
+      "thisAccount": "هذا الحساب",
+      "confirmDescSuffix": " وإعادة تفعيله؟",
+      "confirmBtn": "رفع الحظر"
+    },
+    "title": "إدارة السائقات",
+    "subtitle": "إدارة طلبات وسائقات المنصة"
+  },
+  "rides": {
+    "title": "مراقبة الرحلات الحية",
+    "subtitle": "متابعة لحظية للرحلات الجارية على الخريطة",
+    "stats": {
+      "ongoing": "رحلات جارية",
+      "onlineDrivers": "سائقات متصلات",
+      "pendingRequests": "طلبات معلّقة"
+    },
+    "map": {
+      "title": "الخريطة اللحظية",
+      "placeholder": {
+        "title": "خريطة الرحلات الحية",
+        "subtitle": "يظهر هنا موقع كل سائقة وراكبة في الوقت الفعلي"
+      }
+    },
+    "list": {
+      "title": "الرحلات الجارية الآن",
+      "passenger": "الراكبة:",
+      "driver": "السائقة:"
+    },
+    "status": {
+      "ongoing": "جارية",
+      "onTheWay": "في الطريق للراكبة"
+    }
+  },
+  "profile": {
+    "title": "الملف الشخصي",
+    "subtitle": "إدارة معلومات حسابك والتفضيلات",
+    "loading": "جاري تحميل البيانات...",
+    "uploadingError": "يجب اختيار صورة.",
+    "fillAllPasswords": "يرجى تعبئة جميع حقول كلمة المرور.",
+    "passwordsMismatch": "كلمة المرور الجديدة غير متطابقة.",
+    "passwordLength": "كلمة المرور يجب أن تكون 6 أحرف على الأقل.",
+    "wrongOldPassword": "كلمة المرور القديمة غير صحيحة.",
+    "unexpectedError": "حدث خطأ غير متوقع",
+    "successMessage": "تم تحديث البيانات بنجاح!",
+    "sections": {
+      "basic": "المعلومات الأساسية",
+      "preferences": "التفضيلات",
+      "password": "تغيير كلمة المرور (اختياري)"
+    },
+    "fields": {
+      "email": "البريد الإلكتروني",
+      "role": "الصلاحية",
+      "fullName": "الاسم الكامل",
+      "phone": "رقم الجوال",
+      "language": "اللغة المفضلة",
+      "theme": "المظهر",
+      "oldPassword": "كلمة المرور الحالية",
+      "newPassword": "كلمة المرور الجديدة",
+      "confirmPassword": "تأكيد كلمة المرور الجديدة",
+      "languageOptions": {
+        "ar": "العربية (Arabic)",
+        "en": "الإنجليزية (English)"
+      },
+      "themeOptions": {
+        "system": "النظام الأساسي",
+        "light": "الوضع المضيء",
+        "dark": "الوضع الداكن"
+      }
+    },
+    "passwordHint": "اترك الحقول فارغة إذا كنت لا تود التغيير.",
+    "save": "حفظ التعديلات"
+  },
+  "admin": {
+    "title": "أمانة للإدارة",
+    "subtitle": "نظام التحكم والتشغيل الموحد"
+  },
+  "auditLog": {
+    "noPermission": "لا تملك صلاحية عرض سجل الحركات",
+    "noPermissionDesc": "هذه الصفحة متاحة للمدير العام والمدير فقط.",
+    "title": "سجل الحركات",
+    "subtitle": "سجلّ زمني لكل إجراء حسّاس على النظام — مَن نفّذه، على مَن، ولماذا.",
+    "searchPlaceholder": "بحث بالاسم أو السبب…",
+    "table": {
+      "action": "الحركة",
+      "executor": "المنفِّذ",
+      "target": "الهدف",
+      "reason": "السبب",
+      "time": "الوقت"
+    },
+    "empty": "لا توجد حركات مسجّلة"
+  },
+  "moderation": {
+    "banSuccess": "تم حظر الحساب",
+    "unbanSuccess": "تم رفع الحظر"
+  },
+  "groups": {
+    "title": "مجموعات النقل المشتركة",
+    "subtitle": "مجموعات تنسيق الرحلات بين الراكبات — للمراقبة والإشراف فقط",
+    "stats": {
+      "active": "المجموعات النشطة",
+      "members": "إجمالي العضوات",
+      "rides": "طلبات قيد المراجعة"
+    },
+    "table": {
+      "name": "اسم المجموعة",
+      "supervisor": "المالكة",
+      "members": "عدد العضوات",
+      "status": "الحالة",
+      "actions": "إجراء"
+    }
+  },
+  "notifications": {
+    "title": "الإعلانات والتنبيهات",
+    "subtitle": "مراسلة الراكبات والسائقات",
+    "createTitle": "إنشاء إشعار جديد",
+    "form": {
+      "title": "العنوان",
+      "titlePlaceholder": "أدخل عنوان الإشعار",
+      "type": "النوع",
+      "body": "نص الإشعار",
+      "bodyPlaceholder": "اكتب محتوى الإشعار هنا",
+      "sendTo": "الجمهور"
+    },
+    "targets": {
+      "all": "الكل",
+      "passengers": "الراكبات",
+      "drivers": "السائقات"
+    },
+    "send": "إرسال",
+    "recent": "الإشعارات المرسلة",
+    "table": {
+      "date": "التاريخ",
+      "status": "الحالة"
+    }
+  },
+  "ratings": {
+    "title": "التقييمات",
+    "subtitle": "تقرير مؤشرات، إدارة أسئلة التقييم، ومتابعة آخر التقييمات الواردة.",
+    "table": {
+      "question": "السؤال",
+      "target": "الوجهة",
+      "answers": "الإجابات",
+      "average": "المتوسط",
+      "lastAnswer": "آخر إجابة",
+      "status": "الحالة",
+      "actions": "إجراءات"
+    }
+  },
+  "staff": {
+    "title": "فريق العمل",
+    "subtitle": "مديرو الدعم الفني والمشرفون",
+    "invite": "دعوة موظف جديد",
+    "table": {
+      "name": "الاسم",
+      "email": "البريد",
+      "role": "الدور",
+      "status": "الحالة",
+      "date": "التاريخ",
+      "actions": "الإجراءات"
+    },
+    "empty": "لا يوجد موظفون حالياً."
+  },
+  "support": {
+    "ticketCreated": "تم إنشاء التذكرة بنجاح",
+    "status": {
+      "open": "Open",
+      "inProgress": "In Progress",
+      "resolved": "Resolved",
+      "closed": "Closed"
+    },
+    "title": "الدعم الفني",
+    "subtitle": "تذاكر الدعم الفني من الركاب والسائقين",
+    "createTicket": "إنشاء تذكرة جديدة",
+    "stats": {
+      "total": "إجمالي التذاكر",
+      "open": "جديد",
+      "inProgress": "قيد المعالجة",
+      "resolved": "تم الحل"
+    },
+    "search": "بحث في التذاكر...",
+    "table": {
+      "subject": "الموضوع",
+      "user": "المستخدم",
+      "category": "النوع",
+      "priority": "الأولوية",
+      "status": "الحالة",
+      "messages": "الرسائل",
+      "date": "التاريخ"
+    },
+    "emptyFiltered": "لا توجد تذاكر تطابق البحث.",
+    "empty": "لا توجد تذاكر دعم فني حالياً.",
+    "pagination": {
+      "showing": "عرض",
+      "of": "من"
+    },
+    "form": {
+      "subject": "الموضوع",
+      "subjectPlaceholder": "مثال: مشكلة في الدفع",
+      "description": "الوصف",
+      "descriptionPlaceholder": "اشرح المشكلة بالتفصيل...",
+      "category": "النوع",
+      "priority": "الأولوية",
+      "submit": "إنشاء التذكرة"
+    },
+    "backToList": "العودة للقائمة",
+    "internalNote": "ملاحظة داخلية",
+    "replyPlaceholder": "اكتب ردك هنا...",
+    "send": "إرسال",
+    "details": "تفاصيل التذكرة",
+    "category": "النوع",
+    "priority": "الأولوية",
+    "user": "المستخدم",
+    "userRole": "دور المستخدم",
+    "createdAt": "تاريخ الإنشاء",
+    "updatedAt": "آخر تحديث",
+    "updateStatus": "تحديث الحالة",
+    "assign": "تخصيص التذكرة",
+    "unassigned": "غير مخصصة",
+    "assignSelf": "تكلي نفسي",
+    "messageCount": "عدد الرسائل",
+    "internalCount": "ملاحظات داخلية"
+  },
+  "errors": {
+    "notFoundTitle": "عذراً، الصفحة غير موجودة",
+    "notFoundDesc": "يبدو أنك وصلت إلى رابط غير صحيح أو تم حذف الصفحة. لا تقلق، يمكنك العودة للوحة التحكم أو المحاولة مرة أخرى.",
+    "returnToDashboard": "العودة للوحة التحكم",
+    "goBack": "الرجوع للصفحة السابقة"
   }
 }

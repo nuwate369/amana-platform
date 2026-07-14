@@ -157,3 +157,22 @@ async function listProfilesByType(
     ...pickModeration(p as Record<string, unknown>),
   }));
 }
+
+/**
+ * تغيير كلمة المرور باستخدام service_role — يتخطى قيد AAL2 للمستخدمين مع MFA.
+ */
+export async function resetUserPassword(
+  userId: string,
+  newPassword: string,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const db = getAdminSupabase();
+    const { error } = await db.auth.admin.updateUserById(userId, {
+      password: newPassword,
+    });
+    if (error) return { success: false, error: error.message };
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'حدث خطأ غير متوقع' };
+  }
+}

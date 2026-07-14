@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/lib/supabase/client';
 import { notify } from '@/lib/toast';
-import { ShieldCheck, Lock, Loader2, CheckCircle2 } from 'lucide-react';
+import { Lock, Loader2, CheckCircle2 } from 'lucide-react';
 import { i18n } from '@/lib/i18n';
+import { resetUserPassword } from '@/app/actions/admin';
 
 export default function ResetPasswordPage() {
   const { t } = useTranslation();
@@ -19,22 +20,14 @@ export default function ResetPasswordPage() {
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState('');
-  const [needsMfa, setNeedsMfa] = useState(false);
-  const [totpCode, setTotpCode] = useState('');
 
   useEffect(() => {
-    // Supabase auto-detects the recovery token from the URL hash
-    // and creates a session. We just need to check if we have one.
     (async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         setError('رابط إعادة التعيين منتهي الصلاحية أو غير صالح');
         setLoading(false);
         return;
-      }
-      const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-      if (aal && aal.nextLevel === 'aal2' && aal.currentLevel === 'aal1') {
-        setNeedsMfa(true);
       }
       setLoading(false);
     })();
@@ -59,36 +52,22 @@ export default function ResetPasswordPage() {
 
     setSaving(true);
     try {
-      if (needsMfa) {
-        if (!totpCode) {
-          setError('يرجى إدخال رمز التحقق (MFA)');
-          setSaving(false);
-          return;
-        }
-        const { data: factorsData, error: factorsError } = await supabase.auth.mfa.listFactors();
-        if (factorsError) throw factorsError;
-        
-        const totpFactor = factorsData?.totp?.find((f) => f.status === 'verified');
-        if (!totpFactor) {
-          throw new Error('لم يتم العثور على إعدادات MFA صالحة');
-        }
-        
-        const challenge = await supabase.auth.mfa.challenge({ factorId: totpFactor.id });
-        if (challenge.error) throw challenge.error;
-        
-        const verify = await supabase.auth.mfa.verify({
-          factorId: totpFactor.id,
-          challengeId: challenge.data.id,
-          code: totpCode,
-        });
-        if (verify.error) throw verify.error;
-      }
-
-      const { error: updateError } = await supabase.auth.updateUser({ password });
-      if (updateError) {
-        setError(updateError.message);
+      // جلب معرّف المستخدم من الجلسة
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user?.id) {
+        setError('يجب تسجيل الدخول أولاً');
+        setSaving(false);
         return;
       }
+
+      // استخدام service_role لتخطي قيد AAL2
+      const result = await resetUserPassword(session.user.id, password);
+      if (!result.success) {
+        setError(result.error || 'حدث خطأ');
+        setSaving(false);
+        return;
+      }
+
       setDone(true);
       notify.success('تم تغيير كلمة المرور بنجاح');
       setTimeout(() => router.replace('/sign-in'), 3000);
@@ -166,24 +145,6 @@ export default function ResetPasswordPage() {
               />
             </div>
           </div>
-
-          {needsMfa && (
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-foreground">رمز التحقق (Authenticator)</label>
-              <div className="relative">
-                <ShieldCheck className={`absolute ${isRtl ? 'left-3' : 'right-3'} top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground`} />
-                <input
-                  type="text"
-                  value={totpCode}
-                  onChange={(e) => setTotpCode(e.target.value)}
-                  placeholder="أدخل الرمز المكون من 6 أرقام"
-                  maxLength={6}
-                  className={`w-full ${isRtl ? 'pl-10 pr-4' : 'pr-10 pl-4'} py-3 bg-background border border-input rounded-xl text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-colors text-center tracking-widest font-mono`}
-                />
-              </div>
-            </div>
-          )}
-
 
           <button
             type="submit"

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
-import { Moon, Sun, Languages, LogOut, UserCircle, Menu, X, LayoutDashboard, Headset, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Moon, Sun, Languages, LogOut, UserCircle, Menu, X, LayoutDashboard, Headset, ChevronRight, ChevronLeft, Lock } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import type { Metadata } from 'next';
@@ -11,6 +11,8 @@ import { RequireAuth } from '@/components/RequireAuth';
 import { NotificationBell } from '@/components/NotificationBell';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase/client';
+import { DangerButton, CancelButton } from '@/components/ui/ActionButtons';
+import { ChangePasswordModal } from '@/components/ChangePasswordModal';
 import { NAV_ITEMS } from '@/lib/nav';
 import { STAFF_TYPE_LABELS, type UserType } from '@amana/shared-types';
 import { useTranslation } from 'react-i18next';
@@ -24,6 +26,7 @@ const NAV_I18N: Record<string, { ar: string; en: string; descAr?: string; descEn
   '/pricing':             { ar: 'التسعير',                    en: 'Pricing' },
   '/reports':             { ar: 'التقارير',                   en: 'Reports' },
   '/ratings':             { ar: 'التقييمات',                  en: 'Ratings', descAr: 'إدارة أسئلة التقييم ومتابعة التقييمات الواردة من التطبيقات', descEn: 'Manage rating questions and monitor incoming ratings' },
+  '/support':             { ar: 'الدعم الفني',                 en: 'Support', descAr: 'تذاكر الدعم الفني — استقبال الأسئلة والشكاوى من الركاب والسائقين', descEn: 'Support tickets — handle questions and complaints from riders and drivers' },
   '/groups':              { ar: 'مجموعات النقل المشتركة',    en: 'Shared Ride Groups', descAr: 'مجموعات تنسيق الرحلات بين الراكبات — للمراقبة والإشراف فقط', descEn: 'Ride coordination groups between passengers — for monitoring only' },
   '/notifications':       { ar: 'الإعلانات والتنبيهات العامة', en: 'Announcements & Alerts', descAr: 'إرسال رسائل تظهر داخل تطبيقي الراكبة والسائقة', descEn: 'Send messages that appear inside the passenger and driver apps' },
   '/staff':               { ar: 'فريق العمل',                 en: 'Staff' },
@@ -141,6 +144,8 @@ function Topbar({
   // قراءة user_type من ملف المستخدم مباشرةً (بدون جداول RBAC)
   const [userTypeLabel, setUserTypeLabel] = useState(t('app.adminRole', 'مسؤول'));
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [userRole, setUserRole] = useState<UserType | null>(null);
   const lang = i18n.language === 'ar' ? 'ar' : 'en';
 
   // إغلاق القائمة عند الضغط خارجها (أي مكان في الشاشة)
@@ -244,7 +249,6 @@ function Topbar({
 
           {menuOpen && (
             <div
-              dir="rtl"
               ref={menuRef}
               className="absolute end-0 top-full mt-2 w-64 rounded-xl bg-card border border-border shadow-xl z-50 animate-in fade-in zoom-in duration-200"
             >
@@ -274,9 +278,20 @@ function Topbar({
                   {t('nav.profile', 'الملف الشخصي')}
                 </Link>
 
-                <button className="w-full flex items-center gap-3 px-5 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
+                <Link href="/support" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-5 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
                   <Headset size={18} className="text-muted-foreground" />
                   {t('nav.support', 'الدعم الفني')}
+                </Link>
+
+                <button 
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setShowPasswordModal(true);
+                  }}
+                  className="w-full flex items-center gap-3 px-5 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                >
+                  <Lock size={18} className="text-muted-foreground" />
+                  {t('auth.changePassword', 'تغيير كلمة المرور')}
                 </button>
 
               </div>
@@ -301,9 +316,9 @@ function Topbar({
       {/* Logout Confirmation Modal */}
       {showLogoutModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4" dir={i18n.language === 'ar' ? 'rtl' : 'ltr'}>
-          <div className="bg-card w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden border border-border animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-card w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden border border-border animate-in fade-in zoom-in-95 duration-200">
             <div className="p-6 text-center">
-              <div className="mx-auto w-14 h-14 bg-destructive/10 text-destructive rounded-full flex items-center justify-center mb-5">
+              <div className="mx-auto w-14 h-14 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mb-5">
                 <LogOut size={28} />
               </div>
               <h3 className="text-xl font-bold text-foreground mb-2">
@@ -313,26 +328,27 @@ function Topbar({
                 {t('auth.logoutConfirm', 'هل أنت متأكد من تسجيل الخروج؟')}
               </p>
               <div className="flex items-center gap-3 w-full">
-                <button
-                  onClick={() => setShowLogoutModal(false)}
-                  className="flex-1 px-4 py-2.5 rounded-xl border border-border text-foreground font-medium hover:bg-muted transition-colors"
-                >
-                  {t('common.cancel', 'إلغاء')}
-                </button>
-                <button
+                <DangerButton
                   onClick={() => {
                     setShowLogoutModal(false);
                     supabase.auth.signOut();
                   }}
-                  className="flex-1 px-4 py-2.5 rounded-xl bg-destructive text-destructive-foreground font-medium hover:bg-destructive/90 transition-colors shadow-sm"
+                  fullWidth
                 >
                   {t('auth.logout', 'تسجيل خروج')}
-                </button>
+                </DangerButton>
+                <CancelButton onClick={() => setShowLogoutModal(false)} fullWidth />
               </div>
             </div>
           </div>
         </div>
       )}
+
+      {/* نافذة تغيير كلمة المرور */}
+      <ChangePasswordModal 
+        open={showPasswordModal}
+        onClose={() => setShowPasswordModal(false)}
+      />
     </header>
   );
 }
