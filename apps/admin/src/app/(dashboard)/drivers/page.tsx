@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Car, Check, X, ShieldCheck, Star, Ban, RotateCcw, Lock, Phone, Eye } from 'lucide-react';
+import { Car, Check, X, ShieldCheck, Star, Ban, RotateCcw, Lock, Phone, Eye, Users } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { listDrivers, type DriverRow } from '@/app/actions/admin';
 import { banUser, unbanUser, approveDriver, rejectDriver } from '@/app/actions/moderation';
 import { ActionDialog } from '@/components/ActionDialog';
@@ -16,14 +17,23 @@ import type { UserType } from '@amana/shared-types';
  * كل حركة تُسجَّل في audit_logs. هوية أنثراسايت + ذهبي، RTL، دعم الوضع الداكن.
  */
 
-const FILTERS = ['الكل', 'نشطة', 'قيد المراجعة', 'مرفوضة', 'محظورة'] as const;
-type Filter = (typeof FILTERS)[number];
+export default function DriversPage() {
+  const { t } = useTranslation();
+  
+  const FILTERS = [
+    t('drivers.filters.all', 'الكل'),
+    t('drivers.filters.active', 'نشطة'),
+    t('drivers.filters.pending', 'قيد المراجعة'),
+    t('drivers.filters.rejected', 'مرفوضة'),
+    t('drivers.filters.banned', 'محظورة')
+  ] as const;
+  type Filter = (typeof FILTERS)[number];
 
-const STATUS_LABELS: Record<string, string> = {
-  approved: 'نشطة',
-  pending: 'قيد المراجعة',
-  rejected: 'مرفوضة',
-};
+  const STATUS_LABELS: Record<string, string> = {
+    approved: t('drivers.filters.active', 'نشطة'),
+    pending: t('drivers.filters.pending', 'قيد المراجعة'),
+    rejected: t('drivers.filters.rejected', 'مرفوضة'),
+  };
 
 function StatusBadge({ label }: { label: string }) {
   const map: Record<string, string> = {
@@ -40,8 +50,6 @@ function StatusBadge({ label }: { label: string }) {
 
 type BanTarget = { row: DriverRow; mode: 'ban' | 'unban' };
 type KycTarget = { row: DriverRow; mode: 'approve' | 'reject' };
-
-export default function DriversPage() {
   const { user } = useAuth();
   const [active, setActive] = useState<Filter>('الكل');
   const [drivers, setDrivers] = useState<DriverRow[]>([]);
@@ -113,7 +121,7 @@ export default function DriversPage() {
         : await unbanUser(row.id, user?.id ?? null);
     setBusy(false);
     if (!res.success) { notify.error(res.error); return; }
-    notify.success(mode === 'ban' ? 'تم حظر الحساب' : 'تم رفع الحظر');
+    notify.success(mode === 'ban' ? t('moderation.banSuccess', 'تم حظر الحساب') : t('moderation.unbanSuccess', 'تم رفع الحظر'));
     setBanTarget(null);
     await reload();
   }
@@ -128,19 +136,20 @@ export default function DriversPage() {
         : await rejectDriver(row.id, user?.id ?? null, reason);
     setBusy(false);
     if (!res.success) { notify.error(res.error); return; }
-    notify.success(mode === 'approve' ? 'تم قبول السائقة' : 'تم رفض الطلب');
+    notify.success(mode === 'approve' ? t('drivers.kyc.approveSuccess', 'تم قبول السائقة') : t('drivers.kyc.rejectSuccess', 'تم رفض الطلب'));
     setKycTarget(null);
     await reload();
   }
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <h1 className="text-xl font-bold text-foreground">إدارة السائقات</h1>
-        <span className="text-muted-foreground font-light">/</span>
-        <p className="text-sm text-muted-foreground pt-1">
-          إدارة طلبات وسائقات المنصة
-        </p>
+      <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-center">
+        <h1 className="flex items-center gap-2 text-xl font-bold text-foreground">
+          <Car className="h-6 w-6 text-primary shrink-0" />
+          {t('drivers.title', 'إدارة السائقات')}
+          <span className="hidden text-muted-foreground/30 md:inline">/</span>
+          <span className="text-sm font-normal text-muted-foreground mt-0">{t('drivers.subtitle', 'إدارة طلبات وسائقات المنصة')}</span>
+        </h1>
       </div>
 
       {/* طلبات KYC معلّقة — بيانات حقيقية */}
@@ -149,7 +158,7 @@ export default function DriversPage() {
           <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15 text-primary">
             <ShieldCheck size={18} />
           </span>
-          <h2 className="font-semibold text-foreground">طلبات KYC معلّقة</h2>
+          <h2 className="font-semibold text-foreground">{t('drivers.kyc.pendingTitle', 'طلبات KYC معلّقة')}</h2>
           <span className="rounded-full bg-primary/15 px-2 py-0.5 text-xs font-medium text-primary">
             {pending.length}
           </span>
@@ -157,7 +166,7 @@ export default function DriversPage() {
 
         {pending.length === 0 ? (
           <p className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">
-            لا توجد طلبات قيد المراجعة حاليًا.
+            {t('drivers.kyc.noPending', 'لا توجد طلبات قيد المراجعة حاليًا.')}
           </p>
         ) : (
           <div className="space-y-3">
@@ -182,18 +191,18 @@ export default function DriversPage() {
                       className="flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700"
                     >
                       <Check size={16} />
-                      موافقة
+                      {t('drivers.kyc.approveBtn', 'موافقة')}
                     </button>
                     <button
                       onClick={() => setKycTarget({ row: d, mode: 'reject' })}
                       className="flex items-center gap-1 rounded-lg border border-destructive/30 px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
                     >
                       <X size={16} />
-                      رفض
+                      {t('drivers.kyc.rejectBtn', 'رفض')}
                     </button>
                   </div>
                 ) : (
-                  <span className="text-xs text-muted-foreground">عرض فقط</span>
+                  <span className="text-xs text-muted-foreground">{t('common.viewOnly', 'عرض فقط')}</span>
                 )}
               </div>
             ))}
@@ -224,24 +233,24 @@ export default function DriversPage() {
           <table className="w-full text-right text-sm">
             <thead className="bg-muted/50 text-muted-foreground">
               <tr>
-                <th className="px-5 py-3 font-medium">الاسم</th>
-                <th className="px-5 py-3 font-medium">الجوال</th>
-                <th className="px-5 py-3 font-medium">المركبة</th>
-                <th className="px-5 py-3 font-medium">الحالة</th>
-                <th className="px-5 py-3 font-medium">إجراءات</th>
+                <th className="px-5 py-3 font-medium">{t('drivers.table.name', 'الاسم')}</th>
+                <th className="px-5 py-3 font-medium">{t('drivers.table.phone', 'الجوال')}</th>
+                <th className="px-5 py-3 font-medium">{t('drivers.table.vehicle', 'المركبة')}</th>
+                <th className="px-5 py-3 font-medium">{t('drivers.table.status', 'الحالة')}</th>
+                <th className="px-5 py-3 font-medium">{t('drivers.table.actions', 'إجراءات')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {loading ? (
                 <tr>
                   <td colSpan={5} className="px-5 py-8 text-center text-muted-foreground">
-                    جارٍ التحميل…
+                    {t('common.loading', 'جارٍ التحميل…')}
                   </td>
                 </tr>
               ) : rows.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-5 py-8 text-center text-muted-foreground">
-                    لا توجد بيانات
+                    {t('common.noData', 'لا توجد بيانات')}
                   </td>
                 </tr>
               ) : (
@@ -268,7 +277,7 @@ export default function DriversPage() {
                             className="rounded-full bg-destructive/10 px-2.5 py-0.5 text-xs font-medium text-destructive"
                             title={d.banReason ?? undefined}
                           >
-                            محظورة
+                            {t('drivers.status.banned', 'محظورة')}
                           </span>
                         )}
                       </div>
@@ -277,28 +286,28 @@ export default function DriversPage() {
                       <div className="flex items-center gap-1.5">
                         <button
                           onClick={() => setDetailsId(d.id)}
-                          title="عرض التفاصيل"
+                          title={t('common.viewDetails', 'عرض التفاصيل')}
                           className="inline-flex items-center justify-center rounded-lg border border-border p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-primary"
                         >
                           <Eye size={15} />
                         </button>
                         {!canManage ? null : d.isProtected ? (
                           <span className="inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 font-medium">
-                            <Lock size={13} /> محمي
+                            <Lock size={13} /> {t('common.protected', 'محمي')}
                           </span>
                         ) : d.isActive ? (
                           <button
                             onClick={() => setBanTarget({ row: d, mode: 'ban' })}
                             className="inline-flex items-center gap-1 rounded-lg border border-destructive/30 px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10"
                           >
-                            <Ban size={14} /> حظر
+                            <Ban size={14} /> {t('drivers.actions.ban', 'حظر')}
                           </button>
                         ) : (
                           <button
                             onClick={() => setBanTarget({ row: d, mode: 'unban' })}
                             className="inline-flex items-center gap-1 rounded-lg border border-emerald-500/30 px-3 py-1.5 text-xs font-medium text-emerald-600 transition-colors hover:bg-emerald-500/10"
                           >
-                            <RotateCcw size={14} /> رفع الحظر
+                            <RotateCcw size={14} /> {t('drivers.actions.unban', 'رفع الحظر')}
                           </button>
                         )}
                       </div>
@@ -314,19 +323,19 @@ export default function DriversPage() {
       {/* حوار الحظر / رفع الحظر */}
       <ActionDialog
         open={!!banTarget}
-        title={banTarget?.mode === 'ban' ? 'حظر السائقة' : 'رفع الحظر'}
+        title={banTarget?.mode === 'ban' ? t('drivers.ban.title', 'حظر السائقة') : t('drivers.unban.title', 'رفع الحظر')}
         variant={banTarget?.mode === 'ban' ? 'danger' : 'primary'}
         targetName={banTarget?.row.fullName}
         actorName={actorName}
         requireReason={banTarget?.mode === 'ban'}
-        reasonLabel="سبب الحظر"
-        reasonPlaceholder="مثال: مخالفة شروط الاستخدام…"
+        reasonLabel={t('drivers.ban.reasonLabel', 'سبب الحظر')}
+        reasonPlaceholder={t('drivers.ban.reasonPlaceholder', 'مثال: مخالفة شروط الاستخدام…')}
         description={
           banTarget?.mode === 'unban' ? (
-            <>هل تريد رفع الحظر عن <strong>{banTarget?.row.fullName ?? 'هذا الحساب'}</strong> وإعادة تفعيله؟</>
+            <>{t('drivers.unban.confirmDesc', 'هل تريد رفع الحظر عن ')}<strong>{banTarget?.row.fullName ?? t('drivers.unban.thisAccount', 'هذا الحساب')}</strong>{t('drivers.unban.confirmDescSuffix', ' وإعادة تفعيله؟')}</>
           ) : undefined
         }
-        confirmLabel={banTarget?.mode === 'ban' ? 'تأكيد الحظر' : 'رفع الحظر'}
+        confirmLabel={banTarget?.mode === 'ban' ? t('drivers.ban.confirmBtn', 'تأكيد الحظر') : t('drivers.unban.confirmBtn', 'رفع الحظر')}
         loading={busy}
         onConfirm={doBan}
         onClose={() => setBanTarget(null)}
@@ -335,19 +344,19 @@ export default function DriversPage() {
       {/* حوار قبول / رفض KYC */}
       <ActionDialog
         open={!!kycTarget}
-        title={kycTarget?.mode === 'approve' ? 'قبول السائقة' : 'رفض طلب KYC'}
+        title={kycTarget?.mode === 'approve' ? t('drivers.kyc.approveTitle', 'قبول السائقة') : t('drivers.kyc.rejectTitle', 'رفض طلب KYC')}
         variant={kycTarget?.mode === 'approve' ? 'primary' : 'danger'}
         targetName={kycTarget?.row.fullName}
         actorName={actorName}
         requireReason={kycTarget?.mode === 'reject'}
-        reasonLabel="سبب الرفض"
-        reasonPlaceholder="مثال: المستندات غير واضحة…"
+        reasonLabel={t('drivers.kyc.rejectReasonLabel', 'سبب الرفض')}
+        reasonPlaceholder={t('drivers.kyc.rejectReasonPlaceholder', 'مثال: المستندات غير واضحة…')}
         description={
           kycTarget?.mode === 'approve' ? (
-            <>هل تريد قبول <strong>{kycTarget?.row.fullName ?? 'هذه السائقة'}</strong> وتفعيل حسابها؟</>
+            <>{t('drivers.kyc.approveConfirmDesc', 'هل تريد قبول ')}<strong>{kycTarget?.row.fullName ?? t('drivers.kyc.thisDriver', 'هذه السائقة')}</strong>{t('drivers.kyc.approveConfirmDescSuffix', ' وتفعيل حسابها؟')}</>
           ) : undefined
         }
-        confirmLabel={kycTarget?.mode === 'approve' ? 'قبول' : 'تأكيد الرفض'}
+        confirmLabel={kycTarget?.mode === 'approve' ? t('drivers.kyc.approveConfirmBtn', 'قبول') : t('drivers.kyc.rejectConfirmBtn', 'تأكيد الرفض')}
         loading={busy}
         onConfirm={doKyc}
         onClose={() => setKycTarget(null)}

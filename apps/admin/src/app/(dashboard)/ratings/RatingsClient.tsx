@@ -7,6 +7,7 @@ import {
   ToggleLeft, ToggleRight, MessageSquareQuote, Smartphone, Check,
   BarChart3, AlertTriangle, CalendarClock,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { can, type UserType } from '@amana/shared-types';
 import {
   listRatingQuestions,
@@ -60,7 +61,7 @@ function Stars({ value }: { value: number }) {
 
 function fmtDate(value: string | null | undefined, withTime = false): string {
   if (!value) return '—';
-  return new Date(value).toLocaleString('ar-SA', {
+  return new Date(value).toLocaleString('en-GB', {
     dateStyle: 'medium',
     ...(withTime ? { timeStyle: 'short' as const } : {}),
   });
@@ -127,6 +128,7 @@ export default function RatingsClient({
   overview: RatingsOverview;
   migrationNeeded: boolean;
 }) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const router = useRouter();
   const [questions, setQuestions] = useState(initialQuestions);
@@ -243,11 +245,10 @@ export default function RatingsClient({
         <div>
           <h1 className="flex items-center gap-2 text-xl font-bold text-foreground">
             <Star className="h-6 w-6 text-primary shrink-0" />
-            التقييمات
+            {t('ratings.title', 'التقييمات')}
+            <span className="hidden text-muted-foreground/30 md:inline">/</span>
+            <span className="text-sm font-normal text-muted-foreground mt-0">{t('ratings.subtitle', 'تقرير مؤشرات، إدارة أسئلة التقييم، ومتابعة آخر التقييمات الواردة.')}</span>
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            تقرير مؤشرات، إدارة أسئلة التقييم، ومتابعة آخر التقييمات الواردة.
-          </p>
         </div>
         {canManage && !migrationNeeded && (
           <button
@@ -294,7 +295,7 @@ export default function RatingsClient({
         <KpiCard icon={MessageSquareQuote} label="إجابات الأسئلة" value={`${overview.totalAnswers}`} />
         <KpiCard
           icon={AlertTriangle}
-          label="تقييمات منخفضة (١–٢ ⭐)"
+          label="تقييمات منخفضة (1–2 ⭐)"
           value={`${overview.lowStarsCount}`}
           hint={overview.lowStarsCount > 0 ? 'تستحق المراجعة' : undefined}
           tone={overview.lowStarsCount > 0 ? 'warning' : 'default'}
@@ -314,13 +315,13 @@ export default function RatingsClient({
           <table className="w-full text-right text-sm">
             <thead className="bg-muted/50 text-muted-foreground">
               <tr>
-                <th className="px-5 py-3 font-medium">السؤال</th>
-                <th className="px-5 py-3 font-medium">الوجهة</th>
-                <th className="px-5 py-3 font-medium">الإجابات</th>
-                <th className="px-5 py-3 font-medium">المتوسط</th>
-                <th className="px-5 py-3 font-medium">آخر إجابة</th>
-                <th className="px-5 py-3 font-medium">الحالة</th>
-                <th className="px-5 py-3 font-medium text-center">إجراءات</th>
+                <th className="px-5 py-3 font-medium">{t('ratings.table.question', 'السؤال')}</th>
+                <th className="px-5 py-3 font-medium">{t('ratings.table.target', 'الوجهة')}</th>
+                <th className="px-5 py-3 font-medium">{t('ratings.table.answers', 'الإجابات')}</th>
+                <th className="px-5 py-3 font-medium">{t('ratings.table.average', 'المتوسط')}</th>
+                <th className="px-5 py-3 font-medium">{t('ratings.table.lastAnswer', 'آخر إجابة')}</th>
+                <th className="px-5 py-3 font-medium">{t('ratings.table.status', 'الحالة')}</th>
+                <th className="px-5 py-3 font-medium text-center">{t('ratings.table.actions', 'إجراءات')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">

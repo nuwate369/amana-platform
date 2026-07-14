@@ -144,7 +144,7 @@ export async function createRatingQuestion(
   input: { question: string; target: QuestionTarget; sortOrder: number },
 ): Promise<ActionResult> {
   const question = (input.question ?? '').trim();
-  if (question.length < 3) return { success: false, error: 'نص السؤال قصير جدًا (٣ أحرف على الأقل).' };
+  if (question.length < 3) return { success: false, error: 'نص السؤال قصير جدًا (3 أحرف على الأقل).' };
   if (input.target !== 'driver' && input.target !== 'passenger') {
     return { success: false, error: 'وجهة السؤال غير صحيحة.' };
   }
@@ -184,7 +184,7 @@ export async function updateRatingQuestion(
   input: { question: string; target: QuestionTarget; sortOrder: number; isActive: boolean },
 ): Promise<ActionResult> {
   const question = (input.question ?? '').trim();
-  if (question.length < 3) return { success: false, error: 'نص السؤال قصير جدًا (٣ أحرف على الأقل).' };
+  if (question.length < 3) return { success: false, error: 'نص السؤال قصير جدًا (3 أحرف على الأقل).' };
 
   const db = getAdminSupabase();
 

@@ -11,6 +11,7 @@ import {
   UserCog,
   ScrollText,
   Star,
+  Settings,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -35,5 +36,6 @@ export const NAV_ITEMS: NavItem[] = [
   { href: '/notifications',       label: 'الإعلانات والتنبيهات العامة',  icon: Radio,          description: 'إرسال رسائل تظهر داخل تطبيقي الراكبة والسائقة' },
   { href: '/staff',               label: 'فريق العمل',                   icon: UserCog         },
   { href: '/audit-log',           label: 'سجل الحركات',                  icon: ScrollText,     description: 'سجلّ زمني لكل إجراء حسّاس على النظام — للمدير العام والمدير' },
+  { href: '/notification-settings', label: 'إعدادات التنبيهات',           icon: Settings,       description: 'تخصيص كيفية وصول الإشعارات للموظفين' },
   { href: '/system-notifications',label: 'الإشعارات',                     icon: Bell            },
 ];

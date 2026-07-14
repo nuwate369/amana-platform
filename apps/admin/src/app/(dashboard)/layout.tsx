@@ -28,6 +28,7 @@ const NAV_I18N: Record<string, { ar: string; en: string; descAr?: string; descEn
   '/notifications':       { ar: 'الإعلانات والتنبيهات العامة', en: 'Announcements & Alerts', descAr: 'إرسال رسائل تظهر داخل تطبيقي الراكبة والسائقة', descEn: 'Send messages that appear inside the passenger and driver apps' },
   '/staff':               { ar: 'فريق العمل',                 en: 'Staff' },
   '/audit-log':           { ar: 'سجل الحركات',                en: 'Audit Log', descAr: 'سجلّ زمني لكل إجراء حسّاس على النظام — للمدير العام والمدير', descEn: 'Chronological log of every sensitive action — for super admin and admin' },
+  '/notification-settings': { ar: 'إعدادات التنبيهات',         en: 'Notification Settings', descAr: 'تخصيص كيفية وصول الإشعارات للموظفين', descEn: 'Customize how notifications reach staff' },
   '/system-notifications':{ ar: 'الإشعارات',                   en: 'Notifications' },
 };
 
@@ -66,7 +67,6 @@ function Sidebar({ isOpen, onClose, isCollapsed }: { isOpen: boolean, onClose: (
                 <Image src="/logo.png" alt="Amana Logo" fill className="object-contain" />
               </div>
               <span className="text-xl font-bold text-primary">{t('app.passenger', 'أمانة')}</span>
-              <span className="text-xs text-muted-foreground">{t('app.adminPanel', 'لوحة الإدارة')}</span>
             </div>
           ) : (
             <div className="flex items-center justify-center">
@@ -140,6 +140,8 @@ function Topbar({
   const { t, i18n } = useTranslation();
   // قراءة user_type من ملف المستخدم مباشرةً (بدون جداول RBAC)
   const [userTypeLabel, setUserTypeLabel] = useState(t('app.adminRole', 'مسؤول'));
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const lang = i18n.language === 'ar' ? 'ar' : 'en';
 
   // إغلاق القائمة عند الضغط خارجها (أي مكان في الشاشة)
   useEffect(() => {
@@ -204,10 +206,15 @@ function Topbar({
         <div className="flex items-center gap-1 md:gap-2">
           <button
             onClick={toggleLang}
-            className="rounded-lg p-2 text-muted-foreground hover:bg-muted transition-colors"
+            className="flex items-center justify-center w-9 h-9 rounded-lg hover:bg-muted transition-colors"
             aria-label="تبديل اللغة"
+            title={i18n.language === 'ar' ? 'Switch to English' : 'التبديل للعربية'}
           >
-            <Languages size={18} />
+            <img 
+              src={i18n.language === 'ar' ? 'https://flagcdn.com/gb.svg' : 'https://flagcdn.com/sa.svg'} 
+              alt={i18n.language === 'ar' ? 'English' : 'العربية'}
+              className="w-5 h-auto rounded-[2px] shadow-sm"
+            />
           </button>
           <button
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
@@ -277,10 +284,8 @@ function Topbar({
               <div className="border-t border-border py-2">
                 <button 
                   onClick={() => { 
-                    if (window.confirm(t('auth.logoutConfirm', 'هل أنت متأكد من تسجيل الخروج؟'))) {
-                      setMenuOpen(false); 
-                      supabase.auth.signOut(); 
-                    }
+                    setMenuOpen(false);
+                    setShowLogoutModal(true);
                   }} 
                   className="w-full flex items-center gap-3 px-5 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                 >
@@ -292,6 +297,42 @@ function Topbar({
           )}
         </div>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4" dir={i18n.language === 'ar' ? 'rtl' : 'ltr'}>
+          <div className="bg-card w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden border border-border animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-6 text-center">
+              <div className="mx-auto w-14 h-14 bg-destructive/10 text-destructive rounded-full flex items-center justify-center mb-5">
+                <LogOut size={28} />
+              </div>
+              <h3 className="text-xl font-bold text-foreground mb-2">
+                {t('auth.logout', 'تسجيل خروج')}
+              </h3>
+              <p className="text-sm text-muted-foreground mb-8">
+                {t('auth.logoutConfirm', 'هل أنت متأكد من تسجيل الخروج؟')}
+              </p>
+              <div className="flex items-center gap-3 w-full">
+                <button
+                  onClick={() => setShowLogoutModal(false)}
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-border text-foreground font-medium hover:bg-muted transition-colors"
+                >
+                  {t('common.cancel', 'إلغاء')}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowLogoutModal(false);
+                    supabase.auth.signOut();
+                  }}
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-destructive text-destructive-foreground font-medium hover:bg-destructive/90 transition-colors shadow-sm"
+                >
+                  {t('auth.logout', 'تسجيل خروج')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

@@ -23,6 +23,7 @@ export type AuditActionType =
   | 'invite_staff'
   | 'edit_staff'
   | 'toggle_staff'
+  | 'change_status'
   | 'resend_invite'
   | 'delete_staff'
   | 'create_rating_question'
@@ -110,7 +111,7 @@ export async function banUser(
 ): Promise<ActionResult> {
   const trimmed = (reason ?? '').trim();
   if (trimmed.length < 3) {
-    return { success: false, error: 'يجب ذكر سبب الحظر (٣ أحرف على الأقل).' };
+    return { success: false, error: 'يجب ذكر سبب الحظر (3 أحرف على الأقل).' };
   }
 
   try {
@@ -221,7 +222,7 @@ export async function rejectDriver(
 ): Promise<ActionResult> {
   const trimmed = (reason ?? '').trim();
   if (trimmed.length < 3) {
-    return { success: false, error: 'يجب ذكر سبب الرفض (٣ أحرف على الأقل).' };
+    return { success: false, error: 'يجب ذكر سبب الرفض (3 أحرف على الأقل).' };
   }
   try {
     const target = await getTarget(driverId);

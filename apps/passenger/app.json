@@ -7,7 +7,9 @@
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "icon": "./assets/images/logo.png",
     "splash": {
+      "image": "./assets/images/logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#3f2065"
     },
@@ -18,6 +20,7 @@
     "android": {
       "package": "sa.amana.passenger",
       "adaptiveIcon": {
+        "foregroundImage": "./assets/images/logo.png",
         "backgroundColor": "#3f2065"
       }
     },

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Car, Users, Navigation, Wallet } from 'lucide-react';
+import { Car, Users, Navigation, Wallet, LayoutDashboard } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { getDashboardStats, type DashboardStats } from '@/app/actions/admin';
 import { useTranslation } from 'react-i18next';
@@ -88,17 +88,21 @@ export default function DashboardPage() {
   }, []);
 
   const dash = '…';
-  const totalRides = loading || !stats ? dash : stats.totalRides.toLocaleString('ar-SA');
-  const activeDrivers = loading || !stats ? dash : stats.activeDrivers.toLocaleString('ar-SA');
-  const passengers = loading || !stats ? dash : stats.passengers.toLocaleString('ar-SA');
-  const revenue = loading || !stats ? dash : `${stats.revenue.toLocaleString('ar-SA')} ﷼`;
-  const pendingKyc = loading || !stats ? dash : stats.pendingKyc.toLocaleString('ar-SA');
+  const totalRides = loading || !stats ? dash : stats.totalRides.toLocaleString('en-US');
+  const activeDrivers = loading || !stats ? dash : stats.activeDrivers.toLocaleString('en-US');
+  const passengers = loading || !stats ? dash : stats.passengers.toLocaleString('en-US');
+  const revenue = loading || !stats ? dash : `${stats.revenue.toLocaleString('en-US')} ﷼`;
+  const pendingKyc = loading || !stats ? dash : stats.pendingKyc.toLocaleString('en-US');
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-bold text-foreground">{t('nav.dashboard', 'لوحة المعلومات')}</h1>
-        <p className="text-sm text-muted-foreground">{t('dashboard.overview', 'نظرة عامة على أداء المنصّة اليوم')}</p>
+      <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-center">
+        <h1 className="flex items-center gap-2 text-xl font-bold text-foreground">
+          <LayoutDashboard className="h-6 w-6 text-primary shrink-0" />
+          {t('nav.dashboard', 'لوحة المعلومات')}
+          <span className="hidden text-muted-foreground/30 md:inline">/</span>
+          <span className="text-sm font-normal text-muted-foreground">{t('dashboard.overview', 'نظرة عامة على أداء المنصّة اليوم')}</span>
+        </h1>
       </div>
 
       {/* بطاقات المؤشرات */}
@@ -140,15 +144,15 @@ export default function DashboardPage() {
             {/* TODO: بيانات حقيقية */}
             <li className="flex justify-between">
               <span className="text-muted-foreground">{t('dashboard.emergencyReports', 'بلاغات طوارئ اليوم')}</span>
-              <span className="font-semibold text-foreground">٠</span>
+              <span className="font-semibold text-foreground">0</span>
             </li>
             <li className="flex justify-between">
               <span className="text-muted-foreground">{t('dashboard.averageRating', 'متوسط التقييم')}</span>
-              <span className="font-semibold text-foreground">٤.٩</span>
+              <span className="font-semibold text-foreground">4.9</span>
             </li>
             <li className="flex justify-between">
               <span className="text-muted-foreground">{t('dashboard.activeGroups', 'مجموعات نشطة')}</span>
-              <span className="font-semibold text-foreground">١٨</span>
+              <span className="font-semibold text-foreground">18</span>
             </li>
           </ul>
         </div>

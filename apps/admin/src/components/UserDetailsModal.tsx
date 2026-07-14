@@ -35,7 +35,7 @@ const KYC_STATUS_LABELS: Record<string, { label: string; className: string }> = 
 
 function fmtDate(value: string | null | undefined, withTime = false): string {
   if (!value) return '—';
-  return new Date(value).toLocaleString('ar-SA', {
+  return new Date(value).toLocaleString('en-GB', {
     dateStyle: 'medium',
     ...(withTime ? { timeStyle: 'short' as const } : {}),
   });
@@ -186,16 +186,46 @@ export function UserDetailsModal({ userId, kind, onClose }: UserDetailsModalProp
                       {details.fullName?.trim()?.charAt(0) || <User size={18} />}
                     </span>
                     <div>
-                      <p className="font-semibold text-foreground flex items-center gap-1.5">
+                      <p className="font-semibold text-foreground flex items-center gap-1.5 flex-wrap">
                         {details.isProtected && <Lock size={13} className="text-amber-500" />}
                         {details.fullName ?? '—'}
+                        {details.isActive ? (
+                          <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                            {isStaff ? 'نشط' : 'نشطة'}
+                          </span>
+                        ) : (
+                          <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-bold text-destructive">
+                            {isStaff ? 'معطّل' : 'محظورة'}
+                          </span>
+                        )}
+                        {kyc && (
+                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${kyc.className}`}>
+                            {kyc.label}
+                          </span>
+                        )}
                       </p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-muted-foreground mt-0.5">
                         {meta.sinceLabel} منذ {fmtDate(details.createdAt)}
                       </p>
+                      {!isStaff && (
+                        details.stats.avgRating !== null ? (
+                          <p className="flex items-center gap-1 text-sm font-bold text-foreground mt-1.5 w-fit">
+                            {details.stats.avgRating}
+                            <Star size={13} className="fill-primary text-primary" />
+                            <span className="text-xs font-normal text-muted-foreground mr-1">
+                              ({details.stats.ratingsCount} تقييم)
+                            </span>
+                          </p>
+                        ) : (
+                          <p className="flex items-center gap-1 text-xs font-medium text-muted-foreground mt-1.5 w-fit">
+                            <Star size={12} className="text-muted-foreground/50" />
+                            لا توجد تقييمات بعد
+                          </p>
+                        )
+                      )}
                     </div>
                   </div>
-                  <div className="pt-2 border-t border-border space-y-2.5">
+                  <div className="pt-3 mt-1 border-t border-border space-y-2.5">
                     {roleBadge && details.userType && (
                       <div className="flex items-center justify-between gap-3 text-sm">
                         <span className="flex items-center gap-1.5 text-muted-foreground">
@@ -211,7 +241,6 @@ export function UserDetailsModal({ userId, kind, onClose }: UserDetailsModalProp
                     <InfoRow icon={Mail} label="البريد" value={details.email ?? '—'} />
                     {isStaff ? (
                       <>
-                        <InfoRow icon={Clock} label="آخر دخول" value={fmtDate(details.lastSignInAt, true)} />
                         <InfoRow icon={ScrollText} label="حركات مسجّلة" value={`${details.stats.auditTotal}`} />
                       </>
                     ) : (
@@ -222,15 +251,6 @@ export function UserDetailsModal({ userId, kind, onClose }: UserDetailsModalProp
                           label={kind === 'driver' ? 'إجمالي الأرباح' : 'إجمالي الإنفاق'}
                           value={`${details.stats.amountTotal.toFixed(2)} SAR`}
                         />
-                        <InfoRow
-                          icon={Star}
-                          label="التقييم"
-                          value={
-                            details.stats.avgRating !== null
-                              ? `${details.stats.avgRating} (${details.stats.ratingsCount} تقييم)`
-                              : 'لا يوجد بعد'
-                          }
-                        />
                       </>
                     )}
                   </div>
@@ -238,6 +258,7 @@ export function UserDetailsModal({ userId, kind, onClose }: UserDetailsModalProp
 
                 <AsideCard title="التواريخ">
                   <InfoRow icon={Calendar} label="تاريخ الانضمام" value={fmtDate(details.createdAt, true)} />
+                  <InfoRow icon={Clock} label="آخر دخول" value={fmtDate(details.lastSignInAt, true)} />
                   {details.bannedAt && (
                     <InfoRow icon={Ban} label={isStaff ? 'تاريخ التعطيل' : 'تاريخ الحظر'} value={fmtDate(details.bannedAt, true)} />
                   )}
@@ -265,67 +286,6 @@ export function UserDetailsModal({ userId, kind, onClose }: UserDetailsModalProp
 
               {/* ===== التفاصيل (يسار في RTL) ===== */}
               <main className="flex-1 space-y-4 min-w-0">
-                {/* بطاقة الرأس — على نمط رأس الفاتورة */}
-                <div className="rounded-xl border border-border bg-card p-5">
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/15 text-primary">
-                        <HeadIcon size={20} />
-                      </span>
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="font-bold text-foreground">{details.fullName ?? '—'}</p>
-                          {details.isActive ? (
-                            <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                              {isStaff ? 'نشط' : 'نشطة'}
-                            </span>
-                          ) : (
-                            <span className="rounded-full bg-destructive/10 px-2.5 py-0.5 text-xs font-medium text-destructive">
-                              {isStaff ? 'معطّل' : 'محظورة'}
-                            </span>
-                          )}
-                          {kyc && (
-                            <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${kyc.className}`}>
-                              {kyc.label}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-0.5 font-mono" dir="ltr">
-                          {details.id}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-left">
-                      {isStaff ? (
-                        <>
-                          <p className="text-2xl font-bold text-primary">
-                            {details.stats.auditTotal}
-                            <span className="text-sm font-medium text-muted-foreground"> حركة</span>
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            آخر دخول: {fmtDate(details.lastSignInAt, true)}
-                          </p>
-                        </>
-                      ) : (
-                        <>
-                          <p className="text-2xl font-bold text-primary">
-                            {details.stats.amountTotal.toFixed(2)}
-                            <span className="text-sm font-medium text-muted-foreground"> SAR</span>
-                          </p>
-                          <p className="flex items-center justify-end gap-1 text-xs text-muted-foreground">
-                            {details.stats.avgRating !== null && (
-                              <>
-                                <Star size={12} className="text-primary" />
-                                {details.stats.avgRating} ·
-                              </>
-                            )}
-                            {details.stats.ridesCompleted} رحلة مكتملة
-                          </p>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
 
                 {/* المركبة والمستندات — للسائقة فقط */}
                 {details.driver && (

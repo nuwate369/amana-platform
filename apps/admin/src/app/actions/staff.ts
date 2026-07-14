@@ -3,7 +3,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { revalidatePath } from 'next/cache';
 import { inviteStaffSchema } from '@amana/shared-ui/validation';
-import type { UserType } from '@amana/shared-types';
+import type { UserType, UserStatus } from '@amana/shared-types';
 import { logAudit } from '@/app/actions/moderation';
 
 const supabaseAdmin = createClient(
@@ -14,7 +14,6 @@ const supabaseAdmin = createClient(
 /**
  * حسابات محمية بشكل دائم — لا يمكن حذفها أو تعديلها أو تعطيلها أو إعادة إرسال دعوتها.
  * هذه القائمة تُفحص قبل أي إجراء على القاعدة ولا تعتمد على عمود is_protected فقط.
- * أضف أي حسابsuper-admin هنا عند الحاجة.
  */
 const PROTECTED_IDS = new Set([
   '4acfc35f-a2e1-4da5-bab4-df5e42f2adad', // nuwate369@gmail.com — المدير الرئيسي
@@ -27,16 +26,15 @@ export interface StaffRow {
   email: string;
   phone: string | null;
   userType: UserType;
+  status: UserStatus;
   isProtected: boolean;
-  isActive: boolean;
-  inviteStatus: 'pending' | 'active' | 'inactive';
   createdAt: string;
 }
 
 type SchemaInfo = {
   typeCol: 'user_type' | 'role';
   hasProtected: boolean;
-  hasActive: boolean;
+  hasStatus: boolean;
   staffValues: string[];
 };
 
@@ -52,18 +50,16 @@ async function detectSchema(): Promise<SchemaInfo> {
     .from('profiles').select('is_protected').limit(1);
   const hasProtected = eProt?.code !== '42703';
 
-  const { error: eActive } = await supabaseAdmin
-    .from('profiles').select('is_active').limit(1);
-  const hasActive = eActive?.code !== '42703';
+  const { error: eStatus } = await supabaseAdmin
+    .from('profiles').select('status').limit(1);
+  const hasStatus = eStatus?.code !== '42703';
 
   const staffValues = typeCol === 'user_type'
     ? ['super_admin', 'admin', 'support']
     : ['admin'];
 
-  const info: SchemaInfo = { typeCol, hasProtected, hasActive, staffValues };
-  // لا نخزّن في الكاش إلا المخطط المكتمل — وإلا علِقت نتيجة «ما قبل الهجرة»
-  // في ذاكرة الخادم وعطّلت التفعيل/التعطيل بصمت بعد تطبيق الهجرة.
-  if (typeCol === 'user_type' && hasProtected && hasActive) _schema = info;
+  const info: SchemaInfo = { typeCol, hasProtected, hasStatus, staffValues };
+  if (typeCol === 'user_type' && hasProtected && hasStatus) _schema = info;
   return info;
 }
 
@@ -95,18 +91,27 @@ function translateSupabaseError(message: string): string {
 
 /**
  * فحص الحماية: hardcoded ID أو عمود is_protected في القاعدة.
- * يُستخدم كخط دفاع أول قبل أي تعديل/حذف/تعطيل.
  */
 function isProtectedAccount(userId: string, dbIsProtected?: boolean): boolean {
   return PROTECTED_IDS.has(userId) || !!dbIsProtected;
 }
 
-function deriveInviteStatus(
+/**
+ * تحويل حالة DB إلى UserStatus.
+ * متوافق مع القاعدة القديمة (بدون status) والجديدة (مع status).
+ */
+function resolveStatus(
+  dbStatus: string | null | undefined,
   authUser: { invited_at?: string; last_sign_in_at?: string } | undefined,
   isActive: boolean,
-): 'pending' | 'active' | 'inactive' {
-  if (!isActive) return 'inactive';
-  if (authUser?.invited_at && !authUser?.last_sign_in_at) return 'pending';
+): UserStatus {
+  // إذا كان العمود status موجوداً في القاعدة
+  if (dbStatus && ['pending_approval', 'pending_invite', 'active', 'suspended', 'disabled'].includes(dbStatus)) {
+    return dbStatus as UserStatus;
+  }
+  // fallback للقاعدة القديمة
+  if (!isActive) return 'disabled';
+  if (authUser?.invited_at && !authUser?.last_sign_in_at) return 'pending_invite';
   return 'active';
 }
 
@@ -118,16 +123,15 @@ function mapRow(
   const auth = authMap.get(p.id);
   const dbIsProtected = schema.hasProtected ? !!p.is_protected : false;
   const isProtected = isProtectedAccount(p.id, dbIsProtected);
-  const isActive = schema.hasActive ? !!p.is_active : true;
+  const dbStatus = schema.hasStatus ? p.status : null;
   return {
     id: p.id,
     name: p.full_name || '—',
     email: auth?.email ?? '',
     phone: p.phone ?? null,
     userType: (p[schema.typeCol] || 'admin') as UserType,
+    status: resolveStatus(dbStatus, auth, true),
     isProtected,
-    isActive,
-    inviteStatus: deriveInviteStatus(auth, isActive),
     createdAt: p.created_at,
   };
 }
@@ -139,7 +143,7 @@ export async function listStaff(): Promise<StaffRow[]> {
   const schema = await detectSchema();
   const cols = ['id', 'full_name', 'phone', schema.typeCol, 'created_at'];
   if (schema.hasProtected) cols.push('is_protected');
-  if (schema.hasActive) cols.push('is_active');
+  if (schema.hasStatus) cols.push('status');
 
   const [{ data: profiles, error: profileErr }, { data: authList, error: authErr }] = await Promise.all([
     supabaseAdmin
@@ -161,8 +165,6 @@ export async function listStaff(): Promise<StaffRow[]> {
 
 /**
  * دعوة موظف جديد — الاسم + البريد + الجوال (اختياري) + الدور.
- * الدور يُثبَّت لحظة الإنشاء ولا يتغيّر بعدها (مُشغّل قاعدة البيانات يمنع ذلك).
- * تُسجَّل الحركة في audit_logs باسم المنفِّذ.
  */
 export async function inviteStaffUser(
   actorId: string | null,
@@ -174,7 +176,7 @@ export async function inviteStaffUser(
   const schema = await detectSchema();
 
   try {
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3002';
     const { data, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
       parsed.data.email,
       {
@@ -193,7 +195,7 @@ export async function inviteStaffUser(
     if (parsed.data.phone) payload.phone = parsed.data.phone;
     payload[schema.typeCol] = parsed.data.userType;
     if (schema.hasProtected) payload.is_protected = false;
-    if (schema.hasActive) payload.is_active = true;
+    if (schema.hasStatus) payload.status = 'pending_invite';
 
     await supabaseAdmin.from('profiles').upsert(payload);
 
@@ -215,8 +217,6 @@ export async function inviteStaffUser(
 
 /**
  * تعديل بيانات موظف (الاسم + الجوال + الدور).
- * تغيير الدور مسموح بين أدوار الموظفين فقط (يفرضه مُشغّل القاعدة بعد هجرة 0015
- * ولا يمرّ إلا عبر service_role). يرفض الحسابات المحمية. تُسجَّل الحركة في audit_logs.
  */
 export async function editStaffUser(
   actorId: string | null,
@@ -227,17 +227,15 @@ export async function editStaffUser(
 ) {
   const schema = await detectSchema();
 
-  // تحقّق مبكر: الدور الجديد ضمن أدوار الموظفين فقط
   if (userType && !schema.staffValues.includes(userType)) {
     return { success: false, error: 'الدور المحدد غير صحيح.' };
   }
 
   try {
-    // حماية: فحص القائمة المحمية أولاً (حتى لو العمود غير موجود في القاعدة)
     if (isProtectedAccount(userId)) {
       return { success: false, error: 'لا يمكن تعديل هذا الحساب لأنه محمي.' };
     }
-    // حماية إضافية: فحص عمود is_protected + الدور الحالي (يجب أن يكون موظفًا)
+
     let previousType: string | null = null;
     if (schema.hasProtected) {
       const { data: profile } = await supabaseAdmin
@@ -281,24 +279,71 @@ export async function editStaffUser(
 }
 
 /**
- * تبديل حالة الموظف (active/inactive).
- * التعطيل يمنع تسجيل الدخول عبر is_active = false.
- * يرفض الحسابات المحمية.
+ * تغيير حالة المستخدم — يدعم pending_approval, active, suspended, disabled.
+ */
+export async function changeUserStatus(
+  actorId: string | null,
+  userId: string,
+  newStatus: UserStatus,
+): Promise<{ success: boolean; error?: string }> {
+  const schema = await detectSchema();
+
+  try {
+    if (isProtectedAccount(userId)) {
+      return { success: false, error: 'لا يمكن تغيير حالة هذا الحساب لأنه محمي.' };
+    }
+    if (!schema.hasStatus) {
+      return { success: false, error: 'تغيير الحالة يتطلب تطبيق تحديث قاعدة البيانات (هجرة 0016) أولًا.' };
+    }
+
+    const cols = schema.hasProtected ? 'is_protected, full_name' : 'full_name';
+    const { data: profile, error: pErr } = await supabaseAdmin
+      .from('profiles').select(cols).eq('id', userId).single();
+    if (pErr) return { success: false, error: translateSupabaseError(pErr.message) };
+    if ((profile as any)?.is_protected) {
+      return { success: false, error: 'لا يمكن تغيير حالة هذا الحساب لأنه محمي.' };
+    }
+
+    const { error } = await supabaseAdmin
+      .from('profiles').update({ status: newStatus }).eq('id', userId);
+    if (error) return { success: false, error: translateSupabaseError(error.message) };
+
+    const statusLabels: Record<string, string> = {
+      active: 'تفعيل', suspended: 'تعليق', disabled: 'تعطيل',
+      pending_approval: 'بانتظار الموافقة', pending_invite: 'بانتظار قبول الدعوة',
+    };
+
+    await logAudit({
+      actorId,
+      action: 'change_status',
+      targetType: 'staff',
+      targetId: userId,
+      targetName: (profile as any)?.full_name ?? null,
+      metadata: { status: newStatus },
+    });
+
+    revalidatePath('/staff');
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: translateSupabaseError(err.message) };
+  }
+}
+
+/**
+ * تبديل حالة الموظف — دالة مختصرة للزر toggle.
  */
 export async function toggleStaffStatus(actorId: string | null, userId: string) {
   const schema = await detectSchema();
 
   try {
-    // حماية: فحص القائمة المحمية أولاً (حتى لو العمود غير موجود في القاعدة)
     if (isProtectedAccount(userId)) {
       return { success: false, error: 'لا يمكن تعطيل هذا الحساب لأنه محمي.' };
     }
-    // فشل صريح بدل التخطي الصامت إن كان العمود غير موجود بعد
-    if (!schema.hasActive) {
-      return { success: false, error: 'تفعيل/تعطيل الحساب يتطلب تطبيق تحديث قاعدة البيانات (هجرة 0013) أولًا.' };
+    if (!schema.hasStatus) {
+      return { success: false, error: 'تفعيل/تعطيل الحساب يتطلب تطبيق تحديث قاعدة البيانات (هجرة 0016) أولًا.' };
     }
 
-    const cols = schema.hasProtected ? 'is_protected, is_active, full_name' : 'is_active, full_name';
+    const cols = schema.hasProtected ? 'is_protected, status, full_name' : 'status, full_name';
     const { data: profile, error: pErr } = await supabaseAdmin
       .from('profiles').select(cols).eq('id', userId).single();
     if (pErr) return { success: false, error: translateSupabaseError(pErr.message) };
@@ -306,9 +351,11 @@ export async function toggleStaffStatus(actorId: string | null, userId: string) 
       return { success: false, error: 'لا يمكن تعطيل هذا الحساب لأنه محمي.' };
     }
 
-    const newActive = !((profile as any)?.is_active ?? true);
+    const currentStatus = (profile as any)?.status as UserStatus | undefined;
+    const newStatus: UserStatus = currentStatus === 'active' ? 'disabled' : 'active';
+
     const { error } = await supabaseAdmin
-      .from('profiles').update({ is_active: newActive }).eq('id', userId);
+      .from('profiles').update({ status: newStatus }).eq('id', userId);
     if (error) return { success: false, error: translateSupabaseError(error.message) };
 
     await logAudit({
@@ -317,7 +364,7 @@ export async function toggleStaffStatus(actorId: string | null, userId: string) 
       targetType: 'staff',
       targetId: userId,
       targetName: (profile as any)?.full_name ?? null,
-      metadata: { isActive: newActive },
+      metadata: { status: newStatus },
     });
 
     revalidatePath('/staff');
@@ -329,18 +376,14 @@ export async function toggleStaffStatus(actorId: string | null, userId: string) 
 
 /**
  * إعادة إرسال الدعوة.
- * يبطل الرابط القديم بإنشاء رابط جديد (inviteUserByEmail يُبطل القديم تلقائياً).
  */
 export async function resendInvite(actorId: string | null, userId: string, email: string) {
   try {
-    // حماية: رفض إعادة إرسال الدعوة للحسابات المحمية
     if (isProtectedAccount(userId)) {
       return { success: false, error: 'لا يمكن إعادة إرسال الدعوة لهذا الحساب لأنه محمي.' };
     }
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-    // الملف الشخصي موجود مسبقًا (أُنشئ عند الدعوة الأولى) — لا نمرّر metadata
-    // حتى لا نكتب فوق الاسم/الدور الصحيحَين.
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3002';
     const { error } = await supabaseAdmin.auth.admin.inviteUserByEmail(
       email,
       { redirectTo: `${siteUrl}/accept-invite` },
@@ -365,16 +408,13 @@ export async function resendInvite(actorId: string | null, userId: string, email
 
 /**
  * حذف موظف — يزيل auth.users (الذي يحذف profiles عبر CASCADE).
- * يتحقق فعلياً من نجاح الحذف قبل إرجاع النجاح.
- * يرفض الحسابات المحمية.
  */
 export async function deleteStaffUser(actorId: string | null, userId: string) {
   try {
-    // حماية: فحص القائمة المحمية أولاً (حتى لو العمود غير موجود في القاعدة)
     if (isProtectedAccount(userId)) {
       return { success: false, error: 'لا يمكن حذف هذا الحساب لأنه محمي.' };
     }
-    // حماية إضافية: فحص عمود is_protected في القاعدة إن وُجد + لقطة الاسم للسجل
+
     let targetName: string | null = null;
     const schema = await detectSchema();
     if (schema.hasProtected) {
@@ -386,14 +426,11 @@ export async function deleteStaffUser(actorId: string | null, userId: string) {
       }
     }
 
-    // الخطوة 1: حذف من auth.users (CASCADE يحذف profiles تلقائياً)
     const { error: deleteErr } = await supabaseAdmin.auth.admin.deleteUser(userId);
     if (deleteErr) {
       return { success: false, error: translateSupabaseError(deleteErr.message) };
     }
 
-    // الخطوة 2: التحقق الفعلي من نجاح الحذف
-    // انتظار قصير للسماح بال CASCADE
     await new Promise((r) => setTimeout(r, 500));
 
     const [{ data: authData }, { data: profileCheck }] = await Promise.all([
@@ -409,7 +446,6 @@ export async function deleteStaffUser(actorId: string | null, userId: string) {
       return { success: false, error: 'فشلت عملية الحذف. حاول مرة أخرى.' };
     }
 
-    // التسجيل بعد التحقق الفعلي من الحذف (actor_id يبقى؛ target حُذف فتبقى لقطة اسمه)
     await logAudit({
       actorId,
       action: 'delete_staff',

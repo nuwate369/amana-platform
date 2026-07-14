@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Search, User, Ban, RotateCcw, Lock, Eye } from 'lucide-react';
+import { Search, User, Ban, RotateCcw, Lock, Eye, Users } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { listPassengers, type ProfileRow } from '@/app/actions/admin';
 import { banUser, unbanUser } from '@/app/actions/moderation';
 import { ActionDialog } from '@/components/ActionDialog';
@@ -19,6 +20,7 @@ import type { UserType } from '@amana/shared-types';
 type BanTarget = { row: ProfileRow; mode: 'ban' | 'unban' };
 
 export default function PassengersPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [passengers, setPassengers] = useState<ProfileRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -81,19 +83,20 @@ export default function PassengersPage() {
         : await unbanUser(row.id, user?.id ?? null);
     setBusy(false);
     if (!res.success) { notify.error(res.error); return; }
-    notify.success(mode === 'ban' ? 'تم حظر الحساب' : 'تم رفع الحظر');
+    notify.success(mode === 'ban' ? t('moderation.banSuccess', 'تم حظر الحساب') : t('moderation.unbanSuccess', 'تم رفع الحظر'));
     setBanTarget(null);
     await reload();
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center gap-2">
-        <h1 className="text-xl font-bold text-foreground">إدارة الراكبات</h1>
-        <span className="text-muted-foreground font-light">/</span>
-        <p className="text-sm text-muted-foreground pt-1">
-          قائمة الراكبات المسجّلات ونشاطهنّ
-        </p>
+      <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-center">
+        <h1 className="flex items-center gap-2 text-xl font-bold text-foreground">
+          <Users className="h-6 w-6 text-primary shrink-0" />
+          {t('passengers.title', 'إدارة الراكبات')}
+          <span className="hidden text-muted-foreground/30 md:inline">/</span>
+          <span className="text-sm font-normal text-muted-foreground mt-0">{t('passengers.subtitle', 'قائمة الراكبات المسجّلات ونشاطهنّ')}</span>
+        </h1>
       </div>
 
       {/* جدول الراكبات */}
@@ -109,7 +112,7 @@ export default function PassengersPage() {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="ابحثي بالاسم أو رقم الجوال…"
+              placeholder={t('passengers.searchPlaceholder', 'ابحثي بالاسم أو رقم الجوال…')}
               className="w-full rounded-lg border border-border bg-background py-2 pr-10 pl-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
@@ -119,24 +122,24 @@ export default function PassengersPage() {
           <table className="w-full text-right text-sm">
             <thead className="bg-muted/50 text-muted-foreground">
               <tr>
-                <th className="px-5 py-3 font-medium">الاسم</th>
-                <th className="px-5 py-3 font-medium">الجوال</th>
-                <th className="px-5 py-3 font-medium">الحالة</th>
-                <th className="px-5 py-3 font-medium">تاريخ الانضمام</th>
-                <th className="px-5 py-3 font-medium">إجراءات</th>
+                <th className="px-5 py-3 font-medium">{t('passengers.table.name', 'الاسم')}</th>
+                <th className="px-5 py-3 font-medium">{t('passengers.table.phone', 'الجوال')}</th>
+                <th className="px-5 py-3 font-medium">{t('passengers.table.status', 'الحالة')}</th>
+                <th className="px-5 py-3 font-medium">{t('passengers.table.joinDate', 'تاريخ الانضمام')}</th>
+                <th className="px-5 py-3 font-medium">{t('passengers.table.actions', 'إجراءات')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {loading ? (
                 <tr>
                   <td colSpan={5} className="px-5 py-8 text-center text-muted-foreground">
-                    جارٍ التحميل…
+                    {t('common.loading', 'جارٍ التحميل…')}
                   </td>
                 </tr>
               ) : rows.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-5 py-8 text-center text-muted-foreground">
-                    لا توجد بيانات
+                    {t('common.noData', 'لا توجد بيانات')}
                   </td>
                 </tr>
               ) : (
@@ -157,14 +160,14 @@ export default function PassengersPage() {
                     <td className="px-5 py-3">
                       {p.isActive ? (
                         <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                          نشطة
+                          {t('passengers.status.active', 'نشطة')}
                         </span>
                       ) : (
                         <span
                           className="rounded-full bg-destructive/10 px-2.5 py-0.5 text-xs font-medium text-destructive"
                           title={p.banReason ?? undefined}
                         >
-                          محظورة
+                          {t('passengers.status.banned', 'محظورة')}
                         </span>
                       )}
                     </td>
@@ -175,28 +178,28 @@ export default function PassengersPage() {
                       <div className="flex items-center gap-1.5">
                         <button
                           onClick={() => setDetailsId(p.id)}
-                          title="عرض التفاصيل"
+                          title={t('common.viewDetails', 'عرض التفاصيل')}
                           className="inline-flex items-center justify-center rounded-lg border border-border p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-primary"
                         >
                           <Eye size={15} />
                         </button>
                         {!canManage ? null : p.isProtected ? (
                           <span className="inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 font-medium">
-                            <Lock size={13} /> محمي
+                            <Lock size={13} /> {t('common.protected', 'محمي')}
                           </span>
                         ) : p.isActive ? (
                           <button
                             onClick={() => setBanTarget({ row: p, mode: 'ban' })}
                             className="inline-flex items-center gap-1 rounded-lg border border-destructive/30 px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10"
                           >
-                            <Ban size={14} /> حظر
+                            <Ban size={14} /> {t('passengers.actions.ban', 'حظر')}
                           </button>
                         ) : (
                           <button
                             onClick={() => setBanTarget({ row: p, mode: 'unban' })}
                             className="inline-flex items-center gap-1 rounded-lg border border-emerald-500/30 px-3 py-1.5 text-xs font-medium text-emerald-600 transition-colors hover:bg-emerald-500/10"
                           >
-                            <RotateCcw size={14} /> رفع الحظر
+                            <RotateCcw size={14} /> {t('passengers.actions.unban', 'رفع الحظر')}
                           </button>
                         )}
                       </div>
@@ -211,19 +214,19 @@ export default function PassengersPage() {
 
       <ActionDialog
         open={!!banTarget}
-        title={banTarget?.mode === 'ban' ? 'حظر الراكبة' : 'رفع الحظر'}
+        title={banTarget?.mode === 'ban' ? t('passengers.ban.title', 'حظر الراكبة') : t('passengers.unban.title', 'رفع الحظر')}
         variant={banTarget?.mode === 'ban' ? 'danger' : 'primary'}
         targetName={banTarget?.row.fullName}
         actorName={actorName}
         requireReason={banTarget?.mode === 'ban'}
-        reasonLabel="سبب الحظر"
-        reasonPlaceholder="مثال: سلوك مخالف لشروط الاستخدام…"
+        reasonLabel={t('passengers.ban.reasonLabel', 'سبب الحظر')}
+        reasonPlaceholder={t('passengers.ban.reasonPlaceholder', 'مثال: سلوك مخالف لشروط الاستخدام…')}
         description={
           banTarget?.mode === 'unban' ? (
-            <>هل تريد رفع الحظر عن <strong>{banTarget?.row.fullName ?? 'هذا الحساب'}</strong> وإعادة تفعيله؟</>
+            <>{t('passengers.unban.confirmDesc', 'هل تريد رفع الحظر عن ')}<strong>{banTarget?.row.fullName ?? t('passengers.unban.thisAccount', 'هذا الحساب')}</strong>{t('passengers.unban.confirmDescSuffix', ' وإعادة تفعيله؟')}</>
           ) : undefined
         }
-        confirmLabel={banTarget?.mode === 'ban' ? 'تأكيد الحظر' : 'رفع الحظر'}
+        confirmLabel={banTarget?.mode === 'ban' ? t('passengers.ban.confirmBtn', 'تأكيد الحظر') : t('passengers.unban.confirmBtn', 'رفع الحظر')}
         loading={busy}
         onConfirm={doBan}
         onClose={() => setBanTarget(null)}

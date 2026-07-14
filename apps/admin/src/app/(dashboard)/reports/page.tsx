@@ -1,7 +1,8 @@
 'use client';
 
-import { Wallet, Navigation, Receipt, XCircle, TrendingUp, Download, Star } from 'lucide-react';
+import { Wallet, Navigation, Receipt, XCircle, TrendingUp, Download, Star, BarChart3 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 /**
  * صفحة التقارير — تبويبات + نطاق تاريخ + مؤشرات + رسم إيرادات شهري + جدول أفضل السائقات.
@@ -54,19 +55,30 @@ const MONTHS = [
 ];
 
 const TOP_DRIVERS = [
-  { name: 'سارة العتيبي', rides: 312, revenue: '٢٤٬٦٥٠ ﷼', rating: '٤.٩' },
-  { name: 'هند الدوسري', rides: 298, revenue: '٢٢٬٤١٠ ﷼', rating: '٤.٩' },
-  { name: 'عبير الشمري', rides: 276, revenue: '٢٠٬٨٨٠ ﷼', rating: '٤.٨' },
-  { name: 'منى الزهراني', rides: 254, revenue: '١٩٬٣٢٠ ﷼', rating: '٤.٨' },
-  { name: 'دانة الحربي', rides: 241, revenue: '١٨٬٠٥٠ ﷼', rating: '٤.٧' },
+  { name: 'سارة العتيبي', rides: 312, revenue: '24,650 ﷼', rating: '4.9' },
+  { name: 'هند الدوسري', rides: 298, revenue: '22,410 ﷼', rating: '4.9' },
+  { name: 'عبير الشمري', rides: 276, revenue: '20,880 ﷼', rating: '4.8' },
+  { name: 'منى الزهراني', rides: 254, revenue: '19,320 ﷼', rating: '4.8' },
+  { name: 'دانة الحربي', rides: 241, revenue: '18,050 ﷼', rating: '4.7' },
 ];
 
 export default function ReportsPage() {
+  const { t } = useTranslation();
+  
+  const TABS = [
+    t('reports.tabs.revenue', 'الإيرادات'),
+    t('reports.tabs.rides', 'الرحلات'),
+    t('reports.tabs.performance', 'الأداء')
+  ];
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-bold text-foreground">التقارير</h1>
-        <p className="text-sm text-muted-foreground">تحليلات الإيرادات والرحلات وأداء المنصّة</p>
+      <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-center">
+        <h1 className="flex items-center gap-2 text-xl font-bold text-foreground">
+          <BarChart3 className="h-6 w-6 text-primary shrink-0" />
+          {t('reports.title', 'التقارير')}
+          <span className="hidden text-muted-foreground/30 md:inline">/</span>
+          <span className="text-sm font-normal text-muted-foreground">{t('reports.subtitle', 'تحليلات الإيرادات والرحلات وأداء المنصّة')}</span>
+        </h1>
       </div>
 
       {/* تبويبات */}
@@ -89,7 +101,7 @@ export default function ReportsPage() {
       <div className="flex flex-wrap items-end justify-between gap-4 rounded-xl border border-border bg-card p-4">
         <div className="flex flex-wrap items-end gap-4">
           <div>
-            <label className="mb-1 block text-xs text-muted-foreground">من تاريخ</label>
+            <label className="mb-1 block text-xs text-muted-foreground">{t('reports.filters.fromDate', 'من تاريخ')}</label>
             <input
               type="date"
               defaultValue="2026-01-01"
@@ -97,7 +109,7 @@ export default function ReportsPage() {
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs text-muted-foreground">إلى تاريخ</label>
+            <label className="mb-1 block text-xs text-muted-foreground">{t('reports.filters.toDate', 'إلى تاريخ')}</label>
             <input
               type="date"
               defaultValue="2026-07-12"
@@ -107,21 +119,21 @@ export default function ReportsPage() {
         </div>
         <button className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90">
           <Download size={16} />
-          تصدير CSV
+          {t('reports.exportCsv', 'تصدير CSV')}
         </button>
       </div>
 
       {/* بطاقات المؤشرات */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="إجمالي الإيرادات" value="٢٤٨٬٥٠٠ ﷼" delta="+14%" icon={Wallet} />
-        <StatCard label="عدد الرحلات" value="٩٬٦٤٠" delta="+9%" icon={Navigation} />
-        <StatCard label="متوسط قيمة الرحلة" value="٢٥.٨٠ ﷼" delta="+4%" icon={Receipt} />
-        <StatCard label="معدل الإلغاء" value="٣.٢٪" delta="+1%" icon={XCircle} />
+        <StatCard label={t('reports.stats.revenue', 'إجمالي الإيرادات')} value="248,500 ﷼" delta="+14%" icon={Wallet} />
+        <StatCard label={t('reports.stats.ridesCount', 'عدد الرحلات')} value="9,640" delta="+9%" icon={Navigation} />
+        <StatCard label={t('reports.stats.avgRideValue', 'متوسط قيمة الرحلة')} value="25.80 ﷼" delta="+4%" icon={Receipt} />
+        <StatCard label={t('reports.stats.cancellationRate', 'معدل الإلغاء')} value="3.2%" delta="+1%" icon={XCircle} />
       </div>
 
       {/* رسم الإيرادات الشهرية */}
       <div className="rounded-xl border border-border bg-card p-5">
-        <h2 className="mb-4 font-semibold text-foreground">الإيرادات الشهرية</h2>
+        <h2 className="mb-4 font-semibold text-foreground">{t('reports.charts.monthlyRevenue', 'الإيرادات الشهرية')}</h2>
         <div className="flex h-56 items-end justify-between gap-1.5">
           {MONTHS.map((b) => (
             <div key={b.m} className="flex flex-1 flex-col items-center gap-2">
@@ -142,16 +154,16 @@ export default function ReportsPage() {
       {/* أفضل السائقات */}
       <div className="overflow-hidden rounded-xl border border-border bg-card">
         <div className="border-b border-border px-5 py-4">
-          <h2 className="font-semibold text-foreground">أفضل السائقات</h2>
+          <h2 className="font-semibold text-foreground">{t('reports.tables.topDrivers', 'أفضل السائقات')}</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-right text-sm">
             <thead className="bg-muted/50 text-muted-foreground">
               <tr>
-                <th className="px-5 py-3 font-medium">الاسم</th>
-                <th className="px-5 py-3 font-medium">الرحلات</th>
-                <th className="px-5 py-3 font-medium">الإيراد</th>
-                <th className="px-5 py-3 font-medium">التقييم</th>
+                <th className="px-5 py-3 font-medium">{t('reports.tableCols.name', 'الاسم')}</th>
+                <th className="px-5 py-3 font-medium">{t('reports.tableCols.rides', 'الرحلات')}</th>
+                <th className="px-5 py-3 font-medium">{t('reports.tableCols.revenue', 'الإيراد')}</th>
+                <th className="px-5 py-3 font-medium">{t('reports.tableCols.rating', 'التقييم')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">

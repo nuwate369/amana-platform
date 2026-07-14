@@ -1,6 +1,7 @@
 'use client';
 
-import { Send } from 'lucide-react';
+import { Send, Radio } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 /**
  * صفحة إرسال إشعارات للتطبيقات — بطاقة إنشاء إشعار + قائمة الإشعارات المرسلة.
@@ -31,30 +32,32 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default function NotificationsPage() {
+  const { t } = useTranslation();
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center gap-2">
-        <h1 className="text-xl font-bold text-foreground">الإعلانات والتنبيهات</h1>
-        <span className="text-muted-foreground font-light">/</span>
-        <p className="text-sm text-muted-foreground pt-1">
-          مراسلة الراكبات والسائقات
-        </p>
+      <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-center">
+        <h1 className="flex items-center gap-2 text-xl font-bold text-foreground">
+          <Radio className="h-6 w-6 text-primary shrink-0" />
+          {t('notifications.title', 'الإعلانات والتنبيهات')}
+          <span className="hidden text-muted-foreground/30 md:inline">/</span>
+          <span className="text-sm font-normal text-muted-foreground">{t('notifications.subtitle', 'مراسلة الراكبات والسائقات')}</span>
+        </h1>
       </div>
 
       {/* بطاقة الإنشاء */}
       <div className="rounded-xl border border-border bg-card p-5">
-        <h2 className="mb-4 font-semibold text-foreground">إنشاء إشعار جديد</h2>
+        <h2 className="mb-4 font-semibold text-foreground">{t('notifications.createTitle', 'إنشاء إشعار جديد')}</h2>
         <div className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm text-muted-foreground">العنوان</label>
+            <label className="mb-1 block text-sm text-muted-foreground">{t('notifications.form.title', 'العنوان')}</label>
             <input
               type="text"
-              placeholder="أدخل عنوان الإشعار"
+              placeholder={t('notifications.form.titlePlaceholder', 'أدخل عنوان الإشعار')}
               className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:ring-1 focus:ring-primary focus:outline-none"
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm text-muted-foreground">النوع</label>
+            <label className="mb-1 block text-sm text-muted-foreground">{t('notifications.form.type', 'النوع')}</label>
             <select className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:ring-1 focus:ring-primary focus:outline-none">
               <option value="announcement">إعلان عام</option>
               <option value="maintenance">صيانة</option>
@@ -62,25 +65,25 @@ export default function NotificationsPage() {
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-sm text-muted-foreground">نص الإشعار</label>
+            <label className="mb-1 block text-sm text-muted-foreground">{t('notifications.form.body', 'نص الإشعار')}</label>
             <textarea
               rows={4}
-              placeholder="اكتب محتوى الإشعار هنا"
+              placeholder={t('notifications.form.bodyPlaceholder', 'اكتب محتوى الإشعار هنا')}
               className="w-full resize-none rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:ring-1 focus:ring-primary focus:outline-none"
             />
           </div>
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div className="w-full sm:w-64">
-              <label className="mb-1 block text-sm text-muted-foreground">الجمهور</label>
+              <label className="mb-1 block text-sm text-muted-foreground">{t('notifications.form.sendTo', 'الجمهور')}</label>
               <select className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:ring-1 focus:ring-primary focus:outline-none">
-                <option>الكل</option>
-                <option>الراكبات</option>
-                <option>السائقات</option>
+                <option>{t('notifications.targets.all', 'الكل')}</option>
+                <option>{t('notifications.targets.passengers', 'الراكبات')}</option>
+                <option>{t('notifications.targets.drivers', 'السائقات')}</option>
               </select>
             </div>
             <button className="flex items-center gap-2 rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90">
               <Send size={16} />
-              إرسال
+              {t('notifications.send', 'إرسال')}
             </button>
           </div>
         </div>
@@ -94,16 +97,16 @@ export default function NotificationsPage() {
       {/* الإشعارات المرسلة */}
       <div className="overflow-hidden rounded-xl border border-border bg-card">
         <div className="border-b border-border px-5 py-4">
-          <h2 className="font-semibold text-foreground">الإشعارات المرسلة</h2>
+          <h2 className="font-semibold text-foreground">{t('notifications.recent', 'الإشعارات المرسلة')}</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-right text-sm">
             <thead className="bg-muted/50 text-muted-foreground">
               <tr>
-                <th className="px-5 py-3 font-medium">العنوان</th>
-                <th className="px-5 py-3 font-medium">الجمهور</th>
-                <th className="px-5 py-3 font-medium">التاريخ</th>
-                <th className="px-5 py-3 font-medium">الحالة</th>
+                <th className="px-5 py-3 font-medium">{t('notifications.form.title', 'العنوان')}</th>
+                <th className="px-5 py-3 font-medium">{t('notifications.form.sendTo', 'الجمهور')}</th>
+                <th className="px-5 py-3 font-medium">{t('notifications.table.date', 'التاريخ')}</th>
+                <th className="px-5 py-3 font-medium">{t('notifications.table.status', 'الحالة')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">

@@ -193,14 +193,13 @@ export default function SystemNotificationsPage() {
     <div className="space-y-6">
       {/* العنوان */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
+        <div className="flex flex-col gap-2 md:flex-row md:items-center">
           <h1 className="flex items-center gap-2 text-xl font-bold text-foreground">
-            <Bell size={24} className="text-primary" />
+            <Bell className="h-6 w-6 text-primary shrink-0" />
             {t('systemNotifications.title')}
+            <span className="hidden text-muted-foreground/30 md:inline">/</span>
+            <span className="text-sm font-normal text-muted-foreground mt-0">{t('systemNotifications.subtitle')}</span>
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {t('systemNotifications.subtitle')}
-          </p>
         </div>
         <button
           onClick={handleMarkAllRead}

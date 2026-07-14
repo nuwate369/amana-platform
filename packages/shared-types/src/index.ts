@@ -47,6 +47,39 @@ export function isStaff(userType: UserType): boolean {
 }
 
 // =============================================================================
+// حالة المستخدم
+// =============================================================================
+
+/**
+ * حالة الحساب في المنصة — تُحدَّد عند التسجيل وتتغيّر بقرارات الإدارة.
+ * ENUM في قاعدة البيانات: user_status
+ */
+export type UserStatus =
+  | 'pending_approval'   // راكب/سائق سجل، بانتظار موافقة الإدارة
+  | 'pending_invite'     // موظف دُعي، بانتظار قبول الدعوة
+  | 'active'             // حساب نشط
+  | 'suspended'          // حساب موقّف مؤقتاً
+  | 'disabled';          // حساب معطّل
+
+/** تسميات عربية لحالات المستخدم. */
+export const USER_STATUS_LABELS: Record<UserStatus, string> = {
+  pending_approval: 'بانتظار الموافقة',
+  pending_invite: 'بانتظار قبول الدعوة',
+  active: 'نشط',
+  suspended: 'موقّف',
+  disabled: 'معطّل',
+};
+
+/** ألوان badges لحالات المستخدم (Tailwind CSS classes). */
+export const USER_STATUS_COLORS: Record<UserStatus, string> = {
+  pending_approval: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300',
+  pending_invite: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300',
+  active: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300',
+  suspended: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
+  disabled: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
+};
+
+// =============================================================================
 // نظام الصلاحيات المركزي — can(userType, action)
 //
 // جميع قواعد الصلاحيات في مكان واحد؛ يُستدعى من middleware وRoute Guards

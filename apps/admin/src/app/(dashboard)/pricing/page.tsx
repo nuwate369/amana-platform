@@ -1,7 +1,8 @@
 'use client';
 
-import { Coins, MapPin, ShieldMinus, TrendingUp, Clock } from 'lucide-react';
+import { Coins, MapPin, ShieldMinus, TrendingUp, Clock, BadgePercent } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 /**
  * صفحة إعدادات التسعير الديناميكي — نموذج ثابت (mock) بلا منطق حفظ.
@@ -52,35 +53,38 @@ function SectionCard({
 }
 
 export default function PricingPage() {
+  const { t } = useTranslation();
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-bold text-foreground">إعدادات التسعير الديناميكي</h1>
-        <p className="text-sm text-muted-foreground">
-          ضبط التعرفة الأساسية ومضاعِفات الذروة لحساب أسعار الرحلات
-        </p>
+      <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-center">
+        <h1 className="flex items-center gap-2 text-xl font-bold text-foreground">
+          <BadgePercent className="h-6 w-6 text-primary shrink-0" />
+          {t('pricing.title', 'إعدادات التسعير الديناميكي')}
+          <span className="hidden text-muted-foreground/30 md:inline">/</span>
+          <span className="text-sm font-normal text-muted-foreground">{t('pricing.subtitle', 'ضبط التعرفة الأساسية ومضاعِفات الذروة لحساب أسعار الرحلات')}</span>
+        </h1>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* التعرفة الأساسية */}
-        <SectionCard title="التعرفة الأساسية" icon={Coins}>
+        <SectionCard title={t('pricing.sections.baseFare.title', 'التعرفة الأساسية')} icon={Coins}>
           <div className="space-y-4">
-            <Field label="التعرفة الأساسية (ريال)" hint="الرسوم الثابتة عند بدء كل رحلة">
+            <Field label={t('pricing.sections.baseFare.basePrice', 'التعرفة الأساسية (ريال)')} hint={t('pricing.sections.baseFare.basePriceHint', 'الرسوم الثابتة عند بدء كل رحلة')}>
               <input type="number" defaultValue="8" min="0" step="0.5" className={inputCls} />
             </Field>
-            <Field label="سعر الكيلومتر (ريال)" hint="يُضاف عن كل كيلومتر مقطوع">
+            <Field label={t('pricing.sections.baseFare.perKm', 'سعر الكيلومتر (ريال)')} hint={t('pricing.sections.baseFare.perKmHint', 'يُضاف عن كل كيلومتر مقطوع')}>
               <input type="number" defaultValue="1.75" min="0" step="0.25" className={inputCls} />
             </Field>
-            <Field label="الحد الأدنى للرحلة (ريال)" hint="أقل مبلغ يُحتسب مهما قصرت الرحلة">
+            <Field label={t('pricing.sections.baseFare.minTrip', 'الحد الأدنى للرحلة (ريال)')} hint={t('pricing.sections.baseFare.minTripHint', 'أقل مبلغ يُحتسب مهما قصرت الرحلة')}>
               <input type="number" defaultValue="12" min="0" step="1" className={inputCls} />
             </Field>
           </div>
         </SectionCard>
 
         {/* تسعير الذروة */}
-        <SectionCard title="تسعير وقت الذروة" icon={TrendingUp}>
+        <SectionCard title={t('pricing.sections.surge.title', 'تسعير وقت الذروة')} icon={TrendingUp}>
           <div className="space-y-4">
-            <Field label="مضاعِف وقت الذروة" hint="يُضرب في السعر خلال ساعات الذروة (×١.٥)">
+            <Field label={t('pricing.sections.surge.multiplier', 'مضاعِف وقت الذروة')} hint={t('pricing.sections.surge.multiplierHint', 'يُضرب في السعر خلال ساعات الذروة (×1.5)')}>
               <div className="flex items-center gap-3">
                 <input
                   type="range"
@@ -94,46 +98,46 @@ export default function PricingPage() {
               </div>
             </Field>
             <div className="grid grid-cols-2 gap-3">
-              <Field label="ساعات الذروة — من">
+              <Field label={t('pricing.sections.surge.start', 'ساعات الذروة — من')}>
                 <input type="time" defaultValue="07:00" className={inputCls} />
               </Field>
-              <Field label="ساعات الذروة — إلى">
+              <Field label={t('pricing.sections.surge.end', 'ساعات الذروة — إلى')}>
                 <input type="time" defaultValue="09:30" className={inputCls} />
               </Field>
             </div>
-            <Field label="نمط التطبيق">
+            <Field label={t('pricing.sections.surge.pattern', 'نمط التطبيق')}>
               <select defaultValue="daily" className={inputCls}>
-                <option value="daily">يوميًا</option>
-                <option value="workdays">أيام العمل فقط</option>
-                <option value="weekend">نهاية الأسبوع فقط</option>
+                <option value="daily">{t('pricing.sections.surge.daily', 'يوميًا')}</option>
+                <option value="workdays">{t('pricing.sections.surge.workdays', 'أيام العمل فقط')}</option>
+                <option value="weekend">{t('pricing.sections.surge.weekend', 'نهاية الأسبوع فقط')}</option>
               </select>
             </Field>
           </div>
         </SectionCard>
 
         {/* المسافة والمنطقة */}
-        <SectionCard title="نطاق الخدمة" icon={MapPin}>
+        <SectionCard title={t('pricing.sections.service.title', 'نطاق الخدمة')} icon={MapPin}>
           <div className="space-y-4">
-            <Field label="المدينة">
+            <Field label={t('pricing.sections.service.city', 'المدينة')}>
               <select defaultValue="riyadh" className={inputCls}>
-                <option value="riyadh">الرياض</option>
-                <option value="jeddah">جدة</option>
-                <option value="dammam">الدمّام</option>
+                <option value="riyadh">{t('pricing.sections.service.riyadh', 'الرياض')}</option>
+                <option value="jeddah">{t('pricing.sections.service.jeddah', 'جدة')}</option>
+                <option value="dammam">{t('pricing.sections.service.dammam', 'الدمّام')}</option>
               </select>
             </Field>
-            <Field label="أقصى مسافة للرحلة (كم)" hint="لا تُقبل الطلبات التي تتجاوز هذه المسافة">
+            <Field label={t('pricing.sections.service.maxDist', 'أقصى مسافة للرحلة (كم)')} hint={t('pricing.sections.service.maxDistHint', 'لا تُقبل الطلبات التي تتجاوز هذه المسافة')}>
               <input type="number" defaultValue="45" min="1" step="1" className={inputCls} />
             </Field>
           </div>
         </SectionCard>
 
         {/* الرسوم والخصومات */}
-        <SectionCard title="الرسوم والحد الأدنى" icon={ShieldMinus}>
+        <SectionCard title={t('pricing.sections.fees.title', 'الرسوم والحد الأدنى')} icon={ShieldMinus}>
           <div className="space-y-4">
-            <Field label="نسبة عمولة المنصّة (%)" hint="النسبة المقتطعة من كل رحلة">
+            <Field label={t('pricing.sections.fees.commission', 'نسبة عمولة المنصّة (%)')} hint={t('pricing.sections.fees.commissionHint', 'النسبة المقتطعة من كل رحلة')}>
               <input type="number" defaultValue="15" min="0" max="100" step="1" className={inputCls} />
             </Field>
-            <Field label="رسوم الانتظار لكل دقيقة (ريال)">
+            <Field label={t('pricing.sections.fees.waitFee', 'رسوم الانتظار لكل دقيقة (ريال)')}>
               <input type="number" defaultValue="0.5" min="0" step="0.1" className={inputCls} />
             </Field>
           </div>
@@ -144,19 +148,19 @@ export default function PricingPage() {
       <div className="flex items-center justify-end gap-3 border-t border-border pt-4">
         <span className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground">
           <Clock size={14} />
-          آخر تحديث: اليوم ١٠:٤٢ صباحًا
+          {t('pricing.lastUpdated', 'آخر تحديث: اليوم 10:42 صباحًا')}
         </span>
         <button
           type="button"
           className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition hover:bg-muted"
         >
-          إلغاء
+          {t('common.cancel', 'إلغاء')}
         </button>
         <button
           type="button"
           className="rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
         >
-          حفظ التغييرات
+          {t('pricing.save', 'حفظ التغييرات')}
         </button>
       </div>
     </div>

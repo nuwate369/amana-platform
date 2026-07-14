@@ -26,7 +26,8 @@
     "deleteSuccess": "Deleted successfully",
     "unsavedChanges": "You have unsaved changes. Are you sure you want to proceed?",
     "leave": "Leave",
-    "stay": "Stay"
+    "stay": "Stay",
+    "refresh": "Refresh"
   },
   "validation": {
     "required": "This field is required",
@@ -188,5 +189,175 @@
     "total": "Total",
     "safety": "All your transactions are encrypted and secured according to global security standards. Amana guarantees your complete privacy.",
     "confirm": "Confirm Payment"
+  },
+  "auditLog": {
+    "title": "Audit Log",
+    "subtitle": "A chronological record of every sensitive action on the system — who performed it, on whom, and why.",
+    "filters": {
+      "all": "All",
+      "ban": "Ban",
+      "unban": "Unban",
+      "acceptDriver": "Accept Driver",
+      "kycReject": "KYC Reject",
+      "staffManagement": "Staff Management",
+      "ratingQuestions": "Rating Questions"
+    },
+    "table": {
+      "action": "Action",
+      "executor": "Executor",
+      "target": "Target",
+      "reason": "Reason",
+      "time": "Time"
+    },
+    "searchPlaceholder": "Search by name or reason...",
+    "empty": "No records found matching the criteria",
+    "noPermission": "You do not have permission to view the audit log",
+    "noPermissionDesc": "This page is available to the General Manager and Manager only."
+  },
+  "staff": {
+    "title": "Staff",
+    "subtitle": "Technical Support Managers and Supervisors",
+    "table": {
+      "name": "Name",
+      "email": "Email",
+      "role": "Role",
+      "status": "Status",
+      "date": "Date",
+      "actions": "Actions"
+    },
+    "invite": "Invite New Staff +",
+    "empty": "No staff found"
+  },
+  "notifications": {
+    "title": "Announcements & Alerts",
+    "subtitle": "Messaging Passengers and Drivers",
+    "createTitle": "Create New Announcement",
+    "form": {
+      "title": "Announcement Title",
+      "body": "Announcement Body",
+      "sendTo": "Send To"
+    },
+    "send": "Send Announcement",
+    "recent": "Recent Sent Announcements",
+    "table": {
+      "date": "Sent Date",
+      "target": "Target Audience"
+    },
+    "targets": {
+      "all": "All Users",
+      "drivers": "Drivers Only",
+      "passengers": "Passengers Only"
+    }
+  },
+  "groups": {
+    "title": "Shared Ride Groups",
+    "subtitle": "Ride coordination groups between passengers — For monitoring and supervision only",
+    "stats": {
+      "active": "Active Groups",
+      "members": "Total Members",
+      "rides": "Today's Rides"
+    },
+    "table": {
+      "name": "Group Name",
+      "region": "Region",
+      "supervisor": "Supervisor",
+      "members": "Members",
+      "rides": "Rides",
+      "status": "Status"
+    },
+    "status": {
+      "open": "Open",
+      "closed": "Closed"
+    }
+  },
+  "ratings": {
+    "title": "Ratings",
+    "subtitle": "Metrics report, rating questions management, and latest incoming ratings tracking.",
+    "tabs": {
+      "metrics": "Metrics & Reports",
+      "questions": "Rating Questions",
+      "recent": "Recent Ratings"
+    },
+    "table": {
+      "question": "Question Text",
+      "target": "Target",
+      "type": "Type",
+      "status": "Status",
+      "actions": "Actions"
+    }
+  },
+  "reports": {
+    "title": "Reports",
+    "subtitle": "Revenue, rides, and platform performance analytics",
+    "tabs": {
+      "revenue": "Revenue & Finance",
+      "performance": "Operational Performance",
+      "users": "Users & Growth"
+    }
+  },
+  "pricing": {
+    "title": "Dynamic Pricing Settings",
+    "subtitle": "Adjust base fare and peak multipliers for ride pricing",
+    "sections": {
+      "baseFare": "Base Fare & Commission",
+      "peakMultipliers": "Peak Multipliers (Dynamic Pricing)",
+      "peakPeriods": "Peak Periods"
+    }
+  },
+  "liveRides": {
+    "title": "Live Rides Monitoring",
+    "subtitle": "Real-time tracking of ongoing rides on the map",
+    "stats": {
+      "activeNow": "Active Rides Now",
+      "availableDrivers": "Available Drivers",
+      "avgWait": "Avg Waiting Time",
+      "avgTrip": "Avg Trip Time"
+    },
+    "mapPlaceholder": "Live Map (Interactive tracking of rides and drivers)"
+  },
+  "passengers": {
+    "title": "Passengers Management",
+    "subtitle": "View list of registered passengers, block accounts, and handle reports",
+    "searchPlaceholder": "Search by name or mobile number...",
+    "table": {
+      "name": "Name",
+      "mobile": "Mobile",
+      "rides": "Rides",
+      "rating": "Rating",
+      "status": "Status",
+      "joinDate": "Join Date"
+    }
+  },
+  "drivers": {
+    "title": "Drivers Management",
+    "subtitle": "Review KYC requests, track active drivers, and manage documents",
+    "searchPlaceholder": "Search by name, mobile, or ID number...",
+    "table": {
+      "name": "Name",
+      "vehicle": "Vehicle",
+      "rides": "Rides",
+      "rating": "Rating",
+      "kyc": "KYC Status",
+      "status": "Account Status"
+    }
+  },
+  "notificationSettings": {
+    "title": "Notification Settings",
+    "subtitle": "Customize how notifications reach staff",
+    "columns": {
+      "type": "Type",
+      "enabled": "Enabled",
+      "inApp": "In-App",
+      "email": "Email",
+      "target": "Target"
+    },
+    "types": {
+      "new_passenger_registered": "New passenger registered",
+      "new_driver_registered": "New driver registered",
+      "new_staff_joined": "New staff joined",
+      "new_ride_created": "New ride created",
+      "driver_document_expiring": "Driver documents expiring",
+      "user_status_changed": "User status changed"
+    }
   }
 }

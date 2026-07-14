@@ -188,5 +188,24 @@
     "total": "الإجمالي",
     "safety": "جميع معاملاتك مشفرة وآمنة وفق أعلى معايير الأمان العالمية. أمانة تضمن لك الخصوصية التامة.",
     "confirm": "تأكيد الدفع"
+  },
+  "notificationSettings": {
+    "title": "إعدادات الإشعارات",
+    "subtitle": "تخصيص كيفية وصول الإشعارات للموظفين",
+    "columns": {
+      "type": "النوع",
+      "enabled": "مفعل",
+      "inApp": "داخل التطبيق",
+      "email": "البريد الإلكتروني",
+      "target": "الوجهة"
+    },
+    "types": {
+      "new_passenger_registered": "راكب جديد سجّل",
+      "new_driver_registered": "سائقة جديدة سجّلت",
+      "new_staff_joined": "موظف جديد انضم",
+      "new_ride_created": "رحلة جديدة",
+      "driver_document_expiring": "مستندات سائقة تنتهي صلاحيتها",
+      "user_status_changed": "تغيير حالة مستخدم"
+    }
   }
 }

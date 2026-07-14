@@ -2,6 +2,7 @@
 
 import { UsersRound, Users, ArrowLeft } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 /**
  * صفحة إدارة المجموعات المغلقة — جدول مجموعات مجتمعية ببيانات ثابتة (mock).
@@ -55,36 +56,39 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default function GroupsPage() {
+  const { t } = useTranslation();
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-bold text-foreground">مجموعات النقل المشتركة</h1>
-        <p className="text-sm text-muted-foreground">
-          مجموعات تنسيق الرحلات بين الراكبات — للمراقبة والإشراف فقط
-        </p>
+      <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-center">
+        <h1 className="flex items-center gap-2 text-xl font-bold text-foreground">
+          <UsersRound className="h-6 w-6 text-primary shrink-0" />
+          {t('groups.title', 'مجموعات النقل المشتركة')}
+          <span className="hidden text-muted-foreground/30 md:inline">/</span>
+          <span className="text-sm font-normal text-muted-foreground">{t('groups.subtitle', 'مجموعات تنسيق الرحلات بين الراكبات — للمراقبة والإشراف فقط')}</span>
+        </h1>
       </div>
 
       {/* مؤشرات */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <StatCard label="المجموعات النشطة" value="١٨" icon={UsersRound} />
-        <StatCard label="إجمالي العضوات" value="٧٣٠" icon={Users} />
-        <StatCard label="طلبات قيد المراجعة" value="٣" icon={UsersRound} />
+        <StatCard label={t('groups.stats.active', 'المجموعات النشطة')} value="18" icon={UsersRound} />
+        <StatCard label={t('groups.stats.members', 'إجمالي العضوات')} value="730" icon={Users} />
+        <StatCard label={t('groups.stats.rides', 'طلبات قيد المراجعة')} value="3" icon={UsersRound} />
       </div>
 
       {/* جدول المجموعات */}
       <div className="overflow-hidden rounded-xl border border-border bg-card">
         <div className="border-b border-border px-5 py-4">
-          <h2 className="font-semibold text-foreground">جميع المجموعات</h2>
+          <h2 className="font-semibold text-foreground">{t('common.allGroups', 'جميع المجموعات')}</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-right text-sm">
             <thead className="bg-muted/50 text-muted-foreground">
               <tr>
-                <th className="px-5 py-3 font-medium">اسم المجموعة</th>
-                <th className="px-5 py-3 font-medium">المالكة</th>
-                <th className="px-5 py-3 font-medium">عدد العضوات</th>
-                <th className="px-5 py-3 font-medium">الحالة</th>
-                <th className="px-5 py-3 font-medium">إجراء</th>
+                <th className="px-5 py-3 font-medium">{t('groups.table.name', 'اسم المجموعة')}</th>
+                <th className="px-5 py-3 font-medium">{t('groups.table.supervisor', 'المالكة')}</th>
+                <th className="px-5 py-3 font-medium">{t('groups.table.members', 'عدد العضوات')}</th>
+                <th className="px-5 py-3 font-medium">{t('groups.table.status', 'الحالة')}</th>
+                <th className="px-5 py-3 font-medium">{t('groups.table.actions', 'إجراء')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -92,7 +96,7 @@ export default function GroupsPage() {
                 <tr key={g.id} className="text-foreground hover:bg-muted/50 transition-colors">
                   <td className="px-5 py-3.5 font-medium">{g.name}</td>
                   <td className="px-5 py-3.5">{g.owner}</td>
-                  <td className="px-5 py-3.5">{g.members.toLocaleString('ar-SA')}</td>
+                  <td className="px-5 py-3.5">{g.members.toLocaleString('en-US')}</td>
                   <td className="px-5 py-3.5">
                     <StatusBadge status={g.status} />
                   </td>
@@ -101,7 +105,7 @@ export default function GroupsPage() {
                       type="button"
                       className="inline-flex items-center gap-1 rounded-lg bg-primary/15 px-3 py-1.5 text-xs font-semibold text-primary transition hover:bg-primary/25"
                     >
-                      مراجعة
+                      {t('common.review', 'مراجعة')}
                       <ArrowLeft size={14} />
                     </button>
                   </td>

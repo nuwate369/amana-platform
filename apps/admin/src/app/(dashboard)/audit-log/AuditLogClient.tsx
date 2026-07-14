@@ -8,6 +8,7 @@ import { listAuditLog, type AuditLogRow } from '@/app/actions/moderation';
 import { auditActionMeta } from '@/lib/audit-meta';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase/client';
+import { useTranslation } from 'react-i18next';
 
 const FILTERS = [
   { key: 'all', label: 'الكل' },
@@ -29,6 +30,7 @@ function matchesFilter(action: string, filter: string): boolean {
 }
 
 export default function AuditLogClient({ initial }: { initial: AuditLogRow[] }) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const router = useRouter();
   const [rows, setRows] = useState(initial);
@@ -81,8 +83,8 @@ export default function AuditLogClient({ initial }: { initial: AuditLogRow[] }) 
     return (
       <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-card p-10 text-center">
         <ShieldAlert className="h-10 w-10 text-muted-foreground" />
-        <p className="font-semibold text-foreground">لا تملك صلاحية عرض سجل الحركات</p>
-        <p className="text-sm text-muted-foreground">هذه الصفحة متاحة للمدير العام والمدير فقط.</p>
+        <p className="font-semibold text-foreground">{t('auditLog.noPermission', 'لا تملك صلاحية عرض سجل الحركات')}</p>
+        <p className="text-sm text-muted-foreground">{t('auditLog.noPermissionDesc', 'هذه الصفحة متاحة للمدير العام والمدير فقط.')}</p>
       </div>
     );
   }
@@ -90,14 +92,13 @@ export default function AuditLogClient({ initial }: { initial: AuditLogRow[] }) 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
+        <div className="flex flex-col gap-2 md:flex-row md:items-center">
           <h1 className="flex items-center gap-2 text-xl font-bold text-foreground">
             <ScrollText className="h-6 w-6 text-primary shrink-0" />
-            سجل الحركات
+            {t('auditLog.title', 'سجل الحركات')}
+            <span className="hidden text-muted-foreground/30 md:inline">/</span>
+            <span className="text-sm font-normal text-muted-foreground mt-0">{t('auditLog.subtitle', 'سجلّ زمني لكل إجراء حسّاس على النظام — مَن نفّذه، على مَن، ولماذا.')}</span>
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            سجلّ زمني لكل إجراء حسّاس على النظام — مَن نفّذه، على مَن، ولماذا.
-          </p>
         </div>
         <button
           onClick={refresh}
@@ -105,26 +106,38 @@ export default function AuditLogClient({ initial }: { initial: AuditLogRow[] }) 
           className="inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:opacity-60"
         >
           <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
-          تحديث
+          {t('common.refresh', 'تحديث')}
         </button>
       </div>
 
       {/* أدوات التصفية */}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-wrap gap-2">
-          {FILTERS.map((f) => (
-            <button
-              key={f.key}
-              onClick={() => setFilter(f.key)}
-              className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-                filter === f.key
-                  ? 'bg-primary text-primary-foreground'
-                  : 'border border-border bg-card text-foreground hover:bg-muted'
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
+          {FILTERS.map((f) => {
+            const filterKeyMap: Record<string, string> = {
+              all: 'auditLog.filters.all',
+              ban_user: 'auditLog.filters.ban',
+              unban_user: 'auditLog.filters.unban',
+              approve_driver: 'auditLog.filters.acceptDriver',
+              reject_driver: 'auditLog.filters.kycReject',
+              staff: 'auditLog.filters.staffManagement',
+              rating: 'auditLog.filters.ratingQuestions'
+            };
+            const labelKey = filterKeyMap[f.key] || `auditLog.filters.${f.key}`;
+            return (
+              <button
+                key={f.key}
+                onClick={() => setFilter(f.key)}
+                className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+                  filter === f.key
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground'
+                }`}
+              >
+                {t(labelKey, f.label)}
+              </button>
+            );
+          })}
         </div>
         <div className="relative max-w-xs">
           <Search
@@ -135,7 +148,7 @@ export default function AuditLogClient({ initial }: { initial: AuditLogRow[] }) 
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="بحث بالاسم أو السبب…"
+            placeholder={t('auditLog.searchPlaceholder', 'بحث بالاسم أو السبب…')}
             className="w-full rounded-lg border border-border bg-background py-2 pr-10 pl-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
         </div>
@@ -147,18 +160,18 @@ export default function AuditLogClient({ initial }: { initial: AuditLogRow[] }) 
           <table className="w-full text-right text-sm">
             <thead className="bg-muted/50 text-muted-foreground">
               <tr>
-                <th className="px-5 py-3 font-medium">الحركة</th>
-                <th className="px-5 py-3 font-medium">المنفِّذ</th>
-                <th className="px-5 py-3 font-medium">الهدف</th>
-                <th className="px-5 py-3 font-medium">السبب</th>
-                <th className="px-5 py-3 font-medium">الوقت</th>
+                <th className="px-5 py-3 font-medium">{t('auditLog.table.action', 'الحركة')}</th>
+                <th className="px-5 py-3 font-medium">{t('auditLog.table.executor', 'المنفِّذ')}</th>
+                <th className="px-5 py-3 font-medium">{t('auditLog.table.target', 'الهدف')}</th>
+                <th className="px-5 py-3 font-medium">{t('auditLog.table.reason', 'السبب')}</th>
+                <th className="px-5 py-3 font-medium">{t('auditLog.table.time', 'الوقت')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {filtered.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-5 py-8 text-center text-muted-foreground">
-                    لا توجد حركات مسجّلة
+                    {t('auditLog.empty', 'لا توجد حركات مسجّلة')}
                   </td>
                 </tr>
               ) : (
@@ -187,8 +200,8 @@ export default function AuditLogClient({ initial }: { initial: AuditLogRow[] }) 
                       <td className="px-5 py-3 text-muted-foreground max-w-xs truncate" title={r.reason ?? undefined}>
                         {r.reason ?? '—'}
                       </td>
-                      <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">
-                        {new Date(r.createdAt).toLocaleString('ar-SA', {
+                      <td className="px-5 py-3 whitespace-nowrap text-muted-foreground text-xs font-mono" dir="ltr">
+                        {new Date(r.createdAt).toLocaleString('en-GB', {
                           dateStyle: 'medium',
                           timeStyle: 'short',
                         })}

@@ -115,7 +115,7 @@ export function ActionDialog({
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-foreground resize-none"
               />
               {touched && reasonInvalid && (
-                <p className="text-sm text-red-500">يجب ذكر السبب (٣ أحرف على الأقل).</p>
+                <p className="text-sm text-red-500">يجب ذكر السبب (3 أحرف على الأقل).</p>
               )}
             </div>
           )}

@@ -1,6 +1,7 @@
 'use server';
 
 import { getAdminSupabase } from '@/lib/supabase/admin';
+import { revalidatePath } from 'next/cache';
 
 /**
  * إجراءات خادمية لنظام الإشعارات الداخلي — تعمل بصلاحية service role.
@@ -137,4 +138,62 @@ export async function deleteNotification(
     .or(`target_user_id.eq.${userId},target_user_id.is.null`);
 
   return { ok: !error, error: error?.message };
+}
+
+// =============================================================================
+// إعدادات التنبيهات
+// =============================================================================
+
+export interface NotificationSetting {
+  id: string;
+  notification_type: string;
+  label_ar: string;
+  label_en: string;
+  description_ar: string | null;
+  description_en: string | null;
+  is_enabled: boolean;
+  show_in_app: boolean;
+  send_email: boolean;
+  target_roles: string[];
+  updated_at: string;
+}
+
+/**
+ * جلب جميع إعدادات التنبيهات.
+ */
+export async function listNotificationSettings(): Promise<NotificationSetting[]> {
+  const db = getAdminSupabase();
+  const { data, error } = await db
+    .from('notification_settings')
+    .select('*')
+    .order('notification_type');
+
+  if (error) {
+    console.error('[listNotificationSettings] error:', error.message);
+    return [];
+  }
+
+  return (data ?? []) as NotificationSetting[];
+}
+
+/**
+ * تحديث إعداد تنبيه محدد.
+ */
+export async function updateNotificationSetting(
+  settingId: string,
+  updates: Partial<Pick<NotificationSetting, 'is_enabled' | 'show_in_app' | 'send_email' | 'target_roles'>>
+): Promise<{ ok: boolean; error?: string }> {
+  const db = getAdminSupabase();
+  const { error } = await db
+    .from('notification_settings')
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq('id', settingId);
+
+  if (error) {
+    console.error('[updateNotificationSetting] error:', error.message);
+    return { ok: false, error: error.message };
+  }
+
+  revalidatePath('/notification-settings');
+  return { ok: true };
 }
