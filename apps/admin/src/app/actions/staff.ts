@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { inviteStaffSchema } from '@amana/shared-ui/validation';
 import type { UserType, UserStatus } from '@amana/shared-types';
 import { logAudit } from '@/app/actions/moderation';
+import { getSiteUrl } from '@/lib/site-url';
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -176,7 +177,7 @@ export async function inviteStaffUser(
   const schema = await detectSchema();
 
   try {
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3002';
+    const siteUrl = await getSiteUrl();
     const { data, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
       parsed.data.email,
       {
@@ -383,7 +384,7 @@ export async function resendInvite(actorId: string | null, userId: string, email
       return { success: false, error: 'لا يمكن إعادة إرسال الدعوة لهذا الحساب لأنه محمي.' };
     }
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3002';
+    const siteUrl = await getSiteUrl();
     const { error } = await supabaseAdmin.auth.admin.inviteUserByEmail(
       email,
       { redirectTo: `${siteUrl}/accept-invite` },

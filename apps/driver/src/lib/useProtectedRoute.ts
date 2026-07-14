@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useRouter, useSegments, type Href } from 'expo-router';
+import { useRouter, useSegments, useRootNavigationState, type Href } from 'expo-router';
 import { docsComplete, useAuth, type DriverRecord } from '@/lib/auth';
 
 /**
@@ -34,9 +34,12 @@ export function useProtectedRoute() {
   const { session, driver, isLoading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+  // مفتاح جاهزية المُوجِّه الجذر — لا نُوجّه قبل تركيبه (يمنع خطأ «navigation context»
+  // الذي يظهر عند إعادة بناء التطبيق بعد فتح منتقي الصور على أندرويد).
+  const navReady = Boolean(useRootNavigationState()?.key);
 
   useEffect(() => {
-    if (isLoading) return;
+    if (isLoading || !navReady) return;
 
     const seg0 = segments[0] as string | undefined;
     const inAuthGroup = seg0 === '(auth)';
@@ -51,5 +54,5 @@ export function useProtectedRoute() {
     const dest = destinationFor(driver);
     const atDest = seg0 === segmentOf(dest);
     if (!atDest) router.replace(dest);
-  }, [session, driver, isLoading, segments, router]);
+  }, [session, driver, isLoading, navReady, segments, router]);
 }

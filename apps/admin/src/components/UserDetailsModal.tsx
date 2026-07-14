@@ -3,7 +3,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import {
   X, User, Car, Phone, Mail, Calendar, Star, Ban, Lock, UserCog,
-  FileText, CreditCard, Navigation, ShieldCheck, ScrollText, Clock, MessageSquareQuote,
+  FileText, CreditCard, Navigation, ShieldCheck, ScrollText, Clock, MessageSquareQuote, ZoomIn,
 } from 'lucide-react';
 import { STAFF_TYPE_LABELS, STAFF_TYPE_COLORS } from '@amana/shared-types';
 import { getUserDetails, type UserDetails } from '@/app/actions/details';
@@ -306,33 +306,45 @@ export function UserDetailsModal({ userId, kind, onClose }: UserDetailsModalProp
                       />
                       <InfoRow icon={CreditCard} label="اللوحة" value={details.driver.vehiclePlate ?? '—'} />
                     </div>
-                    <div className="mt-4 flex flex-wrap gap-2">
+                    {/* معاينة المستندات المرفوعة — اضغط الصورة لفتحها بالحجم الكامل */}
+                    <p className="mt-4 mb-2 text-xs font-medium text-muted-foreground">
+                      المستندات المرفوعة (اضغط للتكبير)
+                    </p>
+                    <div className="grid grid-cols-3 gap-2.5">
                       {[
-                        { label: 'الهوية', url: details.driver.nationalIdUrl },
-                        { label: 'الرخصة', url: details.driver.licenseUrl },
+                        { label: 'الهوية الوطنية', url: details.driver.nationalIdUrl },
+                        { label: 'رخصة القيادة', url: details.driver.licenseUrl },
                         { label: 'استمارة المركبة', url: details.driver.vehicleRegistrationUrl },
-                      ].map((doc) =>
-                        doc.url ? (
-                          <a
-                            key={doc.label}
-                            href={doc.url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted"
-                          >
-                            <FileText size={13} />
+                      ].map((doc) => (
+                        <div key={doc.label} className="flex flex-col gap-1.5">
+                          {doc.url ? (
+                            <a
+                              href={doc.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="group relative block aspect-[3/4] overflow-hidden rounded-lg border border-border bg-muted"
+                            >
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={doc.url}
+                                alt={doc.label}
+                                className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
+                              />
+                              <span className="absolute inset-0 flex items-center justify-center bg-black/0 text-white opacity-0 transition-all group-hover:bg-black/40 group-hover:opacity-100">
+                                <ZoomIn size={22} />
+                              </span>
+                            </a>
+                          ) : (
+                            <div className="flex aspect-[3/4] flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-border bg-muted/30 text-muted-foreground">
+                              <FileText size={18} />
+                              <span className="text-[10px]">غير مرفوعة</span>
+                            </div>
+                          )}
+                          <span className="text-center text-[11px] font-medium text-foreground">
                             {doc.label}
-                          </a>
-                        ) : (
-                          <span
-                            key={doc.label}
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-border px-3 py-1.5 text-xs text-muted-foreground"
-                          >
-                            <FileText size={13} />
-                            {doc.label} — غير مرفوعة
                           </span>
-                        ),
-                      )}
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}

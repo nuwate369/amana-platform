@@ -183,6 +183,22 @@ export async function getUserDetails(userId: string): Promise<UserDetails | null
 
   const authUser = authRes.data?.user;
 
+  // مستندات KYC مخزّنة في bucket خاص (kyc-documents) كمسارات — نولّد روابط
+  // موقّعة مؤقتة (ساعة) ليتمكّن الموظف من معاينتها في نافذة التفاصيل.
+  async function toSignedUrl(path: string | null): Promise<string | null> {
+    if (!path) return null;
+    if (path.startsWith('http')) return path; // بيانات قديمة برابط كامل
+    const { data } = await db.storage.from('kyc-documents').createSignedUrl(path, 60 * 60);
+    return data?.signedUrl ?? null;
+  }
+  const [nationalIdSigned, licenseSigned, vehicleRegSigned] = d
+    ? await Promise.all([
+        toSignedUrl(d.national_id_url),
+        toSignedUrl(d.license_url),
+        toSignedUrl(d.vehicle_registration_url),
+      ])
+    : [null, null, null];
+
   return {
     id: profile.id,
     fullName: profile.full_name,
@@ -203,9 +219,9 @@ export async function getUserDetails(userId: string): Promise<UserDetails | null
           vehicleMake: d.vehicle_make,
           vehicleModel: d.vehicle_model,
           vehiclePlate: d.vehicle_plate,
-          licenseUrl: d.license_url,
-          nationalIdUrl: d.national_id_url,
-          vehicleRegistrationUrl: d.vehicle_registration_url,
+          licenseUrl: licenseSigned,
+          nationalIdUrl: nationalIdSigned,
+          vehicleRegistrationUrl: vehicleRegSigned,
         }
       : null,
     stats: {
