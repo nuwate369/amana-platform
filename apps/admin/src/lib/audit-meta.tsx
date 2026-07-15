@@ -25,6 +25,7 @@ export const AUDIT_ACTION_META: Record<string, AuditActionMeta> = {
   unban_user:      { label: 'رفع حظر',            icon: RotateCcw,  className: SUCCESS },
   approve_driver:  { label: 'قبول سائقة',         icon: Check,      className: SUCCESS },
   reject_driver:   { label: 'رفض KYC',            icon: X,          className: PRIMARY },
+  delete_user:     { label: 'حذف حساب',           icon: Trash2,     className: DANGER },
   // إدارة الموظفين
   invite_staff:    { label: 'دعوة موظف',          icon: UserPlus,   className: PRIMARY },
   edit_staff:      { label: 'تعديل موظف',         icon: Pencil,     className: PRIMARY },

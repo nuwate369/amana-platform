@@ -2,10 +2,10 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Search, User, Ban, RotateCcw, Lock, Eye, Users } from 'lucide-react';
+import { Search, User, Ban, RotateCcw, Lock, Eye, Users, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { listPassengers, type ProfileRow } from '@/app/actions/admin';
-import { banUser, unbanUser } from '@/app/actions/moderation';
+import { banUser, unbanUser, deleteUser } from '@/app/actions/moderation';
 import { ActionDialog } from '@/components/ActionDialog';
 import { UserDetailsModal } from '@/components/UserDetailsModal';
 import { useAuth } from '@/lib/auth';
@@ -29,6 +29,7 @@ export default function PassengersPage() {
   const [canManage, setCanManage] = useState(false);
   const [busy, setBusy] = useState(false);
   const [banTarget, setBanTarget] = useState<BanTarget | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<ProfileRow | null>(null);
   const [detailsId, setDetailsId] = useState<string | null>(null);
 
   // فتح تفاصيل مستخدم محدد عند القدوم من إشعار (?highlight=<id>).
@@ -93,6 +94,17 @@ export default function PassengersPage() {
     if (!res.success) { notify.error(res.error); return; }
     notify.success(mode === 'ban' ? t('moderation.banSuccess', 'تم حظر الحساب') : t('moderation.unbanSuccess', 'تم رفع الحظر'));
     setBanTarget(null);
+    await reload();
+  }
+
+  async function doDelete() {
+    if (!deleteTarget) return;
+    setBusy(true);
+    const res = await deleteUser(deleteTarget.id, user?.id ?? null);
+    setBusy(false);
+    if (!res.success) { notify.error(res.error); return; }
+    notify.success(t('passengers.delete.success', 'تم حذف الحساب نهائيًا'));
+    setDeleteTarget(null);
     await reload();
   }
 
@@ -195,20 +207,31 @@ export default function PassengersPage() {
                           <span className="inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 font-medium">
                             <Lock size={13} /> {t('common.protected', 'محمي')}
                           </span>
-                        ) : p.isActive ? (
-                          <button
-                            onClick={() => setBanTarget({ row: p, mode: 'ban' })}
-                            className="inline-flex items-center gap-1 rounded-lg border border-destructive/30 px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10"
-                          >
-                            <Ban size={14} /> {t('passengers.actions.ban', 'حظر')}
-                          </button>
                         ) : (
-                          <button
-                            onClick={() => setBanTarget({ row: p, mode: 'unban' })}
-                            className="inline-flex items-center gap-1 rounded-lg border border-emerald-500/30 px-3 py-1.5 text-xs font-medium text-emerald-600 transition-colors hover:bg-emerald-500/10"
-                          >
-                            <RotateCcw size={14} /> {t('passengers.actions.unban', 'رفع الحظر')}
-                          </button>
+                          <>
+                            {p.isActive ? (
+                              <button
+                                onClick={() => setBanTarget({ row: p, mode: 'ban' })}
+                                className="inline-flex items-center gap-1 rounded-lg border border-destructive/30 px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10"
+                              >
+                                <Ban size={14} /> {t('passengers.actions.ban', 'حظر')}
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => setBanTarget({ row: p, mode: 'unban' })}
+                                className="inline-flex items-center gap-1 rounded-lg border border-emerald-500/30 px-3 py-1.5 text-xs font-medium text-emerald-600 transition-colors hover:bg-emerald-500/10"
+                              >
+                                <RotateCcw size={14} /> {t('passengers.actions.unban', 'رفع الحظر')}
+                              </button>
+                            )}
+                            <button
+                              onClick={() => setDeleteTarget(p)}
+                              title={t('common.deletePermanent', 'حذف نهائي')}
+                              className="inline-flex items-center justify-center rounded-lg border border-destructive/30 p-1.5 text-destructive transition-colors hover:bg-destructive hover:text-white"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </>
                         )}
                       </div>
                     </td>
@@ -238,6 +261,27 @@ export default function PassengersPage() {
         loading={busy}
         onConfirm={doBan}
         onClose={() => setBanTarget(null)}
+      />
+
+      {/* حوار الحذف النهائي */}
+      <ActionDialog
+        open={!!deleteTarget}
+        title={t('passengers.delete.title', 'حذف الراكبة نهائيًا')}
+        variant="danger"
+        targetName={deleteTarget?.fullName}
+        actorName={actorName}
+        requireReason={false}
+        description={
+          <>
+            {t('passengers.delete.confirmDesc', 'سيُحذف ')}
+            <strong>{deleteTarget?.fullName ?? t('common.thisAccount', 'هذا الحساب')}</strong>
+            {t('passengers.delete.confirmDescSuffix', ' نهائيًا مع كل بياناته (الرحلات، التقييمات). لا يمكن التراجع عن هذا الإجراء.')}
+          </>
+        }
+        confirmLabel={t('passengers.delete.confirmBtn', 'تأكيد الحذف النهائي')}
+        loading={busy}
+        onConfirm={doDelete}
+        onClose={() => setDeleteTarget(null)}
       />
 
       {/* نافذة التفاصيل */}

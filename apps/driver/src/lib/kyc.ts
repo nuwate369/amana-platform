@@ -3,15 +3,20 @@ import { decode } from 'base64-arraybuffer';
 import { supabase } from '@/lib/supabase';
 
 /**
- * منطق رفع مستندات التحقق (KYC) — متصل فعليًا بـ Supabase Storage
- * (bucket خاص `kyc-documents`، مجلد باسم معرّف المستخدمة) وجدول `drivers`.
+ * منطق توثيق السائقة (KYC) — متصل فعليًا بـ Supabase Storage
+ * (bucket خاص `kyc-documents`، مجلد باسم معرّف المستخدمة) وجدولَي
+ * `drivers` (الحقول النصية + روابط الصور) و`profiles` (رقم الجوال).
  */
 
-/** المستندات الثلاثة المطلوبة، وربط كلٍّ منها بعمود الرابط في جدول drivers. */
+/**
+ * المستندات (الصور) المطلوبة، وربط كلٍّ منها بعمود الرابط في جدول drivers.
+ * أُضيفت «صورة السيارة من الأمام» (car_photo_url) إلى الثلاثة السابقة.
+ */
 export const KYC_DOCS = [
-  { key: 'national_id', column: 'national_id_url', label: 'صورة الهوية الوطنية', hint: 'يجب أن تكون سارية المفعول', icon: 'badge' },
+  { key: 'national_id', column: 'national_id_url', label: 'صورة الهوية / الإقامة', hint: 'يجب أن تكون سارية المفعول', icon: 'badge' },
   { key: 'license', column: 'license_url', label: 'رخصة القيادة', hint: 'واضحة وسارية المفعول', icon: 'directions-car' },
-  { key: 'vehicle_registration', column: 'vehicle_registration_url', label: 'استمارة السيارة', hint: 'نسخة واضحة من الأمام', icon: 'assignment' },
+  { key: 'vehicle_registration', column: 'vehicle_registration_url', label: 'استمارة السيارة', hint: 'نسخة واضحة وكاملة', icon: 'assignment' },
+  { key: 'car_photo', column: 'car_photo_url', label: 'صورة السيارة من الأمام', hint: 'لقطة واضحة تُظهر اللوحة', icon: 'photo-camera' },
 ] as const;
 
 export type KycDocKey = (typeof KYC_DOCS)[number]['key'];
@@ -19,33 +24,70 @@ export type KycDocColumn = (typeof KYC_DOCS)[number]['column'];
 
 const BUCKET = 'kyc-documents';
 
+/**
+ * الحقول النصية للتوثيق. الجوال يُحفظ في `profiles.phone`، والبقية في `drivers`.
+ * كلها إلزامية (تُتحقّق في النموذج قبل تفعيل زر الإرسال).
+ */
+export interface KycFieldValues {
+  phone: string;
+  nationalIdNumber: string;
+  vehicleMake: string;
+  vehicleModel: string;
+  vehicleYear: string;
+  vehiclePlate: string;
+  vehicleRegistrationNumber: string;
+}
+
+/** مفاتيح الحقول النصية — تُستخدم في النموذج للتحقّق من الاكتمال. */
+export const KYC_FIELD_KEYS: (keyof KycFieldValues)[] = [
+  'phone',
+  'nationalIdNumber',
+  'vehicleMake',
+  'vehicleModel',
+  'vehicleYear',
+  'vehiclePlate',
+  'vehicleRegistrationNumber',
+];
+
 /** نتيجة محاولة الرفع. */
 export type UploadResult =
   | { status: 'uploaded'; path: string }
   | { status: 'cancelled' }
   | { status: 'error'; message: string };
 
+/** مصدر الصورة: الكاميرا (التقاط) أو معرض الصور. */
+export type ImageSource = 'camera' | 'library';
+
 /**
- * يطلب صلاحية الوصول للمعرض، يفتح المنتقي، يرفع الصورة المختارة إلى
+ * يطلب الصلاحية المناسبة، يفتح الكاميرا أو المعرض، يرفع الصورة المختارة إلى
  * `kyc-documents/{userId}/{docKey}.{ext}`، ثم يحدّث عمود الرابط في صف السائقة.
  * يعيد كائنًا يصف النتيجة (لا يرمي) ليتحكّم النموذج في عرض التنبيه.
+ * الجودة 0.6 لتقليل استهلاك الذاكرة على الأجهزة الضعيفة.
  */
 export async function pickAndUploadKycDocument(
   userId: string,
   doc: { key: KycDocKey; column: KycDocColumn },
+  source: ImageSource = 'library',
 ): Promise<UploadResult> {
-  // 1) صلاحية المعرض.
-  const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-  if (!perm.granted) {
-    return { status: 'error', message: 'نحتاج إذن الوصول للصور لرفع المستند.' };
+  // 1) الصلاحية + فتح المصدر المناسب (مع base64 للرفع المباشر إلى Supabase).
+  let result: ImagePicker.ImagePickerResult;
+  if (source === 'camera') {
+    const perm = await ImagePicker.requestCameraPermissionsAsync();
+    if (!perm.granted) {
+      return { status: 'error', message: 'نحتاج إذن الكاميرا لالتقاط الصورة.' };
+    }
+    result = await ImagePicker.launchCameraAsync({ quality: 0.6, base64: true });
+  } else {
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) {
+      return { status: 'error', message: 'نحتاج إذن الوصول للصور لرفع المستند.' };
+    }
+    result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: 0.6,
+      base64: true,
+    });
   }
-
-  // 2) اختيار الصورة (مع base64 للرفع المباشر إلى Supabase).
-  const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ['images'],
-    quality: 0.7,
-    base64: true,
-  });
   if (result.canceled) return { status: 'cancelled' };
 
   const asset = result.assets[0];
@@ -77,11 +119,55 @@ export async function pickAndUploadKycDocument(
 }
 
 /**
- * إرسال الطلب للتدقيق: يضبط حالة السائقة إلى `pending`
- * (يفيد أيضًا في إعادة الرفع بعد رفض سابق فيعود الطلب للطابور).
+ * حفظ الحقول النصية: بيانات المركبة/الهوية في `drivers` ورقم الجوال في
+ * `profiles`. يُستدعى عند الإرسال. يعيد كائنًا يصف النتيجة (لا يرمي).
  */
-export async function submitKycForReview(userId: string): Promise<{ ok: boolean; message?: string }> {
-  const { error } = await supabase.from('drivers').update({ status: 'pending' }).eq('id', userId);
+export async function saveKycFields(
+  userId: string,
+  values: KycFieldValues,
+): Promise<{ ok: boolean; message?: string }> {
+  const year = Number.parseInt(values.vehicleYear, 10);
+
+  const { error: driverError } = await supabase.from('drivers').upsert(
+    {
+      id: userId,
+      national_id_number: values.nationalIdNumber.trim(),
+      vehicle_make: values.vehicleMake.trim(),
+      vehicle_model: values.vehicleModel.trim(),
+      vehicle_year: Number.isFinite(year) ? year : null,
+      vehicle_plate: values.vehiclePlate.trim(),
+      vehicle_registration_number: values.vehicleRegistrationNumber.trim(),
+    },
+    { onConflict: 'id' },
+  );
+  if (driverError) return { ok: false, message: driverError.message };
+
+  const { error: profileError } = await supabase
+    .from('profiles')
+    .update({ phone: values.phone.trim() })
+    .eq('id', userId);
+  if (profileError) return { ok: false, message: profileError.message };
+
+  return { ok: true };
+}
+
+/**
+ * إرسال الطلب للتدقيق: يحفظ الحقول النصية أولًا ثم يضبط حالة السائقة إلى
+ * `pending` (يفيد أيضًا في إعادة الإرسال بعد رفض سابق فيعود الطلب للطابور).
+ * الصور تُرفع لحظة اختيارها؛ هنا نحفظ النصوص ونؤكّد الإرسال معًا.
+ */
+export async function submitKycForReview(
+  userId: string,
+  values: KycFieldValues,
+): Promise<{ ok: boolean; message?: string }> {
+  const saved = await saveKycFields(userId, values);
+  if (!saved.ok) return saved;
+
+  // تفريغ سبب الرفض السابق عند إعادة الإرسال حتى لا يبقى ظاهرًا بعد الإصلاح.
+  const { error } = await supabase
+    .from('drivers')
+    .update({ status: 'pending', rejection_reason: null })
+    .eq('id', userId);
   if (error) return { ok: false, message: error.message };
   return { ok: true };
 }

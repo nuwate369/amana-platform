@@ -1,76 +1,123 @@
-# نقطة المتابعة — منصة أمانة (14-07-2026)
+# نقطة المتابعة — منصة أمانة (15-07-2026)
 
 مرجع تسليم بين الأجهزة. **اقرأه أولًا عند استئناف العمل**، ثم افتح `PROJECT_MAP.md` للبنية العامة.
 
----
-
-## ✅ ما أُنجز اليوم (مدفوع على GitHub)
-
-### قاعدة البيانات (هجرات مطبَّقة فعليًا على القاعدة الحيّة)
-- **0019** — إصلاح `profiles.locale` (كان `NOT NULL` بلا default فعطّل كل تسجيل جديد).
-- **0020** — إنشاء جدول `system_notifications` المفقود (مُشغّلات 0016 كانت تكتب فيه فتفشل).
-- **0021** — RLS: لا يرى المستخدم إشعارًا متعلّقًا به شخصيًا (`related_entity_id = auth.uid()`).
-- > هذه الثلاثة كانت تحجب **كل تسجيل جديد في المنصّة** (راكبة/سائقة/موظف). أصبح التسجيل يعمل.
-
-### تطبيق السائقة `apps/driver` — المرحلة أ (مكتملة ومختبَرة على جهاز فعلي)
-- سبلاش + تسجيل/دخول عبر Supabase Auth.
-- رفع KYC فعلي إلى bucket `kyc-documents` + حفظ المسارات في `drivers.*_url`.
-- شاشة «قيد المراجعة» تقرأ `drivers.status` الحقيقية.
-- بوابة توجيه (`useProtectedRoute`) تمنع أي شاشة قبل `approved`.
-- **إصلاح:** حراسة التنقّل بـ`useRootNavigationState` (خطأ «navigation context» بعد منتقي الصور على أندرويد).
-
-### لوحة الإدارة `apps/admin`
-- **الصلاحيات:** فلترة القائمة الجانبية بـ`can()` + حارس مركزي يُظهر **404** للشاشات الممنوعة (مصفوفة الصلاحيات في `packages/shared-types`).
-- **الإشعارات:** زر «تحديد الكل كمقروء» يزامن الجرس (حدث `notifications-events`)؛ النقر على إشعار يفتح المستخدم المحدد (`?highlight=`).
-- **الملف الشخصي:** صورة المستخدم في الشريط العلوي + حذف رقم HQ.
-- **التنبيهات (toasts):** أسفل-الوسط + زر إغلاق + مدة أطول + تعريب أخطاء Supabase حسب اللغة (`supabase-errors.ts`).
-- **الدعوات:** رابط إعادة التوجيه يُشتقّ من الطلب تلقائيًا (`site-url.ts`) — يعمل على أي نطاق.
-- **عرض مستندات KYC:** نافذة التفاصيل (أيقونة العين 👁) تعرض صور المستندات عبر **روابط موقّعة** من الـ bucket الخاص.
-- **بناء الإنتاج:** الصفحات التي تجلب بيانات صارت `force-dynamic` (كانت تفشل في `next build` على Vercel).
-
-### إعدادات خارجية مضبوطة
-- **Supabase → URL Configuration:** Site URL = `https://amana.nuwate.com` + Redirect URLs تشمل `https://amana.nuwate.com/**` و`http://localhost:3002/**`.
-- **Supabase → SMTP:** مخصّص (hostinger) مفعّل — الدعوات وبريد التأكيد تصل.
-- **Vercel:** لوحة الإدارة تُنشَر على `amana.nuwate.com`. منفذ التطوير المحلي مثبّت على **3002**.
+> ⚠️ **قبل أي شيء على الجهاز الجديد:** تأكّد أن آخر تغييرات هذه الجلسة **مدفوعة على GitHub**
+> واسحبها (`git pull`)، وإلا لن تجد عمل اليوم. ثم `npm install` من جذر المستودع.
 
 ---
 
-## ▶️ المهمة التالية (المتّفق عليها — لم تبدأ بعد)
+## 🔴 خطوات يدوية مطلوبة (بعضها قد يكون نُفّذ — تحقّق)
 
-**توسيع نموذج KYC في تطبيق السائقة** ليجمع بيانات نصية + صورة إضافية (حاليًا يجمع 3 صور فقط).
+### 1) هجرتان في Supabase → SQL Editor → Run (idempotent)
+لم يتأكّد تطبيقهما على القاعدة الحيّة — **دليل عدم التطبيق: فشل رفع صورة السيارة** (عمود
+`car_photo_url` مفقود). شغّلهما:
+```sql
+-- 0022_driver_kyc_fields.sql
+alter table public.drivers
+  add column if not exists vehicle_year                int,
+  add column if not exists national_id_number          text,
+  add column if not exists vehicle_registration_number text,
+  add column if not exists car_photo_url               text;
 
-### 1) قاعدة البيانات — هجرة `0022_driver_kyc_fields.sql` (تُطبَّق يدويًا في SQL Editor)
-إضافة 4 أعمدة لجدول `drivers`:
-- `vehicle_year` (int)
-- `national_id_number` (text)
-- `vehicle_registration_number` (text)
-- `car_photo_url` (text)
-> موجود مسبقًا: `vehicle_make`, `vehicle_model`, `vehicle_plate`, و`national_id_url`/`license_url`/`vehicle_registration_url`. الجوال → `profiles.phone`.
-
-### 2) تطبيق السائقة — إعادة بناء شاشة `app/kyc.tsx` كنموذج من 3 أقسام
-- **بيانات شخصية:** رقم الجوال (→ `profiles.phone`)، رقم الهوية/الإقامة (→ `national_id_number`).
-- **بيانات المركبة:** الشركة الصانعة، الموديل، سنة الصنع، رقم اللوحة (أرقام+أحرف)، رقم الاستمارة.
-- **المستندات (صور):** الهوية/الإقامة، الرخصة، الاستمارة، **صورة السيارة من الأمام** (جديدة → `car_photo_url`).
-- زر «إرسال للتدقيق» يُفعَّل بعد اكتمال الحقول المطلوبة + الصور. حفظ الكل في `drivers` عبر `src/lib/kyc.ts` (upsert).
-
-### 3) لوحة الإدارة — عرض الحقول الجديدة
-- `actions/details.ts` + `components/UserDetailsModal.tsx`: عرض كل الحقول النصية + الصورة الرابعة (صورة السيارة) بجانب المستندات الحالية.
-
-### ❓ قرارات معلّقة (أجِب عنها قبل البناء)
-1. هل قائمة الحقول مكتملة أم تريد إضافة/حذف؟
-2. أي الحقول إلزامية وأيها اختياري؟ (الافتراض المقترح: كلها إلزامية)
-3. رقم اللوحة: نصّ حرّ (أرقام + أحرف) أم تنسيق محدّد؟ (الافتراض: نصّ حرّ)
-
----
-
-## 🚀 كيف تُشغّل تطبيق السائقة للاختبار
-```bash
-cd apps/driver
-npx expo start --tunnel      # يعطي رابط exp://...exp.direct يعمل من أي شبكة
+-- 0023_driver_rejection_reason.sql
+alter table public.drivers
+  add column if not exists rejection_reason text;
 ```
-- امسح رمز QR بتطبيق **Expo Go المتوافق مع SDK 53** (نسخة أقدم — تطبيق الهاتف الأحدث SDK 54 لا يعمل).
-- لتنزيل Expo Go SDK 53 (أندرويد): `https://expo.dev/go?sdkVersion=53&platform=android`.
-- لوحة الإدارة محليًا: `cd apps/admin && npm run dev` → `http://localhost:3002`.
+لا تغيير في RLS (الأعمدة ضمن سياسات `drivers_*_own` و`profiles_update_own`).
+
+### 2) إعدادات Supabase Auth (✅ نُفّذت من المالك)
+- قالب **Confirm signup** → يعرض `{{ .Token }}` بدل `{{ .ConfirmationURL }}`.
+- **Email OTP Length = 6** · **Email OTP Expiration = 3600** (≥10د ✓).
+- (اختياري) الحدّ الأدنى بين الرسائل = 120s؛ التطبيق يفرض الدقيقتين بعدّاده أصلًا.
+
+---
+
+## ▶️ المهمة التالية المتّفق عليها (لم تبدأ)
+
+**إصلاح خروج التطبيق بعد رفع آخر مرفق** على الأجهزة الضعيفة (رام 4GB + Expo Go).
+- **السبب:** أندرويد يقتل التطبيق أثناء منتقي الصور بسبب ضغط الذاكرة (نرفع الصور كـ
+  `base64` وهو ثقيل)؛ يتراكم حتى الصورة الرابعة فيُعاد تشغيل التطبيق ← تظهر الشاشة الأولى.
+  (ليس خطأ كود — الصور تُحفظ لحظة رفعها، والذي يضيع هو الحقول النصية غير المُرسَلة.)
+- **الحل المتّفق عليه (1):** تحويل الرفع في `src/lib/kyc.ts` من `base64`/`decode` إلى
+  **رفع الملف مباشرة** من `asset.uri` (مثلاً `fetch(uri).then(r=>r.arrayBuffer())` أو
+  `FileSystem`), وإسقاط `base64:true` من `launchCamera/ImageLibraryAsync` — يقلّل الذاكرة
+  بشدّة وقد يُنهي الخروج داخل Expo Go.
+- **الحل الجذري (2):** `eas build` لتطبيق مستقل (`largeHeap` + ذاكرة أفضل) — يُنهيها نهائيًّا.
+
+> تذكير بالتدفّق الصحيح: لا يوجد زر «حفظ» منفصل — الصور تُحفظ عند رفعها، وزر **«إرسال
+> للتدقيق»** أسفل النموذج (يُفعَّل بعد اكتمال كل الحقول + الصور الأربع) يحفظ النصوص ويضبط
+> `status='pending'` ثم تنتقل السائقة لشاشة «قيد المراجعة».
+
+---
+
+## ✅ ما أُنجز في هذه الجلسة (كود جاهز، `tsc`+`eslint` نظيفان على `driver` و`admin`)
+
+### نموذج KYC الاحترافي — `apps/driver/app/kyc.tsx` + `src/lib/kyc.ts`
+- **٣ أقسام:** شخصية (جوال → `profiles.phone`، هوية/إقامة) · المركبة · المستندات (٤ صور).
+- **تحقّق:** جوال سعودي `^05\d{8}$` · هوية/إقامة 10 أرقام · إدخال رقمي فقط.
+- **قوائم منسدلة بحث:** الشركة والموديل (`src/lib/carData.ts` + مكوّن `SearchableSelect`)،
+  الموديل يتبع الشركة، **سنة الصنع** منسدلة 2015..العام الحالي.
+- **رقم اللوحة:** حقلان — أحرف عربية (≤3، تُعرض بمسافات «ه ه ه») + أرقام (≤4) → `vehicle_plate`.
+- **الصور:** **التقاط بالكاميرا** أو من المعرض (Alert)، الجودة 0.6، `cameraPermission` في `app.json`.
+
+### مصادقة السائقة — `app/(auth)/*`
+- **تأكيد البريد برمز OTP** (6 أرقام) بدل الرابط: `verify-email.tsx` (تحقّق تلقائي +
+  `verifyOtp({type:'signup'})` + `resend` بعدّاد **دقيقتين**). يقتل مشكلة deep link.
+- عند «Email not confirmed» في الدخول → رسالة عربية + توجيه لشاشة الرمز (إعادة الإرسال فورية).
+- **تعريب أخطاء Supabase Auth:** `src/lib/authErrors.ts` (`sign-in`/`sign-up`).
+- **إظهار/إخفاء كلمة المرور:** مكوّن `src/components/PasswordInput.tsx` (كلمة المرور + تأكيدها).
+- **تحقّق البريد مرئي:** `mode:'onTouched'` + توست عند الإرسال ببريد غير صالح.
+- `i18next` → `compatibilityJSON:'v3'` (أزال تحذير pluralResolver على الجهاز).
+
+### لوحة الإدارة — `apps/admin`
+- **تدفّق مراجعة KYC الجديد:** حُذفت بطاقة «طلبات KYC معلّقة» العلوية. في الجدول:
+  سائقة **غير معتمدة** → زر «🔍 مراجعة المستندات»؛ **معتمدة** → أيقونة 👁.
+  أزرار **موافقة/رفض في أسفل نافذة التفاصيل** بعد رؤية المستندات (`UserDetailsModal`
+  props: `onApprove`/`onReject`؛ الصفحة: `reviewDecision()`).
+- **عرض حقول KYC الجديدة + صورة السيارة** في `actions/details.ts` + `UserDetailsModal.tsx`.
+- **سبب الرفض:** `rejectDriver` يحفظه في `drivers.rejection_reason` → يظهر للسائقة في
+  `kyc.tsx` وفي نافذة تفاصيل الإدارة. يُفرَّغ عند القبول/إعادة الإرسال.
+- **حذف نهائي** (أداة تجارب): `deleteUser` في `actions/moderation.ts` + زر 🗑 في
+  `drivers`/`passengers` (يفكّ `rides.driver_id` و`ratings` ثم يحذف مستخدم المصادقة
+  المتتالي + ينظّف `kyc-documents` + يُسجَّل `delete_user`؛ الحسابات المحمية محميّة).
+
+### ترقية توافقية (طُبِّقت عبر `expo install --fix`)
+`expo-router@~5.1.11` · `react-native@0.79.6` · `react-native-screens@~4.11.1`
+(أصلحت خطأ `navigation getState` عند الإقلاع).
+
+### ملفات جديدة أُنشئت هذه الجلسة
+```
+supabase/migrations/0022_driver_kyc_fields.sql
+supabase/migrations/0023_driver_rejection_reason.sql
+apps/driver/src/lib/carData.ts
+apps/driver/src/lib/authErrors.ts
+apps/driver/src/components/SearchableSelect.tsx
+apps/driver/src/components/PasswordInput.tsx
+```
+
+---
+
+## 🚀 التشغيل للاختبار
+```bash
+# تطبيق السائقة
+cd apps/driver && npx expo start           # LAN: استخدم رابط exp://<ip>:8081 المطبوع
+#            أو  npx expo start --tunnel    # يعمل من أي شبكة (يحتاج ngrok، قد يبطؤ)
+# لوحة الإدارة
+cd apps/admin && npm run dev                # http://localhost:3002
+```
+- **Expo Go متوافق مع SDK 53** فقط (الأحدث SDK 54 لا يعمل).
+- أول حزمة على جهاز ضعيف تأخذ ~80ث (طبيعي، لمرّة واحدة).
+- بعد أي تعديل: **إعادة تحميل كاملة** (Reload) لا Fast Refresh (لتفادي حالات وسيطة عالقة).
+
+---
+
+## 🔜 مؤجّل للـ build المستقل (Expo Go لا يحلّها)
+- **لوحة المفاتيح تغطّي الحقول (أندرويد):** Expo Go لا يطبّق `softwareKeyboardLayoutMode`.
+  طُبِّق تخفيف مؤقّت (`behavior="padding"`). الجذري في `eas build`:
+  `"android": { "softwareKeyboardLayoutMode": "resize" }` أو `react-native-keyboard-controller`.
+- **خروج التطبيق بعد آخر مرفق** (المهمة التالية أعلاه — نجرّب حل base64→ملف أولًا داخل Expo Go).
 
 ## 🔜 مؤجّل للمرحلة ب
-ميزات القيادة (استقبال الطلبات/الأرباح/الرحلات)، `eas build` وتوزيع APK مستقل، الربط العميق (deep link) لفتح رابط تأكيد البريد داخل التطبيق، آلية التحديث الإجباري، زر «إرسال رسالة للسائقة» من لوحة الإدارة.
+ميزات القيادة (استقبال الطلبات/الأرباح/الرحلات)، `eas build` وتوزيع APK، الربط العميق،
+آلية التحديث الإجباري، زر «إرسال رسالة للسائقة» من لوحة الإدارة.

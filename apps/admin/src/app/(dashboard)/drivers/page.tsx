@@ -2,10 +2,10 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Car, Check, X, ShieldCheck, Star, Ban, RotateCcw, Lock, Phone, Eye, Users } from 'lucide-react';
+import { Car, Ban, RotateCcw, Lock, Eye, Users, Trash2, FileSearch } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { listDrivers, type DriverRow } from '@/app/actions/admin';
-import { banUser, unbanUser, approveDriver, rejectDriver } from '@/app/actions/moderation';
+import { banUser, unbanUser, approveDriver, rejectDriver, deleteUser } from '@/app/actions/moderation';
 import { ActionDialog } from '@/components/ActionDialog';
 import { UserDetailsModal } from '@/components/UserDetailsModal';
 import { useAuth } from '@/lib/auth';
@@ -60,6 +60,7 @@ type KycTarget = { row: DriverRow; mode: 'approve' | 'reject' };
 
   const [banTarget, setBanTarget] = useState<BanTarget | null>(null);
   const [kycTarget, setKycTarget] = useState<KycTarget | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<DriverRow | null>(null);
   const [detailsId, setDetailsId] = useState<string | null>(null);
 
   // فتح تفاصيل مستخدم محدد عند القدوم من إشعار (?highlight=<id>).
@@ -106,8 +107,6 @@ type KycTarget = { row: DriverRow; mode: 'approve' | 'reject' };
       });
   }, [user]);
 
-  const pending = useMemo(() => drivers.filter((d) => d.status === 'pending'), [drivers]);
-
   const rows = useMemo(() => {
     switch (active) {
       case 'الكل':
@@ -149,6 +148,25 @@ type KycTarget = { row: DriverRow; mode: 'approve' | 'reject' };
     await reload();
   }
 
+  // قبول/رفض من داخل نافذة مراجعة المستندات: نغلق النافذة ونفتح حوار التأكيد/السبب.
+  function reviewDecision(mode: 'approve' | 'reject') {
+    const row = drivers.find((d) => d.id === detailsId);
+    if (!row) return;
+    setDetailsId(null);
+    setKycTarget({ row, mode });
+  }
+
+  async function doDelete() {
+    if (!deleteTarget) return;
+    setBusy(true);
+    const res = await deleteUser(deleteTarget.id, user?.id ?? null);
+    setBusy(false);
+    if (!res.success) { notify.error(res.error); return; }
+    notify.success(t('drivers.delete.success', 'تم حذف الحساب نهائيًا'));
+    setDeleteTarget(null);
+    await reload();
+  }
+
   return (
     <div className="space-y-4">
       <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-center">
@@ -158,64 +176,6 @@ type KycTarget = { row: DriverRow; mode: 'approve' | 'reject' };
           <span className="hidden text-muted-foreground/30 md:inline">/</span>
           <span className="text-sm font-normal text-muted-foreground mt-0">{t('drivers.subtitle', 'إدارة طلبات وسائقات المنصة')}</span>
         </h1>
-      </div>
-
-      {/* طلبات KYC معلّقة — بيانات حقيقية */}
-      <div className="rounded-xl border border-border bg-card p-5">
-        <div className="mb-4 flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15 text-primary">
-            <ShieldCheck size={18} />
-          </span>
-          <h2 className="font-semibold text-foreground">{t('drivers.kyc.pendingTitle', 'طلبات KYC معلّقة')}</h2>
-          <span className="rounded-full bg-primary/15 px-2 py-0.5 text-xs font-medium text-primary">
-            {pending.length}
-          </span>
-        </div>
-
-        {pending.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">
-            {t('drivers.kyc.noPending', 'لا توجد طلبات قيد المراجعة حاليًا.')}
-          </p>
-        ) : (
-          <div className="space-y-3">
-            {pending.map((d) => (
-              <div
-                key={d.id}
-                className="flex flex-col gap-4 rounded-lg border border-border p-4 lg:flex-row lg:items-center lg:justify-between"
-              >
-                <div>
-                  <p className="font-medium text-foreground">{d.fullName ?? '—'}</p>
-                  <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <Phone size={13} />
-                    {d.phone ?? '—'} · {d.vehicle}
-                    {d.plate ? ` · ${d.plate}` : ''}
-                  </p>
-                </div>
-
-                {canManage ? (
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setKycTarget({ row: d, mode: 'approve' })}
-                      className="flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700"
-                    >
-                      <Check size={16} />
-                      {t('drivers.kyc.approveBtn', 'موافقة')}
-                    </button>
-                    <button
-                      onClick={() => setKycTarget({ row: d, mode: 'reject' })}
-                      className="flex items-center gap-1 rounded-lg border border-destructive/30 px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
-                    >
-                      <X size={16} />
-                      {t('drivers.kyc.rejectBtn', 'رفض')}
-                    </button>
-                  </div>
-                ) : (
-                  <span className="text-xs text-muted-foreground">{t('common.viewOnly', 'عرض فقط')}</span>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
       </div>
 
       {/* شرائح التصفية */}
@@ -292,31 +252,51 @@ type KycTarget = { row: DriverRow; mode: 'approve' | 'reject' };
                     </td>
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-1.5">
-                        <button
-                          onClick={() => setDetailsId(d.id)}
-                          title={t('common.viewDetails', 'عرض التفاصيل')}
-                          className="inline-flex items-center justify-center rounded-lg border border-border p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-primary"
-                        >
-                          <Eye size={15} />
-                        </button>
+                        {d.status === 'approved' ? (
+                          <button
+                            onClick={() => setDetailsId(d.id)}
+                            title={t('common.viewDetails', 'عرض التفاصيل')}
+                            className="inline-flex items-center justify-center rounded-lg border border-border p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-primary"
+                          >
+                            <Eye size={15} />
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => setDetailsId(d.id)}
+                            className="inline-flex items-center gap-1 rounded-lg border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/10"
+                          >
+                            <FileSearch size={14} /> {t('drivers.kyc.reviewDocsBtn', 'مراجعة المستندات')}
+                          </button>
+                        )}
                         {!canManage ? null : d.isProtected ? (
                           <span className="inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 font-medium">
                             <Lock size={13} /> {t('common.protected', 'محمي')}
                           </span>
-                        ) : d.isActive ? (
-                          <button
-                            onClick={() => setBanTarget({ row: d, mode: 'ban' })}
-                            className="inline-flex items-center gap-1 rounded-lg border border-destructive/30 px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10"
-                          >
-                            <Ban size={14} /> {t('drivers.actions.ban', 'حظر')}
-                          </button>
                         ) : (
-                          <button
-                            onClick={() => setBanTarget({ row: d, mode: 'unban' })}
-                            className="inline-flex items-center gap-1 rounded-lg border border-emerald-500/30 px-3 py-1.5 text-xs font-medium text-emerald-600 transition-colors hover:bg-emerald-500/10"
-                          >
-                            <RotateCcw size={14} /> {t('drivers.actions.unban', 'رفع الحظر')}
-                          </button>
+                          <>
+                            {d.isActive ? (
+                              <button
+                                onClick={() => setBanTarget({ row: d, mode: 'ban' })}
+                                className="inline-flex items-center gap-1 rounded-lg border border-destructive/30 px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10"
+                              >
+                                <Ban size={14} /> {t('drivers.actions.ban', 'حظر')}
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => setBanTarget({ row: d, mode: 'unban' })}
+                                className="inline-flex items-center gap-1 rounded-lg border border-emerald-500/30 px-3 py-1.5 text-xs font-medium text-emerald-600 transition-colors hover:bg-emerald-500/10"
+                              >
+                                <RotateCcw size={14} /> {t('drivers.actions.unban', 'رفع الحظر')}
+                              </button>
+                            )}
+                            <button
+                              onClick={() => setDeleteTarget(d)}
+                              title={t('common.deletePermanent', 'حذف نهائي')}
+                              className="inline-flex items-center justify-center rounded-lg border border-destructive/30 p-1.5 text-destructive transition-colors hover:bg-destructive hover:text-white"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </>
                         )}
                       </div>
                     </td>
@@ -370,8 +350,35 @@ type KycTarget = { row: DriverRow; mode: 'approve' | 'reject' };
         onClose={() => setKycTarget(null)}
       />
 
-      {/* نافذة التفاصيل */}
-      <UserDetailsModal userId={detailsId} kind="driver" onClose={() => setDetailsId(null)} />
+      {/* حوار الحذف النهائي */}
+      <ActionDialog
+        open={!!deleteTarget}
+        title={t('drivers.delete.title', 'حذف السائقة نهائيًا')}
+        variant="danger"
+        targetName={deleteTarget?.fullName}
+        actorName={actorName}
+        requireReason={false}
+        description={
+          <>
+            {t('drivers.delete.confirmDesc', 'سيُحذف ')}
+            <strong>{deleteTarget?.fullName ?? t('common.thisAccount', 'هذا الحساب')}</strong>
+            {t('drivers.delete.confirmDescSuffix', ' نهائيًا مع كل بياناته (المستندات، التقييمات، ارتباط الرحلات). لا يمكن التراجع عن هذا الإجراء.')}
+          </>
+        }
+        confirmLabel={t('drivers.delete.confirmBtn', 'تأكيد الحذف النهائي')}
+        loading={busy}
+        onConfirm={doDelete}
+        onClose={() => setDeleteTarget(null)}
+      />
+
+      {/* نافذة مراجعة المستندات + قرار القبول/الرفض في أسفلها */}
+      <UserDetailsModal
+        userId={detailsId}
+        kind="driver"
+        onClose={() => setDetailsId(null)}
+        onApprove={canManage ? () => reviewDecision('approve') : undefined}
+        onReject={canManage ? () => reviewDecision('reject') : undefined}
+      />
     </div>
   );
 }

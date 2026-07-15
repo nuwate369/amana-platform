@@ -3,7 +3,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import {
   X, User, Car, Phone, Mail, Calendar, Star, Ban, Lock, UserCog,
-  FileText, CreditCard, Navigation, ShieldCheck, ScrollText, Clock, MessageSquareQuote, ZoomIn,
+  FileText, CreditCard, Navigation, ShieldCheck, ScrollText, Clock, MessageSquareQuote, ZoomIn, Check,
 } from 'lucide-react';
 import { STAFF_TYPE_LABELS, STAFF_TYPE_COLORS } from '@amana/shared-types';
 import { getUserDetails, type UserDetails } from '@/app/actions/details';
@@ -124,9 +124,13 @@ export interface UserDetailsModalProps {
   /** نوع السياق للعناوين. */
   kind: DetailsKind;
   onClose: () => void;
+  /** قبول السائقة — يظهر زرّه أسفل النافذة للسائقة غير المعتمدة (اختياري). */
+  onApprove?: () => void;
+  /** رفض السائقة — يظهر زرّه أسفل النافذة للسائقة غير المعتمدة (اختياري). */
+  onReject?: () => void;
 }
 
-export function UserDetailsModal({ userId, kind, onClose }: UserDetailsModalProps) {
+export function UserDetailsModal({ userId, kind, onClose, onApprove, onReject }: UserDetailsModalProps) {
   const [details, setDetails] = useState<UserDetails | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -294,6 +298,15 @@ export function UserDetailsModal({ userId, kind, onClose }: UserDetailsModalProp
                       <ShieldCheck size={16} className="text-primary" />
                       المركبة ومستندات KYC
                     </h3>
+                    {details.driver.status === 'rejected' && details.driver.rejectionReason && (
+                      <div className="mb-3 rounded-lg border border-destructive/30 bg-destructive/5 p-3">
+                        <p className="flex items-center gap-1.5 text-xs font-semibold text-destructive">
+                          <Ban size={13} />
+                          سبب الرفض المُرسَل للسائقة
+                        </p>
+                        <p className="mt-1 text-sm text-foreground">{details.driver.rejectionReason}</p>
+                      </div>
+                    )}
                     <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                       <InfoRow
                         icon={Car}
@@ -304,17 +317,33 @@ export function UserDetailsModal({ userId, kind, onClose }: UserDetailsModalProp
                             .join(' ') || '—'
                         }
                       />
+                      <InfoRow
+                        icon={Calendar}
+                        label="سنة الصنع"
+                        value={details.driver.vehicleYear ?? '—'}
+                      />
                       <InfoRow icon={CreditCard} label="اللوحة" value={details.driver.vehiclePlate ?? '—'} />
+                      <InfoRow
+                        icon={FileText}
+                        label="رقم الاستمارة"
+                        value={details.driver.vehicleRegistrationNumber ?? '—'}
+                      />
+                      <InfoRow
+                        icon={CreditCard}
+                        label="رقم الهوية / الإقامة"
+                        value={details.driver.nationalIdNumber ?? '—'}
+                      />
                     </div>
                     {/* معاينة المستندات المرفوعة — اضغط الصورة لفتحها بالحجم الكامل */}
                     <p className="mt-4 mb-2 text-xs font-medium text-muted-foreground">
                       المستندات المرفوعة (اضغط للتكبير)
                     </p>
-                    <div className="grid grid-cols-3 gap-2.5">
+                    <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
                       {[
-                        { label: 'الهوية الوطنية', url: details.driver.nationalIdUrl },
+                        { label: 'الهوية / الإقامة', url: details.driver.nationalIdUrl },
                         { label: 'رخصة القيادة', url: details.driver.licenseUrl },
                         { label: 'استمارة المركبة', url: details.driver.vehicleRegistrationUrl },
+                        { label: 'صورة السيارة', url: details.driver.carPhotoUrl },
                       ].map((doc) => (
                         <div key={doc.label} className="flex flex-col gap-1.5">
                           {doc.url ? (
@@ -492,6 +521,35 @@ export function UserDetailsModal({ userId, kind, onClose }: UserDetailsModalProp
             </div>
           )}
         </div>
+
+        {/* شريط القرار — للسائقة غير المعتمدة فقط، بعد مراجعة المستندات أعلاه */}
+        {details?.driver &&
+          (details.driver.status === 'pending' || details.driver.status === 'rejected') &&
+          (onApprove || onReject) && (
+            <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-border bg-card px-6 py-4">
+              <span className="text-sm text-muted-foreground">
+                بعد مراجعة المستندات أعلاه، اتخذي القرار:
+              </span>
+              <div className="flex items-center gap-3">
+                {onReject && (
+                  <button
+                    onClick={onReject}
+                    className="flex items-center gap-1.5 rounded-lg border border-destructive/30 px-4 py-2 text-sm font-semibold text-destructive transition-colors hover:bg-destructive/10"
+                  >
+                    <X size={16} /> رفض
+                  </button>
+                )}
+                {onApprove && (
+                  <button
+                    onClick={onApprove}
+                    className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
+                  >
+                    <Check size={16} /> موافقة
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
       </div>
     </div>
   );

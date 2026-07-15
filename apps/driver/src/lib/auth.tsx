@@ -20,6 +20,16 @@ export interface DriverRecord {
   national_id_url: string | null;
   license_url: string | null;
   vehicle_registration_url: string | null;
+  car_photo_url: string | null;
+  // الحقول النصية — تُستخدم لإعادة تعبئة النموذج بعد رفض سابق.
+  national_id_number: string | null;
+  vehicle_make: string | null;
+  vehicle_model: string | null;
+  vehicle_year: number | null;
+  vehicle_plate: string | null;
+  vehicle_registration_number: string | null;
+  // سبب الرفض (يظهر للسائقة عند status='rejected').
+  rejection_reason: string | null;
 }
 
 /** هل رُفعت المستندات الثلاثة كلها؟ */
@@ -45,7 +55,10 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-const DRIVER_COLUMNS = 'id, status, national_id_url, license_url, vehicle_registration_url';
+const DRIVER_COLUMNS =
+  'id, status, national_id_url, license_url, vehicle_registration_url, car_photo_url, ' +
+  'national_id_number, vehicle_make, vehicle_model, vehicle_year, vehicle_plate, vehicle_registration_number, ' +
+  'rejection_reason';
 
 /**
  * مزوّد المصادقة: يقرأ الجلسة الحالية عند التركيب ثم يستمع لتغيّرات الحالة،

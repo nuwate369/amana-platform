@@ -49,6 +49,9 @@ export function createI18n(options: CreateI18nOptions = {}): I18nType {
       supportedLngs: SUPPORTED_LOCALES as unknown as string[],
       interpolation: { escapeValue: false },
       returnNull: false,
+      // بيئة React Native (Hermes) قد تفتقر لـ Intl.PluralRules — الصيغة v3
+      // تعتمد قواعد جمع بسيطة فتُلغي تحذير pluralResolver على الجهاز.
+      compatibilityJSON: 'v3',
     });
   }
 

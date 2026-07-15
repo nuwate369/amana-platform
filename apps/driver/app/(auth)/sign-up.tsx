@@ -3,12 +3,23 @@ import { Link, router } from 'expo-router';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { signUpSchema, type SignUpInput, translateError } from '@amana/shared-ui/validation';
 import { driverNavy } from '@amana/shared-ui/tokens';
 import { supabase } from '@/lib/supabase';
 import { notify } from '@/lib/toast';
+import { translateAuthError } from '@/lib/authErrors';
+import { PasswordInput } from '@/components/PasswordInput';
 
 const FIELDS: {
   name: keyof SignUpInput;
@@ -31,8 +42,19 @@ export default function SignUpScreen() {
     formState: { errors, isSubmitting },
   } = useForm<SignUpInput>({
     resolver: zodResolver(signUpSchema),
+    mode: 'onTouched', // تحقّق فوري عند مغادرة الحقل
     defaultValues: { fullName: '', email: '', password: '', confirmPassword: '' },
   });
+
+  // توست مرئي عند محاولة الإنشاء بحقول غير صالحة (الخطأ قد يكون خلف لوحة المفاتيح).
+  const onInvalid = (errs: typeof errors) => {
+    const msg =
+      errs.fullName?.message ??
+      errs.email?.message ??
+      errs.password?.message ??
+      errs.confirmPassword?.message;
+    if (msg) notify.error(translateError(t, msg) ?? t('common.error'));
+  };
 
   async function onSubmit(values: SignUpInput) {
     const { error } = await supabase.auth.signUp({
@@ -42,15 +64,24 @@ export default function SignUpScreen() {
       options: { data: { full_name: values.fullName, user_type: 'driver' } },
     });
     if (error) {
-      notify.error(error.message || t('common.error'));
+      notify.error(translateAuthError(error.message, t));
       return;
     }
-    notify.success(t('auth.verifyEmailBody'));
-    router.replace('/(auth)/verify-email');
+    notify.success(t('auth.mfaSent'));
+    // justSent=1 ⇐ رمز أُرسل للتوّ، فيبدأ عدّاد إعادة الإرسال على الشاشة.
+    router.replace({
+      pathname: '/(auth)/verify-email',
+      params: { email: values.email.trim(), justSent: '1' },
+    });
   }
 
   return (
     <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-900">
+      <KeyboardAvoidingView
+        className="flex-1"
+        behavior="padding"
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 24}
+      >
       <ScrollView
         contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24 }}
         keyboardShouldPersistTaps="handled"
@@ -74,19 +105,27 @@ export default function SignUpScreen() {
             <Controller
               control={control}
               name={f.name}
-              render={({ field: { onChange, onBlur, value } }) => (
-                <TextInput
-                  className="h-14 rounded-xl border border-neutral-200 bg-white px-4 font-plex text-base text-neutral-900 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-50"
-                  placeholder={t(f.labelKey)}
-                  placeholderTextColor="#9ca3af"
-                  secureTextEntry={f.secure}
-                  autoCapitalize={f.email ? 'none' : 'sentences'}
-                  keyboardType={f.email ? 'email-address' : 'default'}
-                  value={value}
-                  onBlur={onBlur}
-                  onChangeText={onChange}
-                />
-              )}
+              render={({ field: { onChange, onBlur, value } }) =>
+                f.secure ? (
+                  <PasswordInput
+                    placeholder={t(f.labelKey)}
+                    value={value}
+                    onBlur={onBlur}
+                    onChangeText={onChange}
+                  />
+                ) : (
+                  <TextInput
+                    className="h-14 rounded-xl border border-neutral-200 bg-white px-4 font-plex text-base text-neutral-900 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-50"
+                    placeholder={t(f.labelKey)}
+                    placeholderTextColor="#9ca3af"
+                    autoCapitalize={f.email ? 'none' : 'sentences'}
+                    keyboardType={f.email ? 'email-address' : 'default'}
+                    value={value}
+                    onBlur={onBlur}
+                    onChangeText={onChange}
+                  />
+                )
+              }
             />
             {errors[f.name] ? (
               <Text className="font-plex text-sm text-red-500">
@@ -99,7 +138,7 @@ export default function SignUpScreen() {
         <Pressable
           className="mt-2 h-14 items-center justify-center rounded-xl bg-brand-700 active:scale-[0.98] dark:bg-brand-600"
           disabled={isSubmitting}
-          onPress={handleSubmit(onSubmit)}
+          onPress={handleSubmit(onSubmit, onInvalid)}
         >
           {isSubmitting ? (
             <ActivityIndicator color="#fff" />
@@ -117,6 +156,7 @@ export default function SignUpScreen() {
           </Link>
         </View>
       </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

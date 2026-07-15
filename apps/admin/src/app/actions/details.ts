@@ -56,10 +56,15 @@ export interface UserDetails {
     status: string;
     vehicleMake: string | null;
     vehicleModel: string | null;
+    vehicleYear: number | null;
     vehiclePlate: string | null;
+    vehicleRegistrationNumber: string | null;
+    nationalIdNumber: string | null;
+    rejectionReason: string | null;
     licenseUrl: string | null;
     nationalIdUrl: string | null;
     vehicleRegistrationUrl: string | null;
+    carPhotoUrl: string | null;
   } | null;
   // إحصاءات
   stats: {
@@ -111,7 +116,9 @@ export async function getUserDetails(userId: string): Promise<UserDetails | null
     isDriver
       ? db
           .from('drivers')
-          .select('status, vehicle_make, vehicle_model, vehicle_plate, license_url, national_id_url, vehicle_registration_url')
+          .select(
+            'status, vehicle_make, vehicle_model, vehicle_year, vehicle_plate, vehicle_registration_number, national_id_number, rejection_reason, license_url, national_id_url, vehicle_registration_url, car_photo_url',
+          )
           .eq('id', userId)
           .maybeSingle()
       : Promise.resolve({ data: null }),
@@ -175,10 +182,15 @@ export async function getUserDetails(userId: string): Promise<UserDetails | null
     status: string;
     vehicle_make: string | null;
     vehicle_model: string | null;
+    vehicle_year: number | null;
     vehicle_plate: string | null;
+    vehicle_registration_number: string | null;
+    national_id_number: string | null;
+    rejection_reason: string | null;
     license_url: string | null;
     national_id_url: string | null;
     vehicle_registration_url: string | null;
+    car_photo_url: string | null;
   } | null;
 
   const authUser = authRes.data?.user;
@@ -191,13 +203,14 @@ export async function getUserDetails(userId: string): Promise<UserDetails | null
     const { data } = await db.storage.from('kyc-documents').createSignedUrl(path, 60 * 60);
     return data?.signedUrl ?? null;
   }
-  const [nationalIdSigned, licenseSigned, vehicleRegSigned] = d
+  const [nationalIdSigned, licenseSigned, vehicleRegSigned, carPhotoSigned] = d
     ? await Promise.all([
         toSignedUrl(d.national_id_url),
         toSignedUrl(d.license_url),
         toSignedUrl(d.vehicle_registration_url),
+        toSignedUrl(d.car_photo_url),
       ])
-    : [null, null, null];
+    : [null, null, null, null];
 
   return {
     id: profile.id,
@@ -218,10 +231,15 @@ export async function getUserDetails(userId: string): Promise<UserDetails | null
           status: d.status,
           vehicleMake: d.vehicle_make,
           vehicleModel: d.vehicle_model,
+          vehicleYear: d.vehicle_year,
           vehiclePlate: d.vehicle_plate,
+          vehicleRegistrationNumber: d.vehicle_registration_number,
+          nationalIdNumber: d.national_id_number,
+          rejectionReason: d.rejection_reason,
           licenseUrl: licenseSigned,
           nationalIdUrl: nationalIdSigned,
           vehicleRegistrationUrl: vehicleRegSigned,
+          carPhotoUrl: carPhotoSigned,
         }
       : null,
     stats: {

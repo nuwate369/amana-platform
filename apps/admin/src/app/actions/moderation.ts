@@ -26,6 +26,7 @@ export type AuditActionType =
   | 'change_status'
   | 'resend_invite'
   | 'delete_staff'
+  | 'delete_user'
   | 'create_rating_question'
   | 'update_rating_question'
   | 'delete_rating_question'
@@ -191,12 +192,73 @@ export async function unbanUser(targetId: string, actorId: string | null): Promi
   }
 }
 
+/**
+ * حذف مستخدم (راكبة/سائقة) نهائيًا — أداة تنظيف أثناء التجارب.
+ * يحذف مستخدم المصادقة فيتتالى الحذف على profiles/drivers/rides(راكبة)/الأجهزة/
+ * الإشعارات/التذاكر. قبل ذلك يفكّ الارتباطات التي لا تملك ON DELETE CASCADE
+ * (rides.driver_id, ratings) وإلا يفشل الحذف. الحسابات المحمية مرفوضة.
+ */
+export async function deleteUser(targetId: string, actorId: string | null): Promise<ActionResult> {
+  try {
+    const target = await getTarget(targetId);
+    if (target.error) return { success: false, error: target.error };
+    if (target.protected) {
+      return { success: false, error: 'هذا الحساب محمي ولا يمكن حذفه.' };
+    }
+
+    const db = getAdminSupabase();
+
+    // 1) فكّ الارتباطات التي لا تملك ON DELETE CASCADE (best-effort):
+    //    الرحلات كسائقة — نُبقي سجلّ الرحلة ونُفرّغ driver_id فقط.
+    await db.from('rides').update({ driver_id: null }).eq('driver_id', targetId);
+    //    التقييمات المُرسَلة أو المستلمة — تُحذف (لا تملك cascade).
+    await db.from('ratings').delete().or(`rater_id.eq.${targetId},ratee_id.eq.${targetId}`);
+
+    // 2) حذف مستخدم المصادقة ⇐ يتتالى الحذف على بقية الجداول المرتبطة.
+    const { error } = await db.auth.admin.deleteUser(targetId);
+    if (error) return { success: false, error: error.message };
+
+    // 3) أفضل-جهد: إزالة مجلد مستندات KYC من التخزين (لا يُفشل العملية).
+    try {
+      const { data: files } = await db.storage.from('kyc-documents').list(targetId);
+      if (files && files.length) {
+        await db.storage
+          .from('kyc-documents')
+          .remove(files.map((f) => `${targetId}/${f.name}`));
+      }
+    } catch (storageErr) {
+      console.error('[deleteUser] storage cleanup failed (ignored):', storageErr);
+    }
+
+    // 4) تسجيل الحركة (لقطة الاسم مأخوذة قبل الحذف؛ target_id بلا مفتاح أجنبي).
+    await logAudit({
+      actorId,
+      action: 'delete_user',
+      targetType: 'profile',
+      targetId,
+      targetName: target.name,
+    });
+
+    revalidatePath('/drivers');
+    revalidatePath('/passengers');
+    revalidatePath('/audit-log');
+    return { success: true };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'حدث خطأ غير متوقع.';
+    return { success: false, error: message };
+  }
+}
+
 /** قبول طلب KYC للسائقة: drivers.status = approved. */
 export async function approveDriver(driverId: string, actorId: string | null): Promise<ActionResult> {
   try {
     const target = await getTarget(driverId);
     const db = getAdminSupabase();
-    const { error } = await db.from('drivers').update({ status: 'approved' }).eq('id', driverId);
+    // تفريغ سبب الرفض عند القبول حتى لا يبقى ظاهرًا للسائقة.
+    const { error } = await db
+      .from('drivers')
+      .update({ status: 'approved', rejection_reason: null })
+      .eq('id', driverId);
     if (error) return { success: false, error: error.message };
 
     await logAudit({
@@ -229,7 +291,11 @@ export async function rejectDriver(
   try {
     const target = await getTarget(driverId);
     const db = getAdminSupabase();
-    const { error } = await db.from('drivers').update({ status: 'rejected' }).eq('id', driverId);
+    // حفظ سبب الرفض على صف السائقة لتقرأه في تطبيقها (بجانب تدوينه في السجل).
+    const { error } = await db
+      .from('drivers')
+      .update({ status: 'rejected', rejection_reason: trimmed })
+      .eq('id', driverId);
     if (error) return { success: false, error: error.message };
 
     await logAudit({
