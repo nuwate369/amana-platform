@@ -97,8 +97,13 @@ export async function getUserDetails(userId: string): Promise<UserDetails | null
   }
 
   const userType = (profile.user_type as UserType | null) ?? null;
-  const isDriver = userType === 'driver';
   const isStaffUser = !!userType && STAFF_TYPES.includes(userType);
+  // «سائقة» = لها صفّ في جدول drivers (مصدر الحقيقة)، لا من user_type الذي قد يكون
+  // passenger بسبب تضارب في تعبئة الحقل عند التسجيل. الموظفون لا يُفحصون.
+  const { data: driverExists } = isStaffUser
+    ? { data: null }
+    : await db.from('drivers').select('id').eq('id', userId).maybeSingle();
+  const isDriver = !!driverExists;
   const rideCol = isDriver ? 'driver_id' : 'passenger_id';
 
   const [

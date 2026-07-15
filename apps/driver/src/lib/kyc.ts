@@ -1,5 +1,4 @@
 import * as ImagePicker from 'expo-image-picker';
-import { decode } from 'base64-arraybuffer';
 import { supabase } from '@/lib/supabase';
 
 /**
@@ -62,21 +61,22 @@ export type ImageSource = 'camera' | 'library';
  * يطلب الصلاحية المناسبة، يفتح الكاميرا أو المعرض، يرفع الصورة المختارة إلى
  * `kyc-documents/{userId}/{docKey}.{ext}`، ثم يحدّث عمود الرابط في صف السائقة.
  * يعيد كائنًا يصف النتيجة (لا يرمي) ليتحكّم النموذج في عرض التنبيه.
- * الجودة 0.6 لتقليل استهلاك الذاكرة على الأجهزة الضعيفة.
+ * الجودة 0.6 + رفع مباشر (بلا base64) لتقليل استهلاك الذاكرة على الأجهزة الضعيفة
+ * ومنع خروج التطبيق أثناء رفع الصور — النمط الرسمي من Supabase لـ Expo.
  */
 export async function pickAndUploadKycDocument(
   userId: string,
   doc: { key: KycDocKey; column: KycDocColumn },
   source: ImageSource = 'library',
 ): Promise<UploadResult> {
-  // 1) الصلاحية + فتح المصدر المناسب (مع base64 للرفع المباشر إلى Supabase).
+  // 1) الصلاحية + فتح المصدر المناسب (بلا base64 — نرفع الملف مباشرة لتوفير الذاكرة).
   let result: ImagePicker.ImagePickerResult;
   if (source === 'camera') {
     const perm = await ImagePicker.requestCameraPermissionsAsync();
     if (!perm.granted) {
       return { status: 'error', message: 'نحتاج إذن الكاميرا لالتقاط الصورة.' };
     }
-    result = await ImagePicker.launchCameraAsync({ quality: 0.6, base64: true });
+    result = await ImagePicker.launchCameraAsync({ quality: 0.6 });
   } else {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) {
@@ -85,14 +85,21 @@ export async function pickAndUploadKycDocument(
     result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       quality: 0.6,
-      base64: true,
     });
   }
   if (result.canceled) return { status: 'cancelled' };
 
   const asset = result.assets[0];
-  if (!asset?.base64) {
+  if (!asset?.uri) {
     return { status: 'error', message: 'تعذّر قراءة الصورة، حاول مرة أخرى.' };
+  }
+
+  // 2) قراءة الملف كـ ArrayBuffer مباشرة من الـ uri (أخفّ من base64 على الذاكرة).
+  let body: ArrayBuffer;
+  try {
+    body = await fetch(asset.uri).then((r) => r.arrayBuffer());
+  } catch {
+    return { status: 'error', message: 'تعذّر تجهيز الصورة للرفع، حاول مرة أخرى.' };
   }
 
   // 3) الرفع إلى التخزين (اسم ثابت لكل مستند حتى تُستبدل النسخة القديمة عند إعادة الرفع).
@@ -102,7 +109,7 @@ export async function pickAndUploadKycDocument(
 
   const { error: uploadError } = await supabase.storage
     .from(BUCKET)
-    .upload(path, decode(asset.base64), { contentType, upsert: true });
+    .upload(path, body, { contentType, upsert: true });
   if (uploadError) {
     return { status: 'error', message: uploadError.message };
   }
