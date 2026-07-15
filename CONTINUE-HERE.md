@@ -1,123 +1,74 @@
-# نقطة المتابعة — منصة أمانة (15-07-2026)
+# نقطة المتابعة — منصة أمانة (آخر تحديث: 15-07-2026 مساءً)
 
-مرجع تسليم بين الأجهزة. **اقرأه أولًا عند استئناف العمل**، ثم افتح `PROJECT_MAP.md` للبنية العامة.
+مرجع تسليم بين الأجهزة. **اقرأه أولًا عند استئناف العمل**، ثم `PROJECT_MAP.md` للبنية.
 
-> ⚠️ **قبل أي شيء على الجهاز الجديد:** تأكّد أن آخر تغييرات هذه الجلسة **مدفوعة على GitHub**
-> واسحبها (`git pull`)، وإلا لن تجد عمل اليوم. ثم `npm install` من جذر المستودع.
+> ⚠️ **على الجهاز الجديد قبل أي شيء:**
+> 1. `git pull` (كل عمل اليوم مدفوع على `main` — آخر commit: `feat: driver self-service + admin support module`).
+> 2. `npm install` من جذر المستودع — يشغّل `postinstall` الذي يطبّق **رقعة css-interop** تلقائيًّا
+>    (`patches/react-native-css-interop+0.2.6.patch`) الضرورية لعدم انهيار تطبيق السائق على New Arch.
+> 3. لتطبيق السائق بعد pull: `cd apps/driver && npx expo start --clear` (مهمّ لالتقاط تغييرات node_modules/i18n).
 
 ---
 
-## 🔴 خطوات يدوية مطلوبة (بعضها قد يكون نُفّذ — تحقّق)
+## 🔴 هجرات Supabase — SQL Editor → Run (كلها idempotent، شغّل ما لم يُطبَّق)
 
-### 1) هجرتان في Supabase → SQL Editor → Run (idempotent)
-لم يتأكّد تطبيقهما على القاعدة الحيّة — **دليل عدم التطبيق: فشل رفع صورة السيارة** (عمود
-`car_photo_url` مفقود). شغّلهما:
-```sql
--- 0022_driver_kyc_fields.sql
-alter table public.drivers
-  add column if not exists vehicle_year                int,
-  add column if not exists national_id_number          text,
-  add column if not exists vehicle_registration_number text,
-  add column if not exists car_photo_url               text;
+| الهجرة | ماذا تفعل | الحالة |
+|---|---|---|
+| `0024_fix_driver_user_type` | إصلاح user_type + backfill السائقين | تحقّق/شغّل |
+| `0025_driver_kyc_submitted_at` | عمود `kyc_submitted_at` (مسودّة مقابل مُرسَل) — **إلزامي** لتدفّق KYC | تحقّق/شغّل |
+| `0026_support_module` | جداول الدعم + ترقيم + ٥ حالات + استبيان + bucket `avatars` | ✅ طُبِّقت |
+| `0027_support_notifications_realtime` | trigger إشعار التذكرة + **تفعيل Realtime** للجرس والقائمة | **شغّلها** |
+| `0028_ticket_assign_and_cancel` | إلغاء العميل (عند «جديد» فقط) + التخصيص/التقدّم التلقائي عبر trigger | **شغّلها** |
 
--- 0023_driver_rejection_reason.sql
-alter table public.drivers
-  add column if not exists rejection_reason text;
-```
-لا تغيير في RLS (الأعمدة ضمن سياسات `drivers_*_own` و`profiles_update_own`).
+بعد 0027 أعد تحميل اللوحة مرّة → تصل إشعارات التذاكر/التسجيل **حيًّا بلا Reload**.
 
-### 2) إعدادات Supabase Auth (✅ نُفّذت من المالك)
-- قالب **Confirm signup** → يعرض `{{ .Token }}` بدل `{{ .ConfirmationURL }}`.
-- **Email OTP Length = 6** · **Email OTP Expiration = 3600** (≥10د ✓).
-- (اختياري) الحدّ الأدنى بين الرسائل = 120s؛ التطبيق يفرض الدقيقتين بعدّاده أصلًا.
+---
+
+## ✅ ما أُنجز اليوم (كود مدفوع، `tsc` نظيف: driver + admin + shared-types)
+
+### تطبيق السائق
+- **إصلاح انهيار css-interop** على New Arch (رقعة `stringify` + جعل `active:` ثابتة) — كان يُسقط التطبيق بعد التسجيل.
+- **مسودّة مقابل مُرسَل** (`kyc_submitted_at`): رفع الصور = مسودّة؛ «إرسال للتدقيق» فقط يُدخِلها المراجعة. حفظ تلقائي للحقول.
+- **الإعدادات:** تبديل المظهر (فاتح/داكن/تلقائي) + اللغة (ع/EN مع إعادة تشغيل لقلب RTL) — `src/lib/preferences.tsx`.
+- **تبويب «حسابي»:** تعديل الاسم/الجوال + **رفع الأفاتار** (`src/lib/avatar.ts`, bucket `avatars`).
+- **الدعم الفني:** قائمة/إنشاء/محادثة/إلغاء/استبيان — `app/support/*`, `src/lib/support.ts`. حدّ ٥ تذاكر مفتوحة (الزر يُعطَّل).
+- **الشروط والأحكام** (موافقة إلزامية بالتسجيل) + شاشة **«حول»** — `app/terms.tsx`, `app/about.tsx`.
+- **لوحة لاتينية** (أ→A...) في النموذج — `PLATE_LETTER_LATIN`/`formatPlate` في shared-types.
+
+### لوحة الإدارة — وحدة الدعم الكاملة
+- **ترقيم بشري:** `dri/pas/adm` + `YYMM` + تسلسل (`dri26070001`).
+- **آلة حالات (٥):** جديد→(ردّ)→قيد العمل→بانتظار الرد→منتهية (نهائية) + ملغاة. مُتحقَّقة عميل+خادم (`TICKET_STATUS_TRANSITIONS`).
+- **تخصيص تلقائي** لأول موظف يردّ + **تقدّم تلقائي** open→in_progress (trigger DB).
+- **إشعارات حيّة** (Supabase Realtime) للجرس + القائمة.
+- **تفاصيل التذكرة = نموذج منبثق** موحّد (الرابط المباشر يُعاد توجيهه بـ `?highlight=`)؛ **للقراءة فقط** عند الإغلاق/الإلغاء.
+- **التقييم في القائمة** + **قسم الترتيب** (تاريخ/تقييم/موظف/مستخدم) + بحث برقم التذكرة.
 
 ---
 
 ## ▶️ المهمة التالية المتّفق عليها (لم تبدأ)
 
-**إصلاح خروج التطبيق بعد رفع آخر مرفق** على الأجهزة الضعيفة (رام 4GB + Expo Go).
-- **السبب:** أندرويد يقتل التطبيق أثناء منتقي الصور بسبب ضغط الذاكرة (نرفع الصور كـ
-  `base64` وهو ثقيل)؛ يتراكم حتى الصورة الرابعة فيُعاد تشغيل التطبيق ← تظهر الشاشة الأولى.
-  (ليس خطأ كود — الصور تُحفظ لحظة رفعها، والذي يضيع هو الحقول النصية غير المُرسَلة.)
-- **الحل المتّفق عليه (1):** تحويل الرفع في `src/lib/kyc.ts` من `base64`/`decode` إلى
-  **رفع الملف مباشرة** من `asset.uri` (مثلاً `fetch(uri).then(r=>r.arrayBuffer())` أو
-  `FileSystem`), وإسقاط `base64:true` من `launchCamera/ImageLibraryAsync` — يقلّل الذاكرة
-  بشدّة وقد يُنهي الخروج داخل Expo Go.
-- **الحل الجذري (2):** `eas build` لتطبيق مستقل (`largeHeap` + ذاكرة أفضل) — يُنهيها نهائيًّا.
-
-> تذكير بالتدفّق الصحيح: لا يوجد زر «حفظ» منفصل — الصور تُحفظ عند رفعها، وزر **«إرسال
-> للتدقيق»** أسفل النموذج (يُفعَّل بعد اكتمال كل الحقول + الصور الأربع) يحفظ النصوص ويضبط
-> `status='pending'` ثم تنتقل السائقة لشاشة «قيد المراجعة».
+**كالندر مدى التاريخ** لفلترة تذاكر الدعم — مكوّن مخصّص كامل (كالصورة المرفقة سابقًا):
+- كالندر واحد بالمدى (شهران جنبًا لجنب) + معاينات جانبية: اليوم · أمس · آخر أسبوع · آخر شهر · الشهر الماضي · مخصّص.
+- زرّا تطبيق/مسح، ويفلتر القائمة بين تاريخين (`createdAt`).
+- لا مكتبة تاريخ حاليًّا في admin — إمّا بناء مخصّص أو إضافة `react-day-picker` (الأنظف احترافيًّا).
 
 ---
 
-## ✅ ما أُنجز في هذه الجلسة (كود جاهز، `tsc`+`eslint` نظيفان على `driver` و`admin`)
+## ⏸️ قرارات معلّقة (بانتظار المالك)
 
-### نموذج KYC الاحترافي — `apps/driver/app/kyc.tsx` + `src/lib/kyc.ts`
-- **٣ أقسام:** شخصية (جوال → `profiles.phone`، هوية/إقامة) · المركبة · المستندات (٤ صور).
-- **تحقّق:** جوال سعودي `^05\d{8}$` · هوية/إقامة 10 أرقام · إدخال رقمي فقط.
-- **قوائم منسدلة بحث:** الشركة والموديل (`src/lib/carData.ts` + مكوّن `SearchableSelect`)،
-  الموديل يتبع الشركة، **سنة الصنع** منسدلة 2015..العام الحالي.
-- **رقم اللوحة:** حقلان — أحرف عربية (≤3، تُعرض بمسافات «ه ه ه») + أرقام (≤4) → `vehicle_plate`.
-- **الصور:** **التقاط بالكاميرا** أو من المعرض (Alert)، الجودة 0.6، `cameraPermission` في `app.json`.
-
-### مصادقة السائقة — `app/(auth)/*`
-- **تأكيد البريد برمز OTP** (6 أرقام) بدل الرابط: `verify-email.tsx` (تحقّق تلقائي +
-  `verifyOtp({type:'signup'})` + `resend` بعدّاد **دقيقتين**). يقتل مشكلة deep link.
-- عند «Email not confirmed» في الدخول → رسالة عربية + توجيه لشاشة الرمز (إعادة الإرسال فورية).
-- **تعريب أخطاء Supabase Auth:** `src/lib/authErrors.ts` (`sign-in`/`sign-up`).
-- **إظهار/إخفاء كلمة المرور:** مكوّن `src/components/PasswordInput.tsx` (كلمة المرور + تأكيدها).
-- **تحقّق البريد مرئي:** `mode:'onTouched'` + توست عند الإرسال ببريد غير صالح.
-- `i18next` → `compatibilityJSON:'v3'` (أزال تحذير pluralResolver على الجهاز).
-
-### لوحة الإدارة — `apps/admin`
-- **تدفّق مراجعة KYC الجديد:** حُذفت بطاقة «طلبات KYC معلّقة» العلوية. في الجدول:
-  سائقة **غير معتمدة** → زر «🔍 مراجعة المستندات»؛ **معتمدة** → أيقونة 👁.
-  أزرار **موافقة/رفض في أسفل نافذة التفاصيل** بعد رؤية المستندات (`UserDetailsModal`
-  props: `onApprove`/`onReject`؛ الصفحة: `reviewDecision()`).
-- **عرض حقول KYC الجديدة + صورة السيارة** في `actions/details.ts` + `UserDetailsModal.tsx`.
-- **سبب الرفض:** `rejectDriver` يحفظه في `drivers.rejection_reason` → يظهر للسائقة في
-  `kyc.tsx` وفي نافذة تفاصيل الإدارة. يُفرَّغ عند القبول/إعادة الإرسال.
-- **حذف نهائي** (أداة تجارب): `deleteUser` في `actions/moderation.ts` + زر 🗑 في
-  `drivers`/`passengers` (يفكّ `rides.driver_id` و`ratings` ثم يحذف مستخدم المصادقة
-  المتتالي + ينظّف `kyc-documents` + يُسجَّل `delete_user`؛ الحسابات المحمية محميّة).
-
-### ترقية توافقية (طُبِّقت عبر `expo install --fix`)
-`expo-router@~5.1.11` · `react-native@0.79.6` · `react-native-screens@~4.11.1`
-(أصلحت خطأ `navigation getState` عند الإقلاع).
-
-### ملفات جديدة أُنشئت هذه الجلسة
-```
-supabase/migrations/0022_driver_kyc_fields.sql
-supabase/migrations/0023_driver_rejection_reason.sql
-apps/driver/src/lib/carData.ts
-apps/driver/src/lib/authErrors.ts
-apps/driver/src/components/SearchableSelect.tsx
-apps/driver/src/components/PasswordInput.tsx
-```
-
----
-
-## 🚀 التشغيل للاختبار
-```bash
-# تطبيق السائقة
-cd apps/driver && npx expo start           # LAN: استخدم رابط exp://<ip>:8081 المطبوع
-#            أو  npx expo start --tunnel    # يعمل من أي شبكة (يحتاج ngrok، قد يبطؤ)
-# لوحة الإدارة
-cd apps/admin && npm run dev                # http://localhost:3002
-```
-- **Expo Go متوافق مع SDK 53** فقط (الأحدث SDK 54 لا يعمل).
-- أول حزمة على جهاز ضعيف تأخذ ~80ث (طبيعي، لمرّة واحدة).
-- بعد أي تعديل: **إعادة تحميل كاملة** (Reload) لا Fast Refresh (لتفادي حالات وسيطة عالقة).
-
----
-
-## 🔜 مؤجّل للـ build المستقل (Expo Go لا يحلّها)
-- **لوحة المفاتيح تغطّي الحقول (أندرويد):** Expo Go لا يطبّق `softwareKeyboardLayoutMode`.
-  طُبِّق تخفيف مؤقّت (`behavior="padding"`). الجذري في `eas build`:
-  `"android": { "softwareKeyboardLayoutMode": "resize" }` أو `react-native-keyboard-controller`.
-- **خروج التطبيق بعد آخر مرفق** (المهمة التالية أعلاه — نجرّب حل base64→ملف أولًا داخل Expo Go).
+1. **آلة الحالات:** هل يُسمح بالإغلاق المباشر من «قيد العمل»؟ وهل يرجع «بانتظار الرد» إلى «قيد العمل» تلقائيًّا عند ردّ العميل؟ وهل إغلاق تلقائي (SLA) بعد صمت العميل؟ (طُبّق فقط: «منتهية» نهائية.)
+2. **نصّ الشروط والأحكام النهائي** (قانونيّ) — يوجد نصّ مبدئي في `terms` namespace بـ i18n، يُستبدَل.
 
 ## 🔜 مؤجّل للمرحلة ب
-ميزات القيادة (استقبال الطلبات/الأرباح/الرحلات)، `eas build` وتوزيع APK، الربط العميق،
-آلية التحديث الإجباري، زر «إرسال رسالة للسائقة» من لوحة الإدارة.
+ميزات القيادة (طلبات/أرباح/رحلات)، `eas build` + توزيع APK، الربط العميق، التحديث الإجباري، إشعارات Push.
+
+---
+
+## 🚀 التشغيل
+```bash
+# السائق (SDK 54 الآن — Expo Go الحديث)
+cd apps/driver && npx expo start --clear     # أو --tunnel من شبكة مختلفة
+# الإدارة
+cd apps/admin && npm run dev                 # http://localhost:3002
+```
+- الأنواع: `npm run typecheck` من الجذر (أو `npx tsc --noEmit` داخل كل app).
