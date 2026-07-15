@@ -83,6 +83,7 @@ function entityRoute(entityType: string | null, entityId: string | null): string
     ride: '/rides',
     staff: '/staff',
     passenger: '/passengers',
+    ticket: '/support',
   };
   const base = map[entityType];
   return base ? `${base}?highlight=${entityId}` : null;
@@ -271,10 +272,18 @@ export default function SystemNotificationsPage() {
             {notifications.map((notif) => {
               const route = entityRoute(notif.related_entity_type, notif.related_entity_id);
               return (
-                <button
+                <div
                   key={notif.id}
                   onClick={() => handleClick(notif)}
-                  className={`flex w-full items-start gap-4 px-5 py-4 text-start transition-colors hover:bg-muted/50 ${
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleClick(notif);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  className={`flex w-full items-start gap-4 px-5 py-4 text-start transition-colors hover:bg-muted/50 cursor-pointer ${
                     !notif.is_read ? 'bg-primary/5' : ''
                   }`}
                 >
@@ -331,7 +340,7 @@ export default function SystemNotificationsPage() {
                       {timeAgo(notif.created_at, t)}
                     </p>
                   </div>
-                </button>
+                </div>
               );
             })}
           </div>

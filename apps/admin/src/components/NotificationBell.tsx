@@ -57,8 +57,6 @@ function entityRoute(entityType: string | null, entityId: string | null): string
   };
   const base = map[entityType];
   if (!base) return null;
-  // التذاكر → صفحة التفاصيل مباشرة
-  if (entityType === 'ticket') return `${base}/${entityId}`;
   return `${base}?highlight=${entityId}`;
 }
 

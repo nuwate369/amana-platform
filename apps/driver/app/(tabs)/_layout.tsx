@@ -1,12 +1,14 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { driverNavy } from '@amana/shared-ui/tokens';
 
 /**
- * تبويبات السائقة السفلية — في المرحلة أ تبويب «الرئيسية» فقط
- * (تُضاف بقية التبويبات: الأرباح/الرحلات/الحساب في المرحلة ب).
+ * تبويبات السائقة السفلية — «الرئيسية» و«حسابي».
+ * (تُضاف بقية التبويبات: الأرباح/الرحلات في المرحلة ب من القيادة.)
  */
 export default function TabsLayout() {
+  const { t } = useTranslation();
   return (
     <Tabs
       screenOptions={{
@@ -19,8 +21,17 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="home"
         options={{
-          title: 'الرئيسية',
+          title: t('nav.home', 'الرئيسية'),
           tabBarIcon: ({ color, size }) => <MaterialIcons name="home" size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="account"
+        options={{
+          title: t('nav.account', 'حسابي'),
+          tabBarIcon: ({ color, size }) => (
+            <MaterialIcons name="person" size={size} color={color} />
+          ),
         }}
       />
     </Tabs>

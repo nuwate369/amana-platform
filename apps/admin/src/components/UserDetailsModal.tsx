@@ -3,9 +3,9 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import {
   X, User, Car, Phone, Mail, Calendar, Star, Ban, Lock, UserCog,
-  FileText, CreditCard, Navigation, ShieldCheck, ScrollText, Clock, MessageSquareQuote, ZoomIn, Check,
+  FileText, CreditCard, Navigation, ShieldCheck, ScrollText, Clock, MessageSquareQuote, ZoomIn, Check, FileSearch,
 } from 'lucide-react';
-import { STAFF_TYPE_LABELS, STAFF_TYPE_COLORS } from '@amana/shared-types';
+import { STAFF_TYPE_LABELS, STAFF_TYPE_COLORS, formatPlate } from '@amana/shared-types';
 import { getUserDetails, type UserDetails } from '@/app/actions/details';
 import { auditActionMeta } from '@/lib/audit-meta';
 
@@ -149,7 +149,14 @@ export function UserDetailsModal({ userId, kind, onClose, onApprove, onReject }:
   const meta = KIND_META[kind];
   const isStaff = kind === 'staff';
   const HeadIcon = meta.icon;
-  const kyc = details?.driver ? KYC_STATUS_LABELS[details.driver.status] : null;
+  // مسودّة = سائقة pending لم تضغط «إرسال» بعد (submittedAt = null). نميّزها عن
+  // «قيد المراجعة» حتى لا تظنّها الإدارة طلبًا مكتملًا جاهزًا للقرار.
+  const isDraft = !!details?.driver && details.driver.status === 'pending' && !details.driver.submittedAt;
+  const kyc = details?.driver
+    ? isDraft
+      ? { label: 'مسودّة (لم تُرسَل)', className: 'bg-muted text-muted-foreground' }
+      : KYC_STATUS_LABELS[details.driver.status]
+    : null;
   const roleBadge =
     isStaff && details?.userType ? STAFF_TYPE_LABELS[details.userType] ?? details.userType : null;
 
@@ -193,15 +200,18 @@ export function UserDetailsModal({ userId, kind, onClose, onApprove, onReject }:
                       <p className="font-semibold text-foreground flex items-center gap-1.5 flex-wrap">
                         {details.isProtected && <Lock size={13} className="text-amber-500" />}
                         {details.fullName ?? '—'}
-                        {details.isActive ? (
-                          <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
-                            {isStaff ? 'نشط' : 'نشطة'}
-                          </span>
-                        ) : (
-                          <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-bold text-destructive">
-                            {isStaff ? 'معطّل' : 'محظورة'}
-                          </span>
-                        )}
+                        {/* للسائقة: حالة KYC هي الأساس، ولا نعرض «نشطة» معها (تجنّبًا للازدواج
+                            المربك «نشطة + قيد المراجعة»). نعرض «محظورة» فقط كتحذير عند الحظر. */}
+                        {(!kyc || !details.isActive) &&
+                          (details.isActive ? (
+                            <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                              {isStaff ? 'نشط' : 'نشطة'}
+                            </span>
+                          ) : (
+                            <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-bold text-destructive">
+                              {isStaff ? 'معطّل' : 'محظورة'}
+                            </span>
+                          ))}
                         {kyc && (
                           <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${kyc.className}`}>
                             {kyc.label}
@@ -322,7 +332,7 @@ export function UserDetailsModal({ userId, kind, onClose, onApprove, onReject }:
                         label="سنة الصنع"
                         value={details.driver.vehicleYear ?? '—'}
                       />
-                      <InfoRow icon={CreditCard} label="اللوحة" value={details.driver.vehiclePlate ?? '—'} />
+                      <InfoRow icon={CreditCard} label="اللوحة" value={formatPlate(details.driver.vehiclePlate)} />
                       <InfoRow
                         icon={FileText}
                         label="رقم الاستمارة"
@@ -522,8 +532,17 @@ export function UserDetailsModal({ userId, kind, onClose, onApprove, onReject }:
           )}
         </div>
 
-        {/* شريط القرار — للسائقة غير المعتمدة فقط، بعد مراجعة المستندات أعلاه */}
+        {/* مسودّة: لم تُرسِل السائقة طلبها بعد — لا قرار الآن، فقط تنبيه توضيحي. */}
+        {details?.driver && isDraft && (onApprove || onReject) && (
+          <div className="flex shrink-0 items-center gap-2 border-t border-border bg-muted/40 px-6 py-4 text-sm text-muted-foreground">
+            <FileSearch size={16} className="shrink-0" />
+            لم تُكمل السائقة إرسال طلبها بعد (مسودّة). ستظهر للمراجعة والقرار بمجرّد ضغطها «إرسال للتدقيق» من التطبيق.
+          </div>
+        )}
+
+        {/* شريط القرار — للطلبات المُرسَلة فقط (قيد المراجعة/مرفوضة)، بعد مراجعة المستندات */}
         {details?.driver &&
+          !isDraft &&
           (details.driver.status === 'pending' || details.driver.status === 'rejected') &&
           (onApprove || onReject) && (
             <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-border bg-card px-6 py-4">

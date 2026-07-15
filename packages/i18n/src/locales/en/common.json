@@ -36,7 +36,8 @@
     "review": "Review",
     "all": "All",
     "save": "Save Changes",
-    "delete": "Delete"
+    "delete": "Delete",
+    "languageRestartHint": "The app will restart to apply the new language."
   },
   "validation": {
     "required": "This field is required",
@@ -45,7 +46,8 @@
     "passwordMin": "Password must be at least 6 characters",
     "passwordMatch": "Passwords do not match",
     "mfaCodeLength": "Code must be 6 digits",
-    "mfaCodeDigits": "Code must contain only digits"
+    "mfaCodeDigits": "Code must contain only digits",
+    "saudiPhone": "Saudi number starting with 05 (10 digits)"
   },
   "auth": {
     "signInTitle": "Sign In",
@@ -139,7 +141,10 @@
     "staff": "Staff",
     "notifications": "Notifications",
     "profile": "Profile",
-    "support": "Support"
+    "support": "Support",
+    "home": "Home",
+    "account": "My Account",
+    "logout": "Sign Out"
   },
   "dashboard": {
     "overview": "Platform performance overview today",
@@ -626,13 +631,69 @@
     "banSuccess": "Account has been banned",
     "unbanSuccess": "Ban has been lifted"
   },
+  "about": {
+    "title": "About",
+    "version": "Version",
+    "mission": "A smart, safe mobility platform for women in Saudi Arabia — connecting riders with verified women drivers held to high safety and professionalism standards.",
+    "terms": "Terms & Conditions"
+  },
+  "terms": {
+    "title": "Terms & Conditions",
+    "updated": "Last updated: July 2026",
+    "intro": "By signing up as a driver partner with Amana, you agree to the following terms. Please read them carefully.",
+    "agreePrefix": "I agree to the",
+    "agreeLink": "Terms & Conditions",
+    "sections": [
+      { "h": "Acceptance & Eligibility", "b": "You must be legally eligible to provide transportation services, and all your information and documents must be accurate and valid. Amana reserves the right to accept or reject any application." },
+      { "h": "Verification & Documents", "b": "You agree to provide accurate documents (ID/Iqama, driving license, vehicle registration) and to have them processed for verification. Misleading information may lead to rejection or account suspension." },
+      { "h": "Obligations & Conduct", "b": "You agree to comply with traffic laws, safety and professional conduct standards, and to protect the privacy and safety of riders throughout each trip." },
+      { "h": "Privacy & Data", "b": "Your data is processed per the Privacy Policy for verification and service operation. Your data will not be shared with external parties except as required to operate the platform or by law." }
+    ]
+  },
   "support": {
     "ticketCreated": "Ticket created successfully",
+    "ticketClosedHint": "This ticket is closed. Open a new one if you need further help.",
+    "ticketCancelledHint": "This ticket was cancelled.",
+    "cancelTitle": "Cancel Ticket",
+    "cancelConfirm": "Cancel this ticket? This cannot be undone.",
+    "cancelConfirmBtn": "Confirm Cancellation",
+    "cancelled": "Ticket cancelled",
+    "surveyTitle": "How was your support experience?",
+    "surveyOptional": "Answering is optional.",
+    "surveyCommentPlaceholder": "Comment (optional)...",
+    "surveySkip": "Skip",
+    "surveySubmit": "Submit Rating",
+    "surveyThanks": "Thanks for your feedback!",
+    "surveyResult": "Customer rating",
+    "limitReached": "You've reached the limit ({{count}} open tickets). Close or cancel one to continue.",
+    "open": "Open",
+    "openConversation": "Open conversation & reply",
+    "statsTitle": "Statistics",
+    "noStatusChange": "Final status — cannot be changed.",
+    "startByReplying": "Write a reply to start — the ticket moves to \"In Progress\" automatically.",
+    "readOnlyClosed": "This ticket is closed — read-only view.",
+    "sortBy": "Sort by",
+    "sort": {
+      "date": "Date",
+      "rating": "Rating",
+      "assignee": "Agent",
+      "user": "User",
+      "asc": "Ascending",
+      "desc": "Descending"
+    },
+    "categories": {
+      "complaint": "Complaint",
+      "question": "Question",
+      "suggestion": "Suggestion",
+      "technical": "Technical Issue"
+    },
     "status": {
-      "open": "Open",
+      "new": "New",
+      "open": "New",
       "inProgress": "In Progress",
-      "resolved": "Resolved",
-      "closed": "Closed"
+      "resolved": "Awaiting Your Reply",
+      "closed": "Closed",
+      "cancelled": "Cancelled"
     },
     "title": "Support",
     "subtitle": "Support tickets from passengers and drivers",
@@ -651,7 +712,8 @@
       "priority": "Priority",
       "status": "Status",
       "messages": "Messages",
-      "date": "Date"
+      "date": "Date",
+      "action": "Open"
     },
     "emptyFiltered": "No tickets match your search.",
     "empty": "No support tickets currently.",

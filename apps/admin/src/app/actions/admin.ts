@@ -25,7 +25,18 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     db.from('profiles').select('*', head).eq('user_type', 'passenger'),
     db.from('profiles').select('*', head).eq('user_type', 'driver'),
     db.from('drivers').select('*', head).eq('status', 'approved'),
-    db.from('drivers').select('*', head).eq('status', 'pending'),
+    // «قيد المراجعة» = أُرسِلت فعلاً للتدقيق فقط (لا المسودّات). قبل تطبيق هجرة
+    // 0025 يكون العمود غير موجود فنسقط للعدّ القديم (كل pending) تفاديًا للخطأ.
+    db
+      .from('drivers')
+      .select('*', head)
+      .eq('status', 'pending')
+      .not('kyc_submitted_at', 'is', null)
+      .then((r) =>
+        r.error && isMissingColumn(r.error)
+          ? db.from('drivers').select('*', head).eq('status', 'pending')
+          : r,
+      ),
     db.from('rides').select('*', head),
     db.from('rides').select('price_final').eq('status', 'completed'),
   ]);
@@ -77,6 +88,8 @@ export interface DriverRow {
   fullName: string | null;
   phone: string | null;
   status: string;
+  /** أرسلت طلبها للتدقيق فعلاً؟ (status='pending' + submitted=false ⇒ مسودّة). */
+  submitted: boolean;
   vehicle: string;
   plate: string | null;
   isActive: boolean;
@@ -88,7 +101,7 @@ export interface DriverRow {
 export async function listDrivers(): Promise<DriverRow[]> {
   const db = getAdminSupabase();
   const rich =
-    'id, status, vehicle_make, vehicle_model, vehicle_plate, profiles(full_name, phone, is_active, is_protected, ban_reason, banned_at)';
+    'id, status, kyc_submitted_at, vehicle_make, vehicle_model, vehicle_plate, profiles(full_name, phone, is_active, is_protected, ban_reason, banned_at)';
   const basic = 'id, status, vehicle_make, vehicle_model, vehicle_plate, profiles(full_name, phone)';
 
   const first = await db.from('drivers').select(rich).order('status');
@@ -104,6 +117,7 @@ export async function listDrivers(): Promise<DriverRow[]> {
       fullName: (profile?.full_name as string | null) ?? null,
       phone: (profile?.phone as string | null) ?? null,
       status: d.status,
+      submitted: Boolean(d.kyc_submitted_at),
       vehicle: [d.vehicle_make, d.vehicle_model].filter(Boolean).join(' ') || '—',
       plate: d.vehicle_plate,
       ...pickModeration(profile),

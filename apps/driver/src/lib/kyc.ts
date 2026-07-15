@@ -170,10 +170,15 @@ export async function submitKycForReview(
   const saved = await saveKycFields(userId, values);
   if (!saved.ok) return saved;
 
-  // تفريغ سبب الرفض السابق عند إعادة الإرسال حتى لا يبقى ظاهرًا بعد الإصلاح.
+  // ختم وقت الإرسال (kyc_submitted_at) هو ما ينقل السائقة من «مسودّة» إلى طابور
+  // المراجعة — لا مجرّد رفع الصور. وتفريغ سبب الرفض السابق عند إعادة الإرسال.
   const { error } = await supabase
     .from('drivers')
-    .update({ status: 'pending', rejection_reason: null })
+    .update({
+      status: 'pending',
+      rejection_reason: null,
+      kyc_submitted_at: new Date().toISOString(),
+    })
     .eq('id', userId);
   if (error) return { ok: false, message: error.message };
   return { ok: true };

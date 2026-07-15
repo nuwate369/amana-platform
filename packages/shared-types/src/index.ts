@@ -90,8 +90,8 @@ export const USER_STATUS_COLORS: Record<UserStatus, string> = {
 // نظام التذاكر والدعم الفني
 // =============================================================================
 
-/** حالة التذكرة. */
-export type TicketStatus = 'open' | 'in_progress' | 'resolved' | 'closed';
+/** حالة التذكرة (5): جديد · قيد العمل · بانتظار الرد · منتهية · ملغاة. */
+export type TicketStatus = 'open' | 'in_progress' | 'resolved' | 'closed' | 'cancelled';
 
 /** نوع التذكرة. */
 export type TicketCategory = 'complaint' | 'question' | 'suggestion' | 'technical';
@@ -102,25 +102,28 @@ export type TicketPriority = 'high' | 'medium' | 'low';
 /** تسميات عربية لحالات التذكرة. */
 export const TICKET_STATUS_LABELS: Record<TicketStatus, string> = {
   open: 'جديد',
-  in_progress: 'قيد المعالجة',
-  resolved: 'تم الحل',
-  closed: 'مغلق',
+  in_progress: 'قيد العمل',
+  resolved: 'بانتظار رد العميل',
+  closed: 'منتهية',
+  cancelled: 'ملغاة',
 };
 
 /** ألوان badges لحالات التذكرة. */
 export const TICKET_STATUS_COLORS: Record<TicketStatus, string> = {
   open: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
   in_progress: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300',
-  resolved: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300',
-  closed: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300',
+  resolved: 'bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300',
+  closed: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300',
+  cancelled: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
 };
 
 /** تسميات إنجليزية لحالات التذكرة. */
 export const TICKET_STATUS_LABELS_EN: Record<TicketStatus, string> = {
-  open: 'Open',
+  open: 'New',
   in_progress: 'In Progress',
-  resolved: 'Resolved',
+  resolved: 'Awaiting Customer Reply',
   closed: 'Closed',
+  cancelled: 'Cancelled',
 };
 
 /** تسميات عربية لأنواع التذكرة. */
@@ -168,8 +171,30 @@ export const TICKET_PRIORITY_COLORS: Record<TicketPriority, string> = {
   low: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',
 };
 
-/** الحد الأقصى للتذاكر المفتوحة لكل مستخدم. */
-export const MAX_OPEN_TICKETS = 10;
+/** الحد الأقصى للتذاكر غير المُغلقة لكل مستخدم. */
+export const MAX_OPEN_TICKETS = 5;
+
+/**
+ * انتقالات الحالة اليدوية المسموح بها (من ⇐ إلى) — آلة حالات منظّمة:
+ *  - «جديد» (open): لا انتقال يدويّ. الردّ فقط ينقلها تلقائيًّا إلى «قيد العمل».
+ *  - «قيد العمل» (in_progress): إلى «بانتظار رد العميل» فقط (لا إغلاق مباشر).
+ *  - «بانتظار رد العميل» (resolved): إغلاق، أو إعادة فتح إلى «قيد العمل».
+ *  - «منتهية» (closed): إعادة فتح إلى «قيد العمل».
+ *  - «ملغاة» (cancelled): نهائية (يضبطها العميل فقط).
+ * لا يُعاد أبدًا إلى «جديد».
+ */
+export const TICKET_STATUS_TRANSITIONS: Record<TicketStatus, TicketStatus[]> = {
+  open: [],
+  in_progress: ['resolved'],
+  resolved: ['closed', 'in_progress'],
+  closed: [], // نهائية — لا إعادة فتح («منتهية خلاص منتهية»)
+  cancelled: [],
+};
+
+/** هل الانتقال بين حالتين مسموح؟ */
+export function canTransitionTicket(from: TicketStatus, to: TicketStatus): boolean {
+  return TICKET_STATUS_TRANSITIONS[from]?.includes(to) ?? false;
+}
 
 // =============================================================================
 // نظام الصلاحيات المركزي — can(userType, action)
@@ -312,4 +337,51 @@ export interface AuthState {
 export interface AuthResult<T = unknown> {
   data: T | null;
   error: { message: string; code?: string } | null;
+}
+
+// =============================================================================
+// لوحة المركبة السعودية — الحروف المعتمدة ومقابلها اللاتيني + التنسيق
+// =============================================================================
+
+/**
+ * الحروف العربية الـ17 المعتمدة في لوحات السعودية ومقابلها اللاتيني الرسمي
+ * (كما يظهر على اللوحة نفسها — اختيار بصري متماثل، لا صوتي). مصدر واحد يستخدمه
+ * تطبيق السائقة (عرض تحت الإدخال) ولوحة الإدارة (عرض التفاصيل).
+ */
+export const PLATE_LETTER_LATIN: Record<string, string> = {
+  ا: 'A', أ: 'A', ب: 'B', ح: 'J', د: 'D', ر: 'R', س: 'S', ص: 'X',
+  ط: 'T', ع: 'E', ق: 'G', ك: 'K', ل: 'L', م: 'Z', ن: 'N', ه: 'H',
+  ة: 'H', و: 'U', ى: 'V', ي: 'V',
+};
+
+/** حروف اللوحة المسموح بها (للتحقّق/القوائم). */
+export const PLATE_ARABIC_LETTERS: string[] = ['ا', 'ب', 'ح', 'د', 'ر', 'س', 'ص', 'ط', 'ع', 'ق', 'ك', 'ل', 'م', 'ن', 'ه', 'و', 'ى'];
+
+/** المقابل اللاتيني لسلسلة أحرف عربية (يتجاهل غير المعروف). */
+export function plateLettersToLatin(letters: string): string {
+  return [...letters.replace(/\s/g, '')]
+    .map((ch) => PLATE_LETTER_LATIN[ch] ?? '')
+    .join(' ')
+    .trim();
+}
+
+/** يفكّك لوحة مخزّنة «أحرف أرقام» إلى جزأيها. */
+export function parsePlate(plate: string | null | undefined): { letters: string; digits: string } {
+  const src = (plate ?? '').trim();
+  const letters = src.match(/[ء-ي]+/)?.[0] ?? '';
+  const digits = src.match(/\d+/)?.[0] ?? '';
+  return { letters, digits };
+}
+
+/**
+ * تنسيق اللوحة للعرض: أحرف عربية مفصولة بمسافات + المقابل اللاتيني + الأرقام.
+ * مثال: "أبت5560" → "أ ب ت · ABT · 5560". يعيد "—" إن فرغت.
+ */
+export function formatPlate(plate: string | null | undefined): string {
+  const { letters, digits } = parsePlate(plate);
+  if (!letters && !digits) return '—';
+  const arabicSpaced = [...letters].join(' ');
+  const latin = plateLettersToLatin(letters).replace(/\s/g, '');
+  const parts = [arabicSpaced, latin, digits].filter(Boolean);
+  return parts.join(' · ');
 }

@@ -1,21 +1,28 @@
 import { useEffect } from 'react';
 import { useRouter, useSegments, useRootNavigationState, type Href } from 'expo-router';
-import { docsComplete, useAuth, type DriverRecord } from '@/lib/auth';
+import { isSubmitted, useAuth, type DriverRecord } from '@/lib/auth';
 
 /**
  * يحدّد الوجهة الصحيحة لسائقة مسجّلة الدخول حسب حالة اعتمادها:
  *  - لا صف سائقة بعد            ⇐ /kyc  (لترفع المستندات)
  *  - مرفوضة                     ⇐ /kyc  (لإعادة الرفع)
  *  - معتمدة (approved)          ⇐ /(tabs)/home  (الوصول الكامل)
- *  - مستندات ناقصة              ⇐ /kyc
- *  - مستندات مكتملة قيد المراجعة ⇐ /pending
+ *  - مسودّة لم تُرسَل بعد         ⇐ /kyc  (تُكمِل بياناتها وتضغط «إرسال»)
+ *  - أُرسِلت فعلاً للتدقيق        ⇐ /pending
+ *
+ * ملاحظة مهمّة: «قيد المراجعة» ليست مجرّد رفع الصور — بل ضغط «إرسال للتدقيق»
+ * (kyc_submitted_at). فرفع صورة يحفظها فورًا لكنه لا يُرسِل الطلب، وبذلك لا
+ * تظهر شاشة «قيد المراجعة» ما لم تُكمِل السائقة كل بياناتها وترسلها بنفسها.
  */
 export function destinationFor(driver: DriverRecord | null): Href {
   if (!driver) return '/kyc';
   if (driver.status === 'approved') return '/(tabs)/home';
   if (driver.status === 'rejected') return '/kyc';
-  return docsComplete(driver) ? '/pending' : '/kyc';
+  return isSubmitted(driver) ? '/pending' : '/kyc';
 }
+
+/** شاشات إضافية مسموح بها للسائقة المعتمدة خارج التبويبات (الدعم، حول). */
+const APPROVED_EXTRA_SEGMENTS = ['support', 'about'];
 
 /** المقطع الأول من المسار المقابل لكل وجهة (لكشف «هل نحن في المكان الصحيح؟»). */
 function segmentOf(dest: Href): string {
@@ -44,13 +51,22 @@ export function useProtectedRoute() {
     const seg0 = segments[0] as string | undefined;
     const inAuthGroup = seg0 === '(auth)';
 
+    // شاشة الشروط والأحكام معلوماتية — تُتاح في أي حالة (تُفتح من التسجيل و«حول»).
+    if (seg0 === 'terms') return;
+
     if (!session) {
       // لا جلسة: تُسمح مجموعة (auth) فقط.
       if (!inAuthGroup) router.replace('/(auth)/sign-in');
       return;
     }
 
-    // جلسة قائمة: احسب الوجهة المسموح بها وامنع أي شاشة سواها.
+    // جلسة قائمة: السائقة المعتمدة تتنقّل بحرّية داخل التبويبات والشاشات الإضافية
+    // (الدعم/حول)؛ أما غير المعتمدة فمحصورة في وجهتها (kyc/pending).
+    if (driver?.status === 'approved') {
+      const allowed = seg0 === '(tabs)' || APPROVED_EXTRA_SEGMENTS.includes(seg0 ?? '');
+      if (!allowed) router.replace('/(tabs)/home');
+      return;
+    }
     const dest = destinationFor(driver);
     const atDest = seg0 === segmentOf(dest);
     if (!atDest) router.replace(dest);

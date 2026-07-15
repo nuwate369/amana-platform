@@ -134,8 +134,10 @@ export default function VerifyEmailScreen() {
         <Pressable
           onPress={() => verify(code)}
           disabled={!canVerify}
-          className={`h-14 w-full flex-row items-center justify-center gap-2 rounded-xl ${
-            canVerify ? 'bg-brand-700 active:scale-[0.98] dark:bg-brand-600' : 'bg-neutral-300 dark:bg-neutral-700'
+          // active:scale ثابت دائمًا (لا يُبدَّل ديناميكيًّا) — تبديل صنف زائف بعد
+          // أول رندر يُطلق تحذير css-interop الذي تنهار دالته stringify على New Arch.
+          className={`h-14 w-full flex-row items-center justify-center gap-2 rounded-xl active:scale-[0.98] ${
+            canVerify ? 'bg-brand-700 dark:bg-brand-600' : 'bg-neutral-300 dark:bg-neutral-700'
           }`}
         >
           {verifying ? (

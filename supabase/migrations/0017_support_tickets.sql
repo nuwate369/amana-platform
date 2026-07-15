@@ -68,7 +68,7 @@ create policy support_tickets_select on public.support_tickets
   for select using (
     exists (
       select 1 from public.profiles p
-      where p.id = auth.uid() and p.role in ('super_admin', 'admin', 'support')
+      where p.id = auth.uid() and p.user_type in ('super_admin', 'admin', 'support')
     )
     or user_id = auth.uid()
   );
@@ -84,7 +84,7 @@ create policy support_tickets_update on public.support_tickets
   for update using (
     exists (
       select 1 from public.profiles p
-      where p.id = auth.uid() and p.role in ('super_admin', 'admin', 'support')
+      where p.id = auth.uid() and p.user_type in ('super_admin', 'admin', 'support')
     )
   );
 
@@ -94,7 +94,7 @@ create policy ticket_messages_select on public.ticket_messages
   for select using (
     exists (
       select 1 from public.profiles p
-      where p.id = auth.uid() and p.role in ('super_admin', 'admin', 'support')
+      where p.id = auth.uid() and p.user_type in ('super_admin', 'admin', 'support')
     )
     or exists (
       select 1 from public.support_tickets t
@@ -111,7 +111,7 @@ create policy ticket_messages_insert on public.ticket_messages
       not is_internal
       or exists (
         select 1 from public.profiles p
-        where p.id = auth.uid() and p.role in ('super_admin', 'admin', 'support')
+        where p.id = auth.uid() and p.user_type in ('super_admin', 'admin', 'support')
       )
     )
   );

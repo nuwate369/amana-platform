@@ -4,12 +4,13 @@ import { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { TicketDetailModal } from './TicketDetailModal';
 import {
   Headphones, Search, Filter, MessageSquare, Clock, User,
   AlertTriangle, HelpCircle, Lightbulb, Wrench, ChevronLeft,
   ChevronRight, BarChart3, CheckCircle, Archive, Loader2, Plus, X,
+  ArrowUp, ArrowDown, Star,
 } from 'lucide-react';
 import {
   TICKET_PRIORITY_LABELS_EN,
@@ -41,6 +42,7 @@ const STATUS_ICONS: Record<TicketStatus, React.ReactNode> = {
   in_progress: <Loader2 className="w-3 h-3" />,
   resolved: <CheckCircle className="w-3 h-3" />,
   closed: <Archive className="w-3 h-3" />,
+  cancelled: <X className="w-3 h-3" />,
 };
 
 type FilterStatus = TicketStatus | 'all';
@@ -68,10 +70,20 @@ export default function SupportClient({
   const [tickets, setTickets] = useState(initialTickets);
   const [statusFilter, setStatusFilter] = useState<FilterStatus>('all');
   const [search, setSearch] = useState('');
+  const [sortBy, setSortBy] = useState<'date' | 'rating' | 'assignee' | 'user'>('date');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [userRole, setUserRole] = useState<UserType | null>(null);
+  const [detailId, setDetailId] = useState<string | null>(null);
+
+  // فتح تذكرة محدّدة عند القدوم من إشعار أو رابط مباشر (?highlight=<id>).
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    const h = searchParams.get('highlight');
+    if (h) setDetailId(h);
+  }, [searchParams]);
 
   const createForm = useForm<CreateTicketForm>({
     resolver: zodResolver(createTicketSchema),
@@ -79,6 +91,21 @@ export default function SupportClient({
   });
 
   useEffect(() => { setTickets(initialTickets); }, [initialTickets]);
+
+  // Realtime: تحديث القائمة والإحصاءات فور إنشاء/تغيير تذكرة (بلا إعادة تحميل).
+  useEffect(() => {
+    const channel = supabase
+      .channel('support_tickets_list_realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'support_tickets' },
+        () => router.refresh(),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [router]);
 
   useEffect(() => {
     if (!user) return;
@@ -99,11 +126,21 @@ export default function SupportClient({
         (t) =>
           t.subject.toLowerCase().includes(q) ||
           t.userName.toLowerCase().includes(q) ||
-          t.userEmail.toLowerCase().includes(q)
+          t.userEmail.toLowerCase().includes(q) ||
+          (t.ticketNumber ?? '').toLowerCase().includes(q)
       );
     }
-    return result;
-  }, [tickets, statusFilter, search]);
+    // الترتيب حسب المعيار والاتجاه.
+    const sorted = [...result].sort((a, b) => {
+      let cmp = 0;
+      if (sortBy === 'date') cmp = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      else if (sortBy === 'rating') cmp = (a.surveyRating ?? -1) - (b.surveyRating ?? -1);
+      else if (sortBy === 'assignee') cmp = (a.assignedName ?? '').localeCompare(b.assignedName ?? '', 'ar');
+      else if (sortBy === 'user') cmp = (a.userName ?? '').localeCompare(b.userName ?? '', 'ar');
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+    return sorted;
+  }, [tickets, statusFilter, search, sortBy, sortDir]);
 
   const totalPages = Math.ceil(filteredTickets.length / ITEMS_PER_PAGE);
   const paginatedTickets = filteredTickets.slice(
@@ -226,15 +263,39 @@ export default function SupportClient({
             ))}
           </div>
 
-          <div className="relative w-full md:w-64">
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={t('support.search', 'بحث في التذاكر...')}
-              className="w-full pr-9 pl-3 py-2 bg-background border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:outline-none text-foreground"
-            />
+          <div className="flex flex-col sm:flex-row items-stretch gap-2">
+            {/* قسم الترتيب */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-muted-foreground whitespace-nowrap">{t('support.sortBy', 'ترتيب حسب')}</span>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+                className="py-2 px-2 bg-background border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:outline-none text-foreground cursor-pointer"
+              >
+                <option value="date">{t('support.sort.date', 'التاريخ')}</option>
+                <option value="rating">{t('support.sort.rating', 'التقييم')}</option>
+                <option value="assignee">{t('support.sort.assignee', 'الموظف')}</option>
+                <option value="user">{t('support.sort.user', 'المستخدم')}</option>
+              </select>
+              <button
+                onClick={() => setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))}
+                title={sortDir === 'asc' ? t('support.sort.asc', 'تصاعدي') : t('support.sort.desc', 'تنازلي')}
+                className="p-2 rounded-lg border border-border text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              >
+                {sortDir === 'asc' ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />}
+              </button>
+            </div>
+
+            <div className="relative w-full md:w-64">
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={t('support.search', 'بحث في التذاكر...')}
+                className="w-full pr-9 pl-3 py-2 bg-background border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:outline-none text-foreground"
+              />
+            </div>
           </div>
         </div>
 
@@ -247,20 +308,26 @@ export default function SupportClient({
                 <th className="px-4 py-3 font-semibold text-muted-foreground">{t('support.table.category', 'النوع')}</th>
                 <th className="px-4 py-3 font-semibold text-muted-foreground">{t('support.table.priority', 'الأولوية')}</th>
                 <th className="px-4 py-3 font-semibold text-muted-foreground">{t('support.table.status', 'الحالة')}</th>
+                <th className="px-4 py-3 font-semibold text-muted-foreground">{t('support.sort.rating', 'التقييم')}</th>
                 <th className="px-4 py-3 font-semibold text-muted-foreground">{t('support.table.messages', 'الرسائل')}</th>
                 <th className="px-4 py-3 font-semibold text-muted-foreground">{t('support.table.date', 'التاريخ')}</th>
+                <th className="px-4 py-3 font-semibold text-muted-foreground text-center">{t('support.table.action', 'فتح')}</th>
               </tr>
             </thead>
             <tbody>
               {paginatedTickets.map((ticket) => (
                 <tr key={ticket.id} className="border-b border-border hover:bg-muted/50 transition-colors">
                   <td className="px-4 py-3">
-                    <Link
-                      href={`/support/${ticket.id}`}
-                      className="font-medium text-foreground hover:text-primary transition-colors line-clamp-1"
-                    >
-                      {ticket.subject}
-                    </Link>
+                    <button onClick={() => setDetailId(ticket.id)} className="group block text-right">
+                      {ticket.ticketNumber && (
+                        <span className="block font-mono text-[11px] font-bold uppercase tracking-wider text-primary">
+                          {ticket.ticketNumber}
+                        </span>
+                      )}
+                      <span className="font-medium text-foreground group-hover:text-primary transition-colors line-clamp-1">
+                        {ticket.subject}
+                      </span>
+                    </button>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
@@ -291,6 +358,16 @@ export default function SupportClient({
                     </span>
                   </td>
                   <td className="px-4 py-3">
+                    {ticket.surveyRating ? (
+                      <span className="inline-flex items-center gap-0.5 text-amber-500">
+                        <Star className="w-3.5 h-3.5 fill-current" />
+                        <span className="text-xs font-bold text-foreground">{ticket.surveyRating}/5</span>
+                      </span>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
                     <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
                       <MessageSquare className="w-3 h-3" />
                       {ticket.messageCount}
@@ -299,11 +376,21 @@ export default function SupportClient({
                   <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
                     {new Date(ticket.createdAt).toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-US')}
                   </td>
+                  <td className="px-4 py-3">
+                    <button
+                      onClick={() => setDetailId(ticket.id)}
+                      title={t('support.openConversation', 'فتح المحادثة والرد')}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/10"
+                    >
+                      <MessageSquare className="w-3.5 h-3.5" />
+                      {t('support.open', 'فتح')}
+                    </button>
+                  </td>
                 </tr>
               ))}
               {paginatedTickets.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-muted-foreground">
+                  <td colSpan={9} className="px-6 py-12 text-center text-muted-foreground">
                     {search || statusFilter !== 'all'
                       ? t('support.emptyFiltered', 'لا توجد تذاكر تطابق البحث.')
                       : t('support.empty', 'لا توجد تذاكر دعم فني حالياً.')}
@@ -442,6 +529,15 @@ export default function SupportClient({
           </form>
         </Modal>
       )}
+
+      {/* نافذة تفاصيل التذكرة المنبثقة (تُفتح من القائمة دون تنقّل) */}
+      <TicketDetailModal
+        ticketId={detailId}
+        userRole={userRole}
+        currentUserId={user?.id}
+        onClose={() => setDetailId(null)}
+        onChanged={() => router.refresh()}
+      />
     </div>
   );
 }

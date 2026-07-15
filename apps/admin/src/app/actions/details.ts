@@ -54,6 +54,8 @@ export interface UserDetails {
   // السائقة (null لغيرها)
   driver: {
     status: string;
+    /** وقت إرسال الطلب للتدقيق. null = مسودّة لم تُرسَل بعد. */
+    submittedAt: string | null;
     vehicleMake: string | null;
     vehicleModel: string | null;
     vehicleYear: number | null;
@@ -122,7 +124,7 @@ export async function getUserDetails(userId: string): Promise<UserDetails | null
       ? db
           .from('drivers')
           .select(
-            'status, vehicle_make, vehicle_model, vehicle_year, vehicle_plate, vehicle_registration_number, national_id_number, rejection_reason, license_url, national_id_url, vehicle_registration_url, car_photo_url',
+            'status, kyc_submitted_at, vehicle_make, vehicle_model, vehicle_year, vehicle_plate, vehicle_registration_number, national_id_number, rejection_reason, license_url, national_id_url, vehicle_registration_url, car_photo_url',
           )
           .eq('id', userId)
           .maybeSingle()
@@ -185,6 +187,7 @@ export async function getUserDetails(userId: string): Promise<UserDetails | null
 
   const d = driverRes.data as {
     status: string;
+    kyc_submitted_at: string | null;
     vehicle_make: string | null;
     vehicle_model: string | null;
     vehicle_year: number | null;
@@ -234,6 +237,7 @@ export async function getUserDetails(userId: string): Promise<UserDetails | null
     driver: d
       ? {
           status: d.status,
+          submittedAt: d.kyc_submitted_at,
           vehicleMake: d.vehicle_make,
           vehicleModel: d.vehicle_model,
           vehicleYear: d.vehicle_year,

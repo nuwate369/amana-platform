@@ -71,7 +71,10 @@ export default function PendingScreen() {
 
         {/* بطاقات الخطوات */}
         <View className="w-full gap-4">
-          <View className="flex-row items-center gap-4 rounded-xl border-r-4 border-r-brand-600 bg-white p-4 dark:bg-neutral-800">
+          {/* overflow-hidden + شريط كحليّ كطفل بدل border-r على حاوية دائرية
+              (حدٌّ من جهة واحدة مع rounded-xl يُرسَم كقوس لوني كبير يبدو مكسورًا). */}
+          <View className="flex-row items-center gap-3 overflow-hidden rounded-xl bg-white p-4 dark:bg-neutral-800">
+            <View className="w-1.5 self-stretch rounded-full bg-brand-600" />
             <View className="h-10 w-10 items-center justify-center rounded-full bg-brand-100 dark:bg-neutral-700">
               <MaterialIcons name="assignment-turned-in" size={22} color={driverNavy[700]} />
             </View>

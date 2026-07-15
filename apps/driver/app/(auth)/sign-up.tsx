@@ -1,5 +1,6 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { Link, router } from 'expo-router';
+import { Link, router, type Href } from 'expo-router';
+import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
@@ -35,6 +36,8 @@ const FIELDS: {
 
 export default function SignUpScreen() {
   const { t } = useTranslation();
+  // موافقة الشروط إلزامية قبل إنشاء الحساب.
+  const [agreed, setAgreed] = useState(false);
 
   const {
     control,
@@ -57,11 +60,22 @@ export default function SignUpScreen() {
   };
 
   async function onSubmit(values: SignUpInput) {
+    if (!agreed) {
+      notify.error(t('auth.mustAgreeTerms', 'يجب الموافقة على الشروط والأحكام للمتابعة.'));
+      return;
+    }
     const { error } = await supabase.auth.signUp({
       email: values.email.trim(),
       password: values.password,
       // user_type=driver ⇐ يُنشئ الـtrigger صفَّي profiles + drivers (status=pending).
-      options: { data: { full_name: values.fullName, user_type: 'driver' } },
+      // نخزّن لحظة الموافقة على الشروط في بيانات المصادقة (سجلّ امتثال).
+      options: {
+        data: {
+          full_name: values.fullName,
+          user_type: 'driver',
+          terms_accepted_at: new Date().toISOString(),
+        },
+      },
     });
     if (error) {
       notify.error(translateAuthError(error.message, t));
@@ -135,15 +149,46 @@ export default function SignUpScreen() {
           </View>
         ))}
 
+        {/* موافقة الشروط والأحكام (إلزامية) */}
         <Pressable
-          className="mt-2 h-14 items-center justify-center rounded-xl bg-brand-700 active:scale-[0.98] dark:bg-brand-600"
-          disabled={isSubmitting}
+          onPress={() => setAgreed((v) => !v)}
+          className="mb-4 mt-1 flex-row items-center gap-2.5"
+        >
+          <View
+            className={`h-6 w-6 items-center justify-center rounded-md border-2 ${
+              agreed ? 'border-brand-700 bg-brand-700 dark:border-brand-500 dark:bg-brand-600' : 'border-neutral-300 dark:border-neutral-600'
+            }`}
+          >
+            {agreed ? <MaterialIcons name="check" size={16} color="#ffffff" /> : null}
+          </View>
+          <Text className="flex-1 font-plex text-sm text-neutral-600 dark:text-neutral-300">
+            {t('terms.agreePrefix', 'أوافق على')}{' '}
+            <Text
+              className="font-plex-bold text-brand-700 dark:text-brand-300"
+              onPress={() => router.push('/terms' as Href)}
+            >
+              {t('terms.agreeLink', 'الشروط والأحكام')}
+            </Text>
+          </Text>
+        </Pressable>
+
+        <Pressable
+          className={`h-14 items-center justify-center rounded-xl active:scale-[0.98] ${
+            agreed ? 'bg-brand-700 dark:bg-brand-600' : 'bg-neutral-300 dark:bg-neutral-700'
+          }`}
+          disabled={isSubmitting || !agreed}
           onPress={handleSubmit(onSubmit, onInvalid)}
         >
           {isSubmitting ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text className="font-plex-semibold text-lg text-white">{t('auth.signUpButton')}</Text>
+            <Text
+              className={`font-plex-semibold text-lg ${
+                agreed ? 'text-white' : 'text-neutral-500 dark:text-neutral-400'
+              }`}
+            >
+              {t('auth.signUpButton')}
+            </Text>
           )}
         </Pressable>
 

@@ -8,7 +8,7 @@ import type {
   TicketPriority,
   UserType,
 } from '@amana/shared-types';
-import { MAX_OPEN_TICKETS } from '@amana/shared-types';
+import { MAX_OPEN_TICKETS, canTransitionTicket } from '@amana/shared-types';
 import { logAudit } from '@/app/actions/moderation';
 
 const supabaseAdmin = createClient(
@@ -23,6 +23,7 @@ const supabaseAdmin = createClient(
 /** صف تذكرة الدعم كما يُعرض في الجدول. */
 export interface TicketRow {
   id: string;
+  ticketNumber: string | null;
   subject: string;
   category: TicketCategory;
   priority: TicketPriority;
@@ -34,14 +35,19 @@ export interface TicketRow {
   assignedTo: string | null;
   assignedName: string | null;
   messageCount: number;
+  surveyRating: number | null;
   createdAt: string;
   updatedAt: string;
 }
 
-/** تفاصيل تذكرة (مع الرسائل). */
+/** تفاصيل تذكرة (مع الرسائل + الاستبيان). */
 export interface TicketDetail extends TicketRow {
   description: string;
   messages: TicketMessage[];
+  surveySentAt: string | null;
+  surveyRating: number | null;
+  surveyComment: string | null;
+  surveyAnsweredAt: string | null;
 }
 
 /** رسالة في التذكرة. */
@@ -63,6 +69,7 @@ export interface TicketStats {
   inProgress: number;
   resolved: number;
   closed: number;
+  cancelled: number;
 }
 
 // =============================================================================
@@ -153,6 +160,7 @@ export async function listTickets(filters?: {
 
     return {
       id: t.id,
+      ticketNumber: t.ticket_number ?? null,
       subject: t.subject,
       category: t.category,
       priority: t.priority,
@@ -164,6 +172,7 @@ export async function listTickets(filters?: {
       assignedTo: t.assigned_to,
       assignedName: assignedProfile?.full_name || null,
       messageCount: countMap.get(t.id) || 0,
+      surveyRating: t.survey_rating ?? null,
       createdAt: t.created_at,
       updatedAt: t.updated_at,
     };
@@ -216,6 +225,7 @@ export async function getTicket(ticketId: string): Promise<TicketDetail | null> 
 
   return {
     id: ticket.id,
+    ticketNumber: ticket.ticket_number ?? null,
     subject: ticket.subject,
     category: ticket.category,
     priority: ticket.priority,
@@ -230,6 +240,10 @@ export async function getTicket(ticketId: string): Promise<TicketDetail | null> 
     description: ticket.description,
     createdAt: ticket.created_at,
     updatedAt: ticket.updated_at,
+    surveySentAt: ticket.survey_sent_at ?? null,
+    surveyRating: ticket.survey_rating ?? null,
+    surveyComment: ticket.survey_comment ?? null,
+    surveyAnsweredAt: ticket.survey_answered_at ?? null,
     messages: (messages ?? []).map((m) => ({
       id: m.id,
       ticketId: m.ticket_id,
@@ -258,12 +272,12 @@ export async function createTicket(
 ): Promise<{ success: boolean; ticketId?: string; error?: string }> {
   if (!userId) return { success: false, error: 'يجب تسجيل الدخول أولاً.' };
 
-  // فحص الحد الأقصى 10 تذاكر مفتوحة
+  // فحص الحد الأقصى للتذاكر غير المُغلقة (open + in_progress + resolved)
   const { count, error: countErr } = await supabaseAdmin
     .from('support_tickets')
     .select('*', { count: 'exact', head: true })
     .eq('user_id', userId)
-    .in('status', ['open', 'in_progress']);
+    .in('status', ['open', 'in_progress', 'resolved']);
 
   if (countErr) {
     console.error('[createTicket] Count error:', countErr.message);
@@ -343,6 +357,13 @@ export async function updateTicket(
       return { success: false, error: 'التذكرة غير موجودة.' };
     }
 
+    // منع الانتقالات غير المسموح بها (مثلًا الرجوع إلى «جديد»، أو تغيير حالة نهائية).
+    if (updates.status && updates.status !== existing.status) {
+      if (!canTransitionTicket(existing.status as TicketStatus, updates.status)) {
+        return { success: false, error: 'لا يمكن الانتقال إلى هذه الحالة من الحالة الحالية.' };
+      }
+    }
+
     const update: Record<string, any> = {};
     if (updates.status) update.status = updates.status;
     if (updates.assignedTo !== undefined) update.assigned_to = updates.assignedTo;
@@ -415,20 +436,8 @@ export async function sendMessage(
 
     if (error) return { success: false, error: translateSupabaseError(error.message) };
 
-    // تحديث updated_at في التذكرة
-    await supabaseAdmin
-      .from('support_tickets')
-      .update({ updated_at: new Date().toISOString() })
-      .eq('id', ticketId);
-
-    // إذا كانت التذكرة مغلقة، أعد فتحها
-    if (ticket.status === 'closed') {
-      await supabaseAdmin
-        .from('support_tickets')
-        .update({ status: 'open' })
-        .eq('id', ticketId);
-    }
-
+    // التخصيص التلقائي + التقدّم (open⇒in_progress) + updated_at يتكفّل بها
+    // trigger «on_ticket_message» في القاعدة (هجرة 0028) لتوحيد المنطق.
     revalidatePath(`/support/${ticketId}`);
     return { success: true };
   } catch (err: any) {
@@ -439,19 +448,13 @@ export async function sendMessage(
 /**
  * إحصائيات التذاكر (للداشبورد).
  */
-export async function getTicketStats(): Promise<{
-  total: number;
-  open: number;
-  inProgress: number;
-  resolved: number;
-  closed: number;
-}> {
+export async function getTicketStats(): Promise<TicketStats> {
   const { data, error } = await supabaseAdmin
     .from('support_tickets')
     .select('status');
 
   if (error || !data) {
-    return { total: 0, open: 0, inProgress: 0, resolved: 0, closed: 0 };
+    return { total: 0, open: 0, inProgress: 0, resolved: 0, closed: 0, cancelled: 0 };
   }
 
   return {
@@ -460,5 +463,6 @@ export async function getTicketStats(): Promise<{
     inProgress: data.filter((t) => t.status === 'in_progress').length,
     resolved: data.filter((t) => t.status === 'resolved').length,
     closed: data.filter((t) => t.status === 'closed').length,
+    cancelled: data.filter((t) => t.status === 'cancelled').length,
   };
 }

@@ -14,7 +14,17 @@ import {
 import Toast from 'react-native-toast-message';
 import { i18n } from '@/lib/i18n';
 import { AuthProvider } from '@/lib/auth';
+import { PreferencesProvider, usePreferences } from '@/lib/preferences';
 import { useProtectedRoute } from '@/lib/useProtectedRoute';
+
+/** شاشة انتظار بسيطة أثناء تحميل الخطوط أو قراءة التفضيلات. */
+function LoadingScreen() {
+  return (
+    <View className="flex-1 items-center justify-center bg-white dark:bg-brand-900">
+      <ActivityIndicator color="#254594" />
+    </View>
+  );
+}
 
 /** مكوّن داخلي يشغّل حارس المسارات ثم يعرض شجرة التنقّل. */
 function RootNavigator() {
@@ -27,8 +37,17 @@ function RootNavigator() {
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="kyc" />
       <Stack.Screen name="pending" />
+      <Stack.Screen name="about" />
+      <Stack.Screen name="terms" />
     </Stack>
   );
+}
+
+/** بوّابة: تنتظر جاهزية التفضيلات (المظهر/اللغة/الاتجاه) قبل عرض التطبيق. */
+function Gate() {
+  const { ready } = usePreferences();
+  if (!ready) return <LoadingScreen />;
+  return <RootNavigator />;
 }
 
 export default function RootLayout() {
@@ -40,22 +59,20 @@ export default function RootLayout() {
   });
 
   if (!fontsLoaded) {
-    return (
-      <View className="flex-1 items-center justify-center bg-white dark:bg-brand-900">
-        <ActivityIndicator color="#254594" />
-      </View>
-    );
+    return <LoadingScreen />;
   }
 
   return (
     <I18nextProvider i18n={i18n}>
-      <AuthProvider>
-        <SafeAreaProvider>
-          <StatusBar style="auto" />
-          <RootNavigator />
-          <Toast />
-        </SafeAreaProvider>
-      </AuthProvider>
+      <PreferencesProvider>
+        <AuthProvider>
+          <SafeAreaProvider>
+            <StatusBar style="auto" />
+            <Gate />
+            <Toast />
+          </SafeAreaProvider>
+        </AuthProvider>
+      </PreferencesProvider>
     </I18nextProvider>
   );
 }

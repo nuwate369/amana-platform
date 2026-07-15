@@ -54,5 +54,9 @@ _exporttest/
 # MCP config holds an API key — keep local
 .mcp.json
 
+# Local AI/agent tooling artifacts (not part of the project)
+.agents/
+.claude/
+
 # TypeScript incremental build info
 *.tsbuildinfo

@@ -1,6 +1,6 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useEffect, useState, type ComponentProps } from 'react';
+import { useEffect, useRef, useState, type ComponentProps } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -17,11 +17,13 @@ import { driverNavy } from '@amana/shared-ui/tokens';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import { notify } from '@/lib/toast';
+import { plateLettersToLatin } from '@amana/shared-types';
 import { SearchableSelect } from '@/components/SearchableSelect';
 import { CAR_MAKE_NAMES, manufactureYears, modelsForMake } from '@/lib/carData';
 import {
   KYC_DOCS,
   pickAndUploadKycDocument,
+  saveKycFields,
   submitKycForReview,
   type ImageSource,
   type KycDocKey,
@@ -81,9 +83,14 @@ export default function KycScreen() {
   }));
   const [busyKey, setBusyKey] = useState<KycDocKey | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  // الحفظ التلقائي للحقول النصية (مسودّة) — يمنع ضياع ما أُدخِل قبل «إرسال للتدقيق».
+  const dirtyRef = useRef(false);
+  const [draftStatus, setDraftStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
 
-  const setField = (key: keyof KycFieldValues, text: string) =>
+  const setField = (key: keyof KycFieldValues, text: string) => {
+    dirtyRef.current = true;
     setValues((prev) => ({ ...prev, [key]: text }));
+  };
 
   // جلب رقم الجوال من profiles لإعادة تعبئته (غير مخزّن في صف السائقة).
   useEffect(() => {
@@ -107,8 +114,21 @@ export default function KycScreen() {
 
   // اختيار الشركة يصفّر الموديل.
   function onSelectMake(make: string) {
+    dirtyRef.current = true;
     setValues((prev) => ({ ...prev, vehicleMake: make, vehicleModel: '' }));
   }
+
+  // حفظ تلقائي للحقول النصية بعد توقّف الإدخال (مسودّة) — كالصور، فلا تضيع البيانات
+  // حتى لو أُغلق التطبيق قبل الإرسال. لا يُغيّر حالة السائقة.
+  useEffect(() => {
+    if (!user || !dirtyRef.current) return;
+    setDraftStatus('saving');
+    const id = setTimeout(async () => {
+      const res = await saveKycFields(user.id, values);
+      setDraftStatus(res.ok ? 'saved' : 'idle');
+    }, 1200);
+    return () => clearTimeout(id);
+  }, [values, user]);
 
   // تركيب اللوحة من الأحرف والأرقام في القيمة المخزّنة.
   function onPlateLetters(text: string) {
@@ -429,13 +449,34 @@ export default function KycScreen() {
             </LinearGradient>
           </View>
 
+          {/* مؤشّر الحفظ التلقائي — يطمئن السائقة أن بياناتها لا تضيع */}
+          {draftStatus !== 'idle' ? (
+            <View className="mt-6 flex-row items-center justify-center gap-1.5">
+              {draftStatus === 'saving' ? (
+                <>
+                  <ActivityIndicator size="small" color={driverNavy[500]} />
+                  <Text className="font-plex text-xs text-neutral-500 dark:text-neutral-400">
+                    جارٍ حفظ بياناتك…
+                  </Text>
+                </>
+              ) : (
+                <>
+                  <MaterialIcons name="cloud-done" size={16} color="#16a34a" />
+                  <Text className="font-plex text-xs text-green-600">تم حفظ بياناتك تلقائيًا</Text>
+                </>
+              )}
+            </View>
+          ) : null}
+
           {/* زر الإرسال */}
-          <View className="mt-8">
+          <View className="mt-6">
             <Pressable
               onPress={onSubmit}
               disabled={!canSubmit || submitting}
-              className={`h-14 flex-row items-center justify-center gap-3 rounded-xl ${
-                canSubmit ? 'bg-brand-700 active:scale-[0.98] dark:bg-brand-600' : 'bg-neutral-300 dark:bg-neutral-700'
+              // active:scale ثابت دائمًا (لا يُبدَّل ديناميكيًّا) — تبديل صنف زائف بعد
+              // أول رندر يُطلق تحذير css-interop الذي تنهار دالته stringify على New Arch.
+              className={`h-14 flex-row items-center justify-center gap-3 rounded-xl active:scale-[0.98] ${
+                canSubmit ? 'bg-brand-700 dark:bg-brand-600' : 'bg-neutral-300 dark:bg-neutral-700'
               }`}
             >
               {submitting ? (
@@ -571,9 +612,16 @@ function PlateInput({
               textAlign="center"
             />
           </View>
-          <Text className="text-center font-plex text-[11px] text-neutral-400 dark:text-neutral-500">
-            الأحرف (3 كحدّ أقصى)
-          </Text>
+          {letters ? (
+            // المقابل اللاتيني الرسمي كما يظهر على اللوحة (أ→A، ب→B، ...).
+            <Text className="text-center font-plex-bold text-[13px] tracking-[3px] text-brand-700 dark:text-brand-300">
+              {plateLettersToLatin(letters)}
+            </Text>
+          ) : (
+            <Text className="text-center font-plex text-[11px] text-neutral-400 dark:text-neutral-500">
+              الأحرف (3 كحدّ أقصى)
+            </Text>
+          )}
         </View>
         <View className="flex-1 gap-1">
           <View className={boxClass}>

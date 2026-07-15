@@ -25,21 +25,29 @@ export default function DriversPage() {
     t('drivers.filters.all', 'الكل'),
     t('drivers.filters.active', 'نشطة'),
     t('drivers.filters.pending', 'قيد المراجعة'),
+    t('drivers.filters.draft', 'مسودّة'),
     t('drivers.filters.rejected', 'مرفوضة'),
     t('drivers.filters.banned', 'محظورة')
   ] as const;
   type Filter = (typeof FILTERS)[number];
 
+  // خريطة الحالة المعروضة → التسمية. «مسودّة» حالة اشتقاقية (pending لم تُرسَل بعد).
   const STATUS_LABELS: Record<string, string> = {
     approved: t('drivers.filters.active', 'نشطة'),
     pending: t('drivers.filters.pending', 'قيد المراجعة'),
+    draft: t('drivers.filters.draft', 'مسودّة'),
     rejected: t('drivers.filters.rejected', 'مرفوضة'),
   };
+
+  // الحالة المعروضة: سائقة pending لم تضغط «إرسال» بعد ⇒ «مسودّة» لا «قيد المراجعة».
+  const displayStatusOf = (d: DriverRow): string =>
+    d.status === 'pending' && !d.submitted ? 'draft' : d.status;
 
 function StatusBadge({ label }: { label: string }) {
   const map: Record<string, string> = {
     نشطة: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
     'قيد المراجعة': 'bg-primary/10 text-primary',
+    مسودّة: 'bg-muted text-muted-foreground',
     مرفوضة: 'bg-destructive/10 text-destructive',
   };
   return (
@@ -114,7 +122,7 @@ type KycTarget = { row: DriverRow; mode: 'approve' | 'reject' };
       case 'محظورة':
         return drivers.filter((d) => !d.isActive);
       default:
-        return drivers.filter((d) => STATUS_LABELS[d.status] === active);
+        return drivers.filter((d) => STATUS_LABELS[displayStatusOf(d)] === active);
     }
   }, [drivers, active]);
 
@@ -239,7 +247,7 @@ type KycTarget = { row: DriverRow; mode: 'approve' | 'reject' };
                     <td className="px-5 py-3">{d.vehicle}</td>
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-1.5">
-                        <StatusBadge label={STATUS_LABELS[d.status] ?? d.status} />
+                        <StatusBadge label={STATUS_LABELS[displayStatusOf(d)] ?? d.status} />
                         {!d.isActive && (
                           <span
                             className="rounded-full bg-destructive/10 px-2.5 py-0.5 text-xs font-medium text-destructive"
@@ -252,7 +260,7 @@ type KycTarget = { row: DriverRow; mode: 'approve' | 'reject' };
                     </td>
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-1.5">
-                        {d.status === 'approved' ? (
+                        {d.status === 'approved' || displayStatusOf(d) === 'draft' ? (
                           <button
                             onClick={() => setDetailsId(d.id)}
                             title={t('common.viewDetails', 'عرض التفاصيل')}

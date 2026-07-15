@@ -30,6 +30,8 @@ export interface DriverRecord {
   vehicle_registration_number: string | null;
   // سبب الرفض (يظهر للسائقة عند status='rejected').
   rejection_reason: string | null;
+  // وقت إرسال الطلب للتدقيق. NULL = مسودّة لم تُرسَل بعد (تُكمِل بياناتها).
+  kyc_submitted_at: string | null;
 }
 
 /** هل رُفعت المستندات الثلاثة كلها؟ */
@@ -37,6 +39,11 @@ export function docsComplete(driver: DriverRecord | null): boolean {
   return Boolean(
     driver?.national_id_url && driver?.license_url && driver?.vehicle_registration_url,
   );
+}
+
+/** هل أرسلت السائقة طلبها للتدقيق فعلاً؟ (مصدر الحقيقة لطابور المراجعة). */
+export function isSubmitted(driver: DriverRecord | null): boolean {
+  return Boolean(driver?.kyc_submitted_at);
 }
 
 /** قيمة سياق المصادقة المشتركة عبر شاشات تطبيق السائقة. */
@@ -58,7 +65,7 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 const DRIVER_COLUMNS =
   'id, status, national_id_url, license_url, vehicle_registration_url, car_photo_url, ' +
   'national_id_number, vehicle_make, vehicle_model, vehicle_year, vehicle_plate, vehicle_registration_number, ' +
-  'rejection_reason';
+  'rejection_reason, kyc_submitted_at';
 
 /**
  * مزوّد المصادقة: يقرأ الجلسة الحالية عند التركيب ثم يستمع لتغيّرات الحالة،

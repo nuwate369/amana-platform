@@ -1,9 +1,8 @@
-import { notFound } from 'next/navigation';
-import TicketDetailClient from './TicketDetailClient';
-import { getTicket } from '@/app/actions/support';
+import { redirect } from 'next/navigation';
 
 /**
- * صفحة تفاصيل التذكرة — تعرض التذكرة مع المحادثة وتحديث الحالة.
+ * الرابط المباشر لتذكرة → يُعاد توجيهه إلى القائمة مع فتح النافذة المنبثقة
+ * (?highlight=<id>). وُحّد عرض التذكرة على النموذج المنبثق؛ لا صفحة مستقلّة.
  */
 export default async function TicketDetailPage({
   params,
@@ -11,11 +10,5 @@ export default async function TicketDetailPage({
   params: Promise<{ ticketId: string }>;
 }) {
   const { ticketId } = await params;
-  const ticket = await getTicket(ticketId);
-
-  if (!ticket) {
-    notFound();
-  }
-
-  return <TicketDetailClient ticket={ticket} />;
+  redirect(`/support?highlight=${ticketId}`);
 }
