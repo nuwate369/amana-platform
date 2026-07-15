@@ -22,6 +22,11 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/logo.png",
         "backgroundColor": "#0f1e3d"
+      },
+      "config": {
+        "googleMaps": {
+          "apiKey": "REPLACE_WITH_GOOGLE_MAPS_API_KEY"
+        }
       }
     },
     "plugins": [
@@ -33,7 +38,13 @@
           "cameraPermission": "يستخدم تطبيق أمانة الكاميرا لالتقاط صور مستندات التحقّق مباشرةً."
         }
       ],
-      "expo-font"
+      "expo-font",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "يستخدم تطبيق أمانة موقعك لعرض الخريطة واستقبال الرحلات القريبة وتوجيهك إلى نقاط الالتقاط والوجهة."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

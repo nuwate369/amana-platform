@@ -26,6 +26,13 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="map"
+        options={{
+          title: t('nav.map', 'الخريطة'),
+          tabBarIcon: ({ color, size }) => <MaterialIcons name="map" size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="account"
         options={{
           title: t('nav.account', 'حسابي'),
