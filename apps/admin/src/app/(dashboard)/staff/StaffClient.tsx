@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
@@ -8,7 +8,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Users, Plus, Mail, Shield, X, Lock, Pencil, Trash2, User as UserIcon,
   RotateCcw, AlertTriangle, Eye, Phone, CheckCircle, Ban, Clock,
-  MoreVertical, ShieldCheck, ShieldAlert,
+  MoreVertical, ShieldCheck, ShieldAlert, CircleDot,
 } from 'lucide-react';
 import {
   inviteStaffSchema,
@@ -17,7 +17,7 @@ import {
   type InviteStaffInput,
 } from '@amana/shared-ui/validation';
 import {
-  STAFF_TYPE_LABELS, STAFF_TYPE_COLORS,
+  STAFF_TYPE_LABELS, STAFF_TYPE_LABELS_EN, STAFF_TYPE_COLORS,
   USER_STATUS_LABELS, USER_STATUS_COLORS,
   type UserType, type UserStatus,
 } from '@amana/shared-types';
@@ -35,6 +35,7 @@ import { PrimaryButton, DangerButton, CancelButton } from '@/components/ui/Actio
 import { supabase } from '@/lib/supabase/client';
 import { notify } from '@/lib/toast';
 import { useUnsavedChanges } from '@/lib/useUnsavedChanges';
+import { FilterToolbar, type FilterConfig } from '@/components/ui/FilterToolbar';
 
 const ROLE_DESCRIPTIONS: Record<string, string> = {
   super_admin: 'صلاحيات كاملة على كل شيء، بما فيها إدارة الموظفين ودعوتهم.',
@@ -121,11 +122,20 @@ function StatusActions({
 }
 
 export default function StaffClient({ initialStaff }: { initialStaff: StaffRow[] }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const { user } = useAuth();
+  const lang = i18n.language === 'ar' ? 'ar' : 'en';
+  const isRtl = lang === 'ar';
   const [staff, setStaff] = useState(initialStaff);
   const [canManage, setCanManage] = useState(false);
+
+  // بحث/ترتيب/فلترة القائمة (بلا إعادة تحميل — عميلًا فقط).
+  const [search, setSearch] = useState('');
+  const [sortBy, setSortBy] = useState<'name' | 'date'>('date');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  const [roleFilter, setRoleFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
 
   useEffect(() => {
     if (!user) return;
@@ -251,6 +261,74 @@ export default function StaffClient({ initialStaff }: { initialStaff: StaffRow[]
     reactivate: <>هل تريد إعادة تنشيط حساب <strong>{statusDialogTarget?.name}</strong> والسماح له بالدخول؟</>,
   };
 
+  // تسميات إنجليزية لحالات المستخدم (العربية من USER_STATUS_LABELS).
+  const STATUS_LABELS_EN: Record<UserStatus, string> = {
+    pending_approval: 'Pending approval',
+    pending_invite: 'Pending invite',
+    active: 'Active',
+    suspended: 'Suspended',
+    disabled: 'Disabled',
+  };
+
+  const roleValues: UserType[] = ['super_admin', 'admin', 'support'];
+  const statusValues: UserStatus[] = ['pending_approval', 'pending_invite', 'active', 'suspended', 'disabled'];
+
+  // القائمة بعد تطبيق البحث والفلاتر والترتيب.
+  const filtered = useMemo(() => {
+    let result = staff;
+    const q = search.trim().toLowerCase();
+    if (q) {
+      result = result.filter(
+        (m) => m.name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q)
+      );
+    }
+    if (roleFilter) result = result.filter((m) => m.userType === roleFilter);
+    if (statusFilter) result = result.filter((m) => m.status === statusFilter);
+    const sorted = [...result].sort((a, b) => {
+      const cmp =
+        sortBy === 'name'
+          ? a.name.localeCompare(b.name, 'ar')
+          : new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+    return sorted;
+  }, [staff, search, roleFilter, statusFilter, sortBy, sortDir]);
+
+  const hasActiveFilters = Boolean(search.trim() || roleFilter || statusFilter);
+
+  const sortOptions = [
+    { value: 'name', label: lang === 'ar' ? 'الاسم' : 'Name' },
+    { value: 'date', label: lang === 'ar' ? 'التاريخ' : 'Date' },
+  ];
+
+  const filterConfigs: FilterConfig[] = [
+    {
+      key: 'role',
+      label: lang === 'ar' ? 'كل الأدوار' : 'All roles',
+      icon: Shield,
+      value: roleFilter,
+      options: roleValues.map((r) => ({
+        value: r,
+        label: lang === 'ar' ? (STAFF_TYPE_LABELS[r] ?? r) : (STAFF_TYPE_LABELS_EN[r] ?? r),
+      })),
+    },
+    {
+      key: 'status',
+      label: lang === 'ar' ? 'كل الحالات' : 'All statuses',
+      icon: CircleDot,
+      value: statusFilter,
+      options: statusValues.map((s) => ({
+        value: s,
+        label: lang === 'ar' ? USER_STATUS_LABELS[s] : STATUS_LABELS_EN[s],
+      })),
+    },
+  ];
+
+  function onFilterChange(key: string, value: string) {
+    if (key === 'role') setRoleFilter(value);
+    else if (key === 'status') setStatusFilter(value);
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -271,6 +349,24 @@ export default function StaffClient({ initialStaff }: { initialStaff: StaffRow[]
         )}
       </div>
 
+      {/* شريط الفلاتر — بطاقة مستقلّة عن الجدول كي تطفو القوائم بلا قصّ */}
+      <div className="bg-card border border-border rounded-xl shadow-sm p-4">
+        <FilterToolbar
+          search={search}
+          onSearchChange={setSearch}
+          searchPlaceholder={lang === 'ar' ? 'ابحثي بالاسم أو البريد…' : 'Search by name or email…'}
+          sortOptions={sortOptions}
+          sort={{ value: sortBy, dir: sortDir }}
+          onSortChange={(v) => setSortBy(v as typeof sortBy)}
+          onSortDirToggle={() => setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))}
+          filters={filterConfigs}
+          onFilterChange={onFilterChange}
+          defaultOpen
+          lang={lang}
+          isRtl={isRtl}
+        />
+      </div>
+
       <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-right border-collapse text-sm">
@@ -285,7 +381,7 @@ export default function StaffClient({ initialStaff }: { initialStaff: StaffRow[]
               </tr>
             </thead>
             <tbody>
-              {staff.map((m) => (
+              {filtered.map((m) => (
                 <tr key={m.id} className="border-b border-border hover:bg-muted/50 transition-colors">
                   <td className="px-5 py-3.5 font-medium text-foreground">
                     <div className="flex items-center gap-2">
@@ -344,10 +440,12 @@ export default function StaffClient({ initialStaff }: { initialStaff: StaffRow[]
                   </td>
                 </tr>
               ))}
-              {staff.length === 0 && (
+              {filtered.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">
-                    {t('staff.empty', 'لا يوجد موظفون حالياً.')}
+                    {hasActiveFilters
+                      ? (lang === 'ar' ? 'لا يوجد موظفون يطابقون البحث.' : 'No staff match your search.')
+                      : t('staff.empty', 'لا يوجد موظفون حالياً.')}
                   </td>
                 </tr>
               )}

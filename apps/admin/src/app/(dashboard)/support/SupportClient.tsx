@@ -7,10 +7,10 @@ import { useTranslation } from 'react-i18next';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { TicketDetailModal } from './TicketDetailModal';
 import {
-  Headphones, Search, Filter, MessageSquare, Clock, User,
+  Headphones, MessageSquare, Clock, User,
   AlertTriangle, HelpCircle, Lightbulb, Wrench, ChevronLeft,
   ChevronRight, BarChart3, CheckCircle, Archive, Loader2, Plus, X,
-  ArrowUp, ArrowDown, Star,
+  Star, Layers, Flag, Tag,
 } from 'lucide-react';
 import {
   TICKET_PRIORITY_LABELS_EN,
@@ -27,6 +27,8 @@ import { notify } from '@/lib/toast';
 import type { UserType } from '@amana/shared-types';
 import { createTicketSchema, translateError } from '@amana/shared-ui/validation';
 import { PrimaryButton, CancelButton } from '@/components/ui/ActionButtons';
+import { DateRangePicker, type DateRange } from '@/components/ui/DateRangePicker';
+import { FilterToolbar, type FilterConfig } from '@/components/ui/FilterToolbar';
 
 const ITEMS_PER_PAGE = 15;
 
@@ -69,9 +71,12 @@ export default function SupportClient({
 
   const [tickets, setTickets] = useState(initialTickets);
   const [statusFilter, setStatusFilter] = useState<FilterStatus>('all');
+  const [priorityFilter, setPriorityFilter] = useState<'' | TicketPriority>('');
+  const [categoryFilter, setCategoryFilter] = useState<'' | TicketCategory>('');
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState<'date' | 'rating' | 'assignee' | 'user'>('date');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  const [dateRange, setDateRange] = useState<DateRange>({ from: null, to: null });
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
@@ -120,6 +125,23 @@ export default function SupportClient({
     if (statusFilter !== 'all') {
       result = result.filter((t) => t.status === statusFilter);
     }
+    if (priorityFilter) {
+      result = result.filter((t) => t.priority === priorityFilter);
+    }
+    if (categoryFilter) {
+      result = result.filter((t) => t.category === categoryFilter);
+    }
+    // فلترة مدى التاريخ (createdAt) بين البداية والنهاية شاملًا اليومين.
+    if (dateRange.from) {
+      const from = new Date(dateRange.from); from.setHours(0, 0, 0, 0);
+      const to = new Date(dateRange.to ?? dateRange.from); to.setHours(23, 59, 59, 999);
+      const fromMs = from.getTime();
+      const toMs = to.getTime();
+      result = result.filter((t) => {
+        const c = new Date(t.createdAt).getTime();
+        return c >= fromMs && c <= toMs;
+      });
+    }
     if (search.trim()) {
       const q = search.toLowerCase();
       result = result.filter(
@@ -140,7 +162,7 @@ export default function SupportClient({
       return sortDir === 'asc' ? cmp : -cmp;
     });
     return sorted;
-  }, [tickets, statusFilter, search, sortBy, sortDir]);
+  }, [tickets, statusFilter, priorityFilter, categoryFilter, search, sortBy, sortDir, dateRange]);
 
   const totalPages = Math.ceil(filteredTickets.length / ITEMS_PER_PAGE);
   const paginatedTickets = filteredTickets.slice(
@@ -148,7 +170,7 @@ export default function SupportClient({
     currentPage * ITEMS_PER_PAGE
   );
 
-  useEffect(() => { setCurrentPage(1); }, [statusFilter, search]);
+  useEffect(() => { setCurrentPage(1); }, [statusFilter, priorityFilter, categoryFilter, search, dateRange]);
 
   async function onCreateTicket(values: CreateTicketForm) {
     if (!user || !userRole) return;
@@ -168,12 +190,11 @@ export default function SupportClient({
     router.refresh();
   }
 
-  const filterTabs: { key: FilterStatus; label: string; count: number }[] = [
-    { key: 'all', label: t('common.all', 'All'), count: stats.total },
-    { key: 'open', label: t('support.status.open', 'Open'), count: stats.open },
-    { key: 'in_progress', label: t('support.status.inProgress', 'In Progress'), count: stats.inProgress },
-    { key: 'resolved', label: t('support.status.resolved', 'Resolved'), count: stats.resolved },
-    { key: 'closed', label: t('support.status.closed', 'Closed'), count: stats.closed },
+  const sortOptions = [
+    { value: 'date', label: t('support.sort.date', 'التاريخ') },
+    { value: 'rating', label: t('support.sort.rating', 'التقييم') },
+    { value: 'assignee', label: t('support.sort.assignee', 'الموظف') },
+    { value: 'user', label: t('support.sort.user', 'المستخدم') },
   ];
 
   const categoryOptions: { value: TicketCategory; labelAr: string; labelEn: string }[] = [
@@ -189,8 +210,42 @@ export default function SupportClient({
     { value: 'low', labelAr: 'منخفضة', labelEn: 'Low' },
   ];
 
+  // إعداد شرائح الفلاتر لشريط الأدوات الموحّد (الحالة/الأولوية/النوع).
+  const filterConfigs: FilterConfig[] = [
+    {
+      key: 'status',
+      label: lang === 'ar' ? 'كل الحالات' : 'All statuses',
+      icon: Layers,
+      value: statusFilter === 'all' ? '' : statusFilter,
+      options: (['open', 'in_progress', 'resolved', 'closed', 'cancelled'] as TicketStatus[]).map((s) => ({
+        value: s,
+        label: lang === 'ar' ? TICKET_STATUS_LABELS[s] : TICKET_STATUS_LABELS_EN[s],
+      })),
+    },
+    {
+      key: 'priority',
+      label: lang === 'ar' ? 'كل الأولويات' : 'All priorities',
+      icon: Flag,
+      value: priorityFilter,
+      options: priorityOptions.map((p) => ({ value: p.value, label: lang === 'ar' ? p.labelAr : p.labelEn })),
+    },
+    {
+      key: 'category',
+      label: lang === 'ar' ? 'كل الأنواع' : 'All types',
+      icon: Tag,
+      value: categoryFilter,
+      options: categoryOptions.map((c) => ({ value: c.value, label: lang === 'ar' ? c.labelAr : c.labelEn })),
+    },
+  ];
+
+  function onFilterChange(key: string, value: string) {
+    if (key === 'status') setStatusFilter(value === '' ? 'all' : (value as TicketStatus));
+    else if (key === 'priority') setPriorityFilter(value as '' | TicketPriority);
+    else if (key === 'category') setCategoryFilter(value as '' | TicketCategory);
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-2">
           <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
@@ -238,67 +293,29 @@ export default function SupportClient({
         />
       </div>
 
+      {/* شريط الفلاتر — بطاقة مستقلّة عن الجدول كي تطفو القوائم (التقويم/الحالة…) بلا قصّ */}
+      <div className="bg-card border border-border rounded-xl shadow-sm p-4">
+        <FilterToolbar
+          search={search}
+          onSearchChange={setSearch}
+          searchPlaceholder={t('support.search', 'بحث في التذاكر...')}
+          sortOptions={sortOptions}
+          sort={{ value: sortBy, dir: sortDir }}
+          onSortChange={(v) => setSortBy(v as typeof sortBy)}
+          onSortDirToggle={() => setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))}
+          filters={filterConfigs}
+          onFilterChange={onFilterChange}
+          filterLead={
+            <DateRangePicker value={dateRange} onChange={setDateRange} lang={lang} isRtl={isRtl} />
+          }
+          defaultOpen
+          lang={lang}
+          isRtl={isRtl}
+        />
+      </div>
+
+      {/* بطاقة الجدول */}
       <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-4 border-b border-border">
-          <div className="flex gap-1 overflow-x-auto pb-1 md:pb-0">
-            {filterTabs.map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setStatusFilter(tab.key)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
-                  statusFilter === tab.key
-                    ? 'bg-primary/10 text-primary'
-                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                }`}
-              >
-                {tab.label}
-                <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                  statusFilter === tab.key
-                    ? 'bg-primary/20 text-primary'
-                    : 'bg-muted text-muted-foreground'
-                }`}>
-                  {tab.count}
-                </span>
-              </button>
-            ))}
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-stretch gap-2">
-            {/* قسم الترتيب */}
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs text-muted-foreground whitespace-nowrap">{t('support.sortBy', 'ترتيب حسب')}</span>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-                className="py-2 px-2 bg-background border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:outline-none text-foreground cursor-pointer"
-              >
-                <option value="date">{t('support.sort.date', 'التاريخ')}</option>
-                <option value="rating">{t('support.sort.rating', 'التقييم')}</option>
-                <option value="assignee">{t('support.sort.assignee', 'الموظف')}</option>
-                <option value="user">{t('support.sort.user', 'المستخدم')}</option>
-              </select>
-              <button
-                onClick={() => setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))}
-                title={sortDir === 'asc' ? t('support.sort.asc', 'تصاعدي') : t('support.sort.desc', 'تنازلي')}
-                className="p-2 rounded-lg border border-border text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-              >
-                {sortDir === 'asc' ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />}
-              </button>
-            </div>
-
-            <div className="relative w-full md:w-64">
-              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder={t('support.search', 'بحث في التذاكر...')}
-                className="w-full pr-9 pl-3 py-2 bg-background border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:outline-none text-foreground"
-              />
-            </div>
-          </div>
-        </div>
-
         <div className="overflow-x-auto">
           <table className="w-full text-right border-collapse text-sm">
             <thead>
@@ -391,7 +408,7 @@ export default function SupportClient({
               {paginatedTickets.length === 0 && (
                 <tr>
                   <td colSpan={9} className="px-6 py-12 text-center text-muted-foreground">
-                    {search || statusFilter !== 'all'
+                    {search || statusFilter !== 'all' || priorityFilter || categoryFilter || dateRange.from
                       ? t('support.emptyFiltered', 'لا توجد تذاكر تطابق البحث.')
                       : t('support.empty', 'لا توجد تذاكر دعم فني حالياً.')}
                   </td>
@@ -554,14 +571,14 @@ function StatCard({
   color: string;
 }) {
   return (
-    <div className="bg-card border border-border rounded-xl p-4 shadow-sm">
-      <div className="flex items-center justify-between">
-        <div className={`p-2 rounded-lg bg-muted ${color}`}>
-          {icon}
-        </div>
-        <span className="text-2xl font-bold text-foreground">{value}</span>
+    <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-3 shadow-sm">
+      <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted ${color}`}>
+        {icon}
       </div>
-      <p className="text-sm text-muted-foreground mt-2">{label}</p>
+      <div className="min-w-0">
+        <span className="block text-lg font-bold leading-none text-foreground">{value}</span>
+        <p className="mt-1 truncate text-xs text-muted-foreground">{label}</p>
+      </div>
     </div>
   );
 }

@@ -2,12 +2,13 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Search, User, Ban, RotateCcw, Lock, Eye, Users, Trash2 } from 'lucide-react';
+import { User, Ban, RotateCcw, Lock, Eye, Users, Trash2, UserCheck } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { listPassengers, type ProfileRow } from '@/app/actions/admin';
 import { banUser, unbanUser, deleteUser } from '@/app/actions/moderation';
 import { ActionDialog } from '@/components/ActionDialog';
 import { UserDetailsModal } from '@/components/UserDetailsModal';
+import { FilterToolbar, type FilterConfig } from '@/components/ui/FilterToolbar';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase/client';
 import { notify } from '@/lib/toast';
@@ -21,11 +22,16 @@ import type { UserType } from '@amana/shared-types';
 type BanTarget = { row: ProfileRow; mode: 'ban' | 'unban' };
 
 export default function PassengersPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language === 'ar' ? 'ar' : 'en';
+  const isRtl = lang === 'ar';
   const { user } = useAuth();
   const [passengers, setPassengers] = useState<ProfileRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [query, setQuery] = useState('');
+  const [search, setSearch] = useState('');
+  const [sortBy, setSortBy] = useState<'name' | 'joinDate'>('joinDate');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  const [statusFilter, setStatusFilter] = useState('');
   const [canManage, setCanManage] = useState(false);
   const [busy, setBusy] = useState(false);
   const [banTarget, setBanTarget] = useState<BanTarget | null>(null);
@@ -70,13 +76,35 @@ export default function PassengersPage() {
       });
   }, [user]);
 
-  const rows = useMemo(() => {
-    const q = query.trim();
-    if (!q) return passengers;
-    return passengers.filter(
-      (p) => (p.fullName ?? '').includes(q) || (p.phone ?? '').includes(q),
-    );
-  }, [passengers, query]);
+  const filtered = useMemo(() => {
+    let result = passengers;
+
+    const q = search.trim().toLowerCase();
+    if (q) {
+      result = result.filter(
+        (p) =>
+          (p.fullName ?? '').toLowerCase().includes(q) ||
+          (p.phone ?? '').toLowerCase().includes(q),
+      );
+    }
+
+    if (statusFilter === 'active') {
+      result = result.filter((p) => p.isActive !== false);
+    } else if (statusFilter === 'banned') {
+      result = result.filter((p) => p.isActive === false);
+    }
+
+    const sorted = [...result].sort((a, b) => {
+      let cmp = 0;
+      if (sortBy === 'name') {
+        cmp = (a.fullName ?? '').localeCompare(b.fullName ?? '', 'ar');
+      } else {
+        cmp = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      }
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+    return sorted;
+  }, [passengers, search, statusFilter, sortBy, sortDir]);
 
   async function reload() {
     setPassengers(await listPassengers());
@@ -108,6 +136,26 @@ export default function PassengersPage() {
     await reload();
   }
 
+  const sortOptions = [
+    { value: 'name', label: lang === 'ar' ? 'الاسم' : 'Name' },
+    { value: 'joinDate', label: lang === 'ar' ? 'تاريخ الانضمام' : 'Join date' },
+  ];
+
+  const filterConfigs: FilterConfig[] = [
+    {
+      key: 'status',
+      label: lang === 'ar' ? 'كل الحالات' : 'All statuses',
+      icon: UserCheck,
+      value: statusFilter,
+      options: [
+        { value: 'active', label: lang === 'ar' ? 'نشطة' : 'Active' },
+        { value: 'banned', label: lang === 'ar' ? 'محظورة' : 'Banned' },
+      ],
+    },
+  ];
+
+  const hasActiveFilters = Boolean(search.trim()) || Boolean(statusFilter);
+
   return (
     <div className="space-y-6">
       <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-center">
@@ -119,25 +167,26 @@ export default function PassengersPage() {
         </h1>
       </div>
 
+      {/* شريط الفلاتر — بطاقة مستقلّة عن الجدول كي تطفو القوائم (الحالة/الترتيب) بلا قصّ */}
+      <div className="bg-card border border-border rounded-xl shadow-sm p-4">
+        <FilterToolbar
+          search={search}
+          onSearchChange={setSearch}
+          searchPlaceholder={lang === 'ar' ? 'ابحثي بالاسم أو الجوال…' : 'Search by name or phone…'}
+          sortOptions={sortOptions}
+          sort={{ value: sortBy, dir: sortDir }}
+          onSortChange={(v) => setSortBy(v as typeof sortBy)}
+          onSortDirToggle={() => setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))}
+          filters={filterConfigs}
+          onFilterChange={(_key, value) => setStatusFilter(value)}
+          defaultOpen
+          lang={lang}
+          isRtl={isRtl}
+        />
+      </div>
+
       {/* جدول الراكبات */}
       <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-        {/* شريط أدوات الجدول (Toolbar) */}
-        <div className="p-4 border-b border-border flex items-center justify-between bg-card">
-          <div className="relative w-full max-w-sm">
-            <Search
-              size={18}
-              className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-            />
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder={t('passengers.searchPlaceholder', 'ابحثي بالاسم أو رقم الجوال…')}
-              className="w-full rounded-lg border border-border bg-background py-2 pr-10 pl-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-            />
-          </div>
-        </div>
-        
         <div className="overflow-x-auto">
           <table className="w-full text-right text-sm">
             <thead className="bg-muted/50 text-muted-foreground">
@@ -156,14 +205,16 @@ export default function PassengersPage() {
                     {t('common.loading', 'جارٍ التحميل…')}
                   </td>
                 </tr>
-              ) : rows.length === 0 ? (
+              ) : filtered.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-5 py-8 text-center text-muted-foreground">
-                    {t('common.noData', 'لا توجد بيانات')}
+                    {hasActiveFilters
+                      ? t('passengers.emptyFiltered', 'لا توجد نتائج تطابق البحث.')
+                      : t('common.noData', 'لا توجد بيانات')}
                   </td>
                 </tr>
               ) : (
-                rows.map((p) => (
+                filtered.map((p) => (
                   <tr key={p.id} className="text-foreground hover:bg-muted/50 transition-colors">
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-2">

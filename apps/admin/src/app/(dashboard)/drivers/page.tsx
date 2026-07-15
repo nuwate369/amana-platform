@@ -2,12 +2,13 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Car, Ban, RotateCcw, Lock, Eye, Users, Trash2, FileSearch } from 'lucide-react';
+import { Car, Ban, RotateCcw, Lock, Eye, ShieldCheck, Trash2, FileSearch } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { listDrivers, type DriverRow } from '@/app/actions/admin';
 import { banUser, unbanUser, approveDriver, rejectDriver, deleteUser } from '@/app/actions/moderation';
 import { ActionDialog } from '@/components/ActionDialog';
 import { UserDetailsModal } from '@/components/UserDetailsModal';
+import { FilterToolbar, type FilterConfig } from '@/components/ui/FilterToolbar';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase/client';
 import { notify } from '@/lib/toast';
@@ -19,17 +20,9 @@ import type { UserType } from '@amana/shared-types';
  */
 
 export default function DriversPage() {
-  const { t } = useTranslation();
-  
-  const FILTERS = [
-    t('drivers.filters.all', 'الكل'),
-    t('drivers.filters.active', 'نشطة'),
-    t('drivers.filters.pending', 'قيد المراجعة'),
-    t('drivers.filters.draft', 'مسودّة'),
-    t('drivers.filters.rejected', 'مرفوضة'),
-    t('drivers.filters.banned', 'محظورة')
-  ] as const;
-  type Filter = (typeof FILTERS)[number];
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language === 'ar' ? 'ar' : 'en';
+  const isRtl = lang === 'ar';
 
   // خريطة الحالة المعروضة → التسمية. «مسودّة» حالة اشتقاقية (pending لم تُرسَل بعد).
   const STATUS_LABELS: Record<string, string> = {
@@ -60,7 +53,10 @@ function StatusBadge({ label }: { label: string }) {
 type BanTarget = { row: DriverRow; mode: 'ban' | 'unban' };
 type KycTarget = { row: DriverRow; mode: 'approve' | 'reject' };
   const { user } = useAuth();
-  const [active, setActive] = useState<Filter>('الكل');
+  const [search, setSearch] = useState('');
+  const [sortBy, setSortBy] = useState<'name' | 'status'>('name');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  const [statusFilter, setStatusFilter] = useState('');
   const [drivers, setDrivers] = useState<DriverRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [canManage, setCanManage] = useState(false);
@@ -115,16 +111,59 @@ type KycTarget = { row: DriverRow; mode: 'approve' | 'reject' };
       });
   }, [user]);
 
-  const rows = useMemo(() => {
-    switch (active) {
-      case 'الكل':
-        return drivers;
-      case 'محظورة':
-        return drivers.filter((d) => !d.isActive);
-      default:
-        return drivers.filter((d) => STATUS_LABELS[displayStatusOf(d)] === active);
+  // تصفية + بحث + ترتيب على جانب العميل.
+  const filtered = useMemo(() => {
+    let result = drivers;
+
+    if (statusFilter) {
+      result =
+        statusFilter === 'banned'
+          ? result.filter((d) => !d.isActive)
+          : result.filter((d) => displayStatusOf(d) === statusFilter);
     }
-  }, [drivers, active]);
+
+    const q = search.trim().toLowerCase();
+    if (q) {
+      result = result.filter(
+        (d) =>
+          (d.fullName ?? '').toLowerCase().includes(q) ||
+          (d.phone ?? '').toLowerCase().includes(q),
+      );
+    }
+
+    const sorted = [...result].sort((a, b) => {
+      let cmp = 0;
+      if (sortBy === 'name') cmp = (a.fullName ?? '').localeCompare(b.fullName ?? '', 'ar');
+      else if (sortBy === 'status') cmp = (a.status ?? '').localeCompare(b.status ?? '', 'ar');
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+    return sorted;
+  }, [drivers, statusFilter, search, sortBy, sortDir]);
+
+  // خيارات الترتيب لشريط الأدوات (لا يوجد حقل تاريخ في DriverRow).
+  const sortOptions = [
+    { value: 'name', label: lang === 'ar' ? 'الاسم' : 'Name' },
+    { value: 'status', label: lang === 'ar' ? 'الحالة' : 'Status' },
+  ];
+
+  // شريحة فلتر الحالة (نشطة/قيد المراجعة/مرفوضة/محظورة).
+  const filterConfigs: FilterConfig[] = [
+    {
+      key: 'status',
+      label: lang === 'ar' ? 'كل الحالات' : 'All statuses',
+      icon: ShieldCheck,
+      value: statusFilter,
+      options: [
+        { value: 'approved', label: lang === 'ar' ? 'نشطة' : 'Active' },
+        { value: 'pending', label: lang === 'ar' ? 'قيد المراجعة' : 'Under review' },
+        { value: 'draft', label: lang === 'ar' ? 'مسودّة' : 'Draft' },
+        { value: 'rejected', label: lang === 'ar' ? 'مرفوضة' : 'Rejected' },
+        { value: 'banned', label: lang === 'ar' ? 'محظورة' : 'Banned' },
+      ],
+    },
+  ];
+
+  const hasActiveFilters = Boolean(search.trim() || statusFilter);
 
   async function doBan(reason: string) {
     if (!banTarget) return;
@@ -186,21 +225,24 @@ type KycTarget = { row: DriverRow; mode: 'approve' | 'reject' };
         </h1>
       </div>
 
-      {/* شرائح التصفية */}
-      <div className="flex flex-wrap gap-2">
-        {FILTERS.map((f) => (
-          <button
-            key={f}
-            onClick={() => setActive(f)}
-            className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-              active === f
-                ? 'bg-primary text-primary-foreground'
-                : 'border border-border bg-card text-foreground hover:bg-muted'
-            }`}
-          >
-            {f}
-          </button>
-        ))}
+      {/* شريط الفلاتر — بطاقة مستقلّة عن الجدول كي تطفو القوائم بلا قصّ */}
+      <div className="bg-card border border-border rounded-xl shadow-sm p-4">
+        <FilterToolbar
+          search={search}
+          onSearchChange={setSearch}
+          searchPlaceholder={lang === 'ar' ? 'ابحثي بالاسم أو الجوال…' : 'Search by name or phone…'}
+          sortOptions={sortOptions}
+          sort={{ value: sortBy, dir: sortDir }}
+          onSortChange={(v) => setSortBy(v as typeof sortBy)}
+          onSortDirToggle={() => setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))}
+          filters={filterConfigs}
+          onFilterChange={(key, value) => {
+            if (key === 'status') setStatusFilter(value);
+          }}
+          defaultOpen
+          lang={lang}
+          isRtl={isRtl}
+        />
       </div>
 
       {/* جدول السائقات */}
@@ -223,14 +265,16 @@ type KycTarget = { row: DriverRow; mode: 'approve' | 'reject' };
                     {t('common.loading', 'جارٍ التحميل…')}
                   </td>
                 </tr>
-              ) : rows.length === 0 ? (
+              ) : filtered.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-5 py-8 text-center text-muted-foreground">
-                    {t('common.noData', 'لا توجد بيانات')}
+                    {hasActiveFilters
+                      ? (lang === 'ar' ? 'لا توجد نتائج تطابق البحث.' : 'No results match your filters.')
+                      : t('common.noData', 'لا توجد بيانات')}
                   </td>
                 </tr>
               ) : (
-                rows.map((d) => (
+                filtered.map((d) => (
                   <tr key={d.id} className="text-foreground hover:bg-muted/50 transition-colors">
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-2">

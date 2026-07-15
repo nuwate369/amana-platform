@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Star, Plus, X, Pencil, Trash2, ShieldAlert, Car, User, Eye, Lock,
   ToggleLeft, ToggleRight, MessageSquareQuote, Smartphone, Check,
-  BarChart3, AlertTriangle, CalendarClock,
+  BarChart3, AlertTriangle, CalendarClock, Users,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { can, type UserType } from '@amana/shared-types';
@@ -23,6 +23,7 @@ import {
 } from '@/app/actions/ratings';
 import { ActionDialog } from '@/components/ActionDialog';
 import { PrimaryButton, CancelButton } from '@/components/ui/ActionButtons';
+import { FilterToolbar, type FilterConfig } from '@/components/ui/FilterToolbar';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase/client';
 import { notify } from '@/lib/toast';
@@ -129,10 +130,19 @@ export default function RatingsClient({
   overview: RatingsOverview;
   migrationNeeded: boolean;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language === 'ar' ? 'ar' : 'en';
+  const isRtl = lang === 'ar';
   const { user } = useAuth();
   const router = useRouter();
   const [questions, setQuestions] = useState(initialQuestions);
+
+  // فلترة «آخر التقييمات الواردة» فقط — بحث/ترتيب/شرائح
+  const [search, setSearch] = useState('');
+  const [sortBy, setSortBy] = useState<'date' | 'stars'>('date');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  const [raterFilter, setRaterFilter] = useState('');
+  const [starsFilter, setStarsFilter] = useState('');
   const [allowed, setAllowed] = useState<boolean | null>(null);
   const [canManage, setCanManage] = useState(false);
   const [form, setForm] = useState<QuestionForm | null>(null);
@@ -227,6 +237,68 @@ export default function RatingsClient({
     notify.success('تم حذف السؤال');
     setDeleteTarget(null);
     await reloadQuestions();
+  }
+
+  // تصفية وترتيب «آخر التقييمات الواردة» (لا يمسّ الأسئلة ولا المؤشرات)
+  const filteredRatings = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    let result = initialRatings.filter((r) => {
+      if (q) {
+        const hit =
+          (r.raterName ?? '').toLowerCase().includes(q) ||
+          (r.rateeName ?? '').toLowerCase().includes(q) ||
+          (r.comment ?? '').toLowerCase().includes(q);
+        if (!hit) return false;
+      }
+      if (raterFilter && r.raterType !== raterFilter) return false;
+      if (starsFilter && r.stars !== Number(starsFilter)) return false;
+      return true;
+    });
+    result = [...result].sort((a, b) => {
+      let cmp = 0;
+      if (sortBy === 'date') cmp = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      else if (sortBy === 'stars') cmp = a.stars - b.stars;
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+    return result;
+  }, [initialRatings, search, raterFilter, starsFilter, sortBy, sortDir]);
+
+  const ratingsFiltersActive = Boolean(search.trim() || raterFilter || starsFilter);
+
+  const ratingSortOptions = [
+    { value: 'date', label: lang === 'ar' ? 'التاريخ' : 'Date' },
+    { value: 'stars', label: lang === 'ar' ? 'التقييم' : 'Rating' },
+  ];
+
+  const ratingFilterConfigs: FilterConfig[] = [
+    {
+      key: 'rater',
+      label: lang === 'ar' ? 'كل المُقيِّمين' : 'All raters',
+      icon: Users,
+      value: raterFilter,
+      options: [
+        { value: 'passenger', label: lang === 'ar' ? 'من راكبة' : 'From passenger' },
+        { value: 'driver', label: lang === 'ar' ? 'من سائقة' : 'From driver' },
+      ],
+    },
+    {
+      key: 'stars',
+      label: lang === 'ar' ? 'كل النجوم' : 'All ratings',
+      icon: Star,
+      value: starsFilter,
+      options: [
+        { value: '5', label: lang === 'ar' ? '5 نجوم' : '5 stars' },
+        { value: '4', label: lang === 'ar' ? '4 نجوم' : '4 stars' },
+        { value: '3', label: lang === 'ar' ? '3 نجوم' : '3 stars' },
+        { value: '2', label: lang === 'ar' ? 'نجمتان' : '2 stars' },
+        { value: '1', label: lang === 'ar' ? 'نجمة واحدة' : '1 star' },
+      ],
+    },
+  ];
+
+  function onRatingFilterChange(key: string, value: string) {
+    if (key === 'rater') setRaterFilter(value);
+    else if (key === 'stars') setStarsFilter(value);
   }
 
   if (allowed === false) {
@@ -444,13 +516,31 @@ export default function RatingsClient({
         </div>
       </div>
 
+      {/* شريط فلاتر «آخر التقييمات» — بطاقة مستقلّة كي تطفو القوائم بلا قصّ (الجدول overflow-hidden) */}
+      <div className="bg-card border border-border rounded-xl shadow-sm p-4">
+        <FilterToolbar
+          search={search}
+          onSearchChange={setSearch}
+          searchPlaceholder={lang === 'ar' ? 'ابحثي في التقييمات…' : 'Search ratings…'}
+          sortOptions={ratingSortOptions}
+          sort={{ value: sortBy, dir: sortDir }}
+          onSortChange={(v) => setSortBy(v as typeof sortBy)}
+          onSortDirToggle={() => setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))}
+          filters={ratingFilterConfigs}
+          onFilterChange={onRatingFilterChange}
+          defaultOpen
+          lang={lang}
+          isRtl={isRtl}
+        />
+      </div>
+
       {/* آخر التقييمات */}
       <div className="overflow-hidden rounded-xl border border-border bg-card">
         <div className="flex items-center gap-2 border-b border-border px-5 py-3">
           <Star size={15} className="text-primary" />
           <h2 className="text-sm font-semibold text-foreground">آخر التقييمات الواردة</h2>
           <span className="rounded-full bg-primary/15 px-2 py-0.5 text-xs font-medium text-primary">
-            {initialRatings.length}
+            {filteredRatings.length}
           </span>
         </div>
         <div className="overflow-x-auto">
@@ -466,14 +556,14 @@ export default function RatingsClient({
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {initialRatings.length === 0 ? (
+              {filteredRatings.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-5 py-8 text-center text-muted-foreground">
-                    لا توجد تقييمات بعد
+                    {ratingsFiltersActive ? 'لا توجد تقييمات تطابق البحث' : 'لا توجد تقييمات بعد'}
                   </td>
                 </tr>
               ) : (
-                initialRatings.map((r) => {
+                filteredRatings.map((r) => {
                   const raterIsPassenger = r.raterType === 'passenger';
                   return (
                     <tr key={r.id} className="text-foreground hover:bg-muted/50 transition-colors">
