@@ -22,11 +22,6 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/logo.png",
         "backgroundColor": "#0f1e3d"
-      },
-      "config": {
-        "googleMaps": {
-          "apiKey": "REPLACE_WITH_GOOGLE_MAPS_API_KEY"
-        }
       }
     },
     "plugins": [
@@ -50,7 +45,12 @@
       "typedRoutes": true
     },
     "extra": {
-      "appName": "driver"
-    }
+      "appName": "driver",
+      "router": {},
+      "eas": {
+        "projectId": "bbabc138-b3cb-4f13-b7c5-93d6b0f9666a"
+      }
+    },
+    "owner": "amana-platform"
   }
 }

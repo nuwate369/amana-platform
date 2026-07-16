@@ -8,7 +8,8 @@
     ".": "./src/index.ts",
     "./tailwind-preset": "./tailwind-preset.js",
     "./tokens": "./src/tokens.ts",
-    "./validation": "./src/validation.ts"
+    "./validation": "./src/validation.ts",
+    "./MapView": "./src/MapView.tsx"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
@@ -18,10 +19,18 @@
   },
   "peerDependencies": {
     "react": "*",
-    "react-native": "*"
+    "react-native": "*",
+    "@rnmapbox/maps": "*",
+    "expo-location": "*"
   },
   "peerDependenciesMeta": {
     "react-native": {
+      "optional": true
+    },
+    "@rnmapbox/maps": {
+      "optional": true
+    },
+    "expo-location": {
       "optional": true
     }
   }
