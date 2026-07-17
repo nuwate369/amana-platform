@@ -24,12 +24,25 @@
         "backgroundColor": "#ffffff"
       }
     },
-    "plugins": ["expo-router"],
+    "plugins": [
+      "expo-router",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "يستخدم تطبيق أمانة موقعك لتحديد نقطة انطلاقك وعرض الرحلة على الخريطة وتتبّع سائقتك."
+        }
+      ]
+    ],
     "experiments": {
       "typedRoutes": true
     },
     "extra": {
-      "appName": "passenger"
-    }
+      "appName": "passenger",
+      "router": {},
+      "eas": {
+        "projectId": "7a1783e9-7335-4e19-ac70-d7bee695799d"
+      }
+    },
+    "owner": "amana-platform"
   }
 }

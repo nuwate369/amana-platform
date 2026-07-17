@@ -1,8 +1,9 @@
 import { MaterialIcons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { passengerPurple } from '@amana/shared-ui/tokens';
+import { driverNavy } from '@amana/shared-ui/tokens';
 import {
   listNotifications,
   markAllRead,
@@ -11,7 +12,7 @@ import {
   type AppNotification,
 } from '@/lib/notifications';
 
-/** شاشة التنبيهات — تنبيهات الراكبة الحقيقية (تحديثات الرحلة، ردود الدعم مستقبلًا). */
+/** شاشة التنبيهات — تعرض تنبيهات السائقة الحقيقية (ردود الدعم، تحديثات النظام). */
 
 function timeAgo(iso: string): string {
   const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
@@ -27,14 +28,13 @@ function timeAgo(iso: string): string {
 function iconFor(type: string): keyof typeof MaterialIcons.glyphMap {
   if (type === 'ticket_reply') return 'support-agent';
   if (type.startsWith('ticket')) return 'confirmation-number';
-  if (type.includes('ride')) return 'local-taxi';
   return 'notifications';
 }
 
 export default function NotificationsScreen() {
   const [items, setItems] = useState<AppNotification[]>([]);
   const [loading, setLoading] = useState(true);
-  const { refresh, unread } = useNotifications();
+  const { refresh } = useNotifications();
 
   const load = useCallback(async () => {
     setItems(await listNotifications());
@@ -43,7 +43,7 @@ export default function NotificationsScreen() {
 
   useEffect(() => {
     load();
-  }, [load, unread]);
+  }, [load]);
 
   async function onTap(n: AppNotification) {
     if (!n.isRead) {
@@ -51,6 +51,7 @@ export default function NotificationsScreen() {
       setItems((prev) => prev.map((x) => (x.id === n.id ? { ...x, isRead: true } : x)));
       refresh();
     }
+    if (n.entityType === 'ticket' && n.entityId) router.push(`/support/${n.entityId}`);
   }
 
   async function onMarkAll() {
@@ -63,25 +64,30 @@ export default function NotificationsScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-900" edges={['top']}>
-      <View className="h-14 flex-row items-center justify-between px-5">
-        <View className="w-10" />
-        <Text className="font-plex-bold text-xl text-brand-700 dark:text-brand-200">التنبيهات</Text>
+      <View className="h-16 flex-row items-center justify-between border-b border-neutral-200 px-4 dark:border-neutral-800">
+        <Pressable
+          onPress={() => router.back()}
+          className="h-10 w-10 items-center justify-center rounded-full active:bg-neutral-200 dark:active:bg-neutral-800"
+        >
+          <MaterialIcons name="arrow-forward" size={24} color={driverNavy[600]} />
+        </Pressable>
+        <Text className="font-plex-bold text-lg text-neutral-900 dark:text-neutral-50">التنبيهات</Text>
         {hasUnread ? (
-          <Pressable onPress={onMarkAll} className="h-10 w-10 items-center justify-center rounded-full active:bg-neutral-200 dark:active:bg-neutral-800">
-            <MaterialIcons name="done-all" size={22} color={passengerPurple[700]} />
+          <Pressable onPress={onMarkAll} className="h-10 items-center justify-center rounded-full px-2 active:bg-neutral-200 dark:active:bg-neutral-800">
+            <MaterialIcons name="done-all" size={22} color={driverNavy[600]} />
           </Pressable>
         ) : (
-          <View className="w-10" />
+          <View className="h-10 w-10" />
         )}
       </View>
 
       {loading ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator color={passengerPurple[600]} />
+          <ActivityIndicator color={driverNavy[500]} />
         </View>
       ) : items.length === 0 ? (
         <View className="flex-1 items-center justify-center gap-3 px-8">
-          <MaterialIcons name="notifications-none" size={56} color={passengerPurple[300]} />
+          <MaterialIcons name="notifications-none" size={56} color={driverNavy[300]} />
           <Text className="text-center font-plex-medium text-base text-neutral-500 dark:text-neutral-400">
             لا توجد تنبيهات بعد
           </Text>
@@ -99,7 +105,7 @@ export default function NotificationsScreen() {
               }`}
             >
               <View className="h-10 w-10 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-900/50">
-                <MaterialIcons name={iconFor(n.type)} size={20} color={passengerPurple[600]} />
+                <MaterialIcons name={iconFor(n.type)} size={20} color={driverNavy[600]} />
               </View>
               <View className="flex-1">
                 <View className="flex-row items-start justify-between gap-2">

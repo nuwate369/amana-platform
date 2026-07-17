@@ -60,6 +60,8 @@ export interface AmanaMapProps {
   zoom?: number;
   /** يُستدعى عند تحديد موقع المستخدم. */
   onUserLocation?: (coord: { latitude: number; longitude: number }) => void;
+  /** يُستدعى عند الضغط على الخريطة (لتحديد الوجهة مثلًا). */
+  onMapPress?: (coord: { latitude: number; longitude: number }) => void;
 }
 
 /** مقبض تحكّم أمريّ (إعادة التمركز على موقع المستخدم). */
@@ -72,7 +74,7 @@ const DEFAULT_CENTER = { latitude: 24.7136, longitude: 46.6753 };
 const BRAND_NAVY = '#254594';
 
 export const AmanaMap = forwardRef<AmanaMapHandle, AmanaMapProps>(function AmanaMap(
-  { style, markers = [], showUserLocation = true, followUser = false, initialCenter, zoom = 13, onUserLocation },
+  { style, markers = [], showUserLocation = true, followUser = false, initialCenter, zoom = 13, onUserLocation, onMapPress },
   ref,
 ) {
   const [perm, setPerm] = useState<'unknown' | 'granted' | 'denied'>('unknown');
@@ -159,6 +161,17 @@ export const AmanaMap = forwardRef<AmanaMapHandle, AmanaMapProps>(function Amana
         logoEnabled
         compassEnabled
         scaleBarEnabled={false}
+        onPress={
+          onMapPress
+            ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              (feature: any) => {
+                const c = feature?.geometry?.coordinates;
+                if (Array.isArray(c) && c.length >= 2) {
+                  onMapPress({ longitude: c[0], latitude: c[1] });
+                }
+              }
+            : undefined
+        }
       >
         <Mapbox.Camera
           ref={cameraRef}

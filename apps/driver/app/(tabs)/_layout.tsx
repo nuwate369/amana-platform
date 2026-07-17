@@ -3,6 +3,7 @@ import { Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { driverNavy } from '@amana/shared-ui/tokens';
 import { PresenceProvider } from '@/lib/presence';
+import { DriverRidesProvider } from '@/lib/driver-rides';
 
 /**
  * تبويبات السائقة السفلية — «الرئيسية» (خريطة القيادة) و«حسابي».
@@ -13,6 +14,7 @@ export default function TabsLayout() {
   const { t } = useTranslation();
   return (
     <PresenceProvider>
+      <DriverRidesProvider>
       <Tabs
         screenOptions={{
           headerShown: false,
@@ -38,6 +40,7 @@ export default function TabsLayout() {
           }}
         />
       </Tabs>
+      </DriverRidesProvider>
     </PresenceProvider>
   );
 }

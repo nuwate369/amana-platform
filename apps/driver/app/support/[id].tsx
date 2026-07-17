@@ -18,6 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { driverNavy } from '@amana/shared-ui/tokens';
 import { useAuth } from '@/lib/auth';
 import { notify } from '@/lib/toast';
+import { supabase } from '@/lib/supabase';
 import {
   cancelTicket,
   getTicket,
@@ -91,6 +92,23 @@ export default function TicketDetailScreen() {
     refresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, user?.id]);
+
+  // بثّ لحظي: أي رسالة جديدة على هذه التذكرة (ردّ الموظف) تُحدّث المحادثة فورًا.
+  useEffect(() => {
+    if (!id) return;
+    const ch = supabase
+      .channel(`ticket-thread-${id}-${Math.random().toString(36).slice(2)}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'ticket_messages', filter: `ticket_id=eq.${id}` },
+        () => refresh(),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(ch);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   async function onSend() {
     if (!id || !user || !reply.trim() || sending) return;

@@ -1,9 +1,10 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { passengerPurple } from '@amana/shared-ui/tokens';
+import { submitRating } from '@/lib/rides';
 
 /**
  * شاشة «تقييم الرحلة» — تحويل مطابق لتصميم Stitch
@@ -15,14 +16,31 @@ import { passengerPurple } from '@amana/shared-ui/tokens';
 const FEEDBACK_CHIPS = ['احترافية', 'قيادة آمنة', 'سيارة نظيفة', 'التزام بالموعد', 'خلوقة'];
 
 export default function RatingScreen() {
+  const { rideId, driverId } = useLocalSearchParams<{ rideId?: string; driverId?: string }>();
   const [rating, setRating] = useState(0);
   const [selectedChips, setSelectedChips] = useState<string[]>([]);
   const [comment, setComment] = useState('');
+  const [busy, setBusy] = useState(false);
 
   const toggleChip = (chip: string) =>
     setSelectedChips((prev) =>
       prev.includes(chip) ? prev.filter((c) => c !== chip) : [...prev, chip]
     );
+
+  async function onSubmit() {
+    if (busy) return;
+    setBusy(true);
+    if (rideId && driverId && rating > 0) {
+      const note = [selectedChips.join('، '), comment.trim()].filter(Boolean).join(' — ');
+      const res = await submitRating(rideId, driverId, rating, note);
+      if (res.error) {
+        Alert.alert('تعذّر إرسال التقييم', res.error);
+        setBusy(false);
+        return;
+      }
+    }
+    router.replace(rideId ? `/payment?rideId=${rideId}` : '/payment');
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-900" edges={['top']}>
@@ -56,17 +74,17 @@ export default function RatingScreen() {
             </View>
           </View>
           <Text className="mt-4 font-plex-semibold text-xl text-neutral-900 dark:text-neutral-50">
-            سارة الكاظم
+            سائقتك
           </Text>
           <Text className="mt-1 font-plex text-sm text-neutral-500 dark:text-neutral-400">
-            تويوتا كامري • ٤٨٢٩ ر س أ
+            شكرًا لرحلتك مع أمانة
           </Text>
         </View>
 
         {/* نظام النجوم */}
         <View className="items-center py-6">
           <Text className="mb-3 font-plex-medium text-xs tracking-wider text-neutral-500 dark:text-neutral-400">
-            كيف كانت تجربتك مع سارة؟
+            كيف كانت تجربتك؟
           </Text>
           <View className="flex-row-reverse gap-2">
             {[1, 2, 3, 4, 5].map((value) => (
@@ -140,11 +158,18 @@ export default function RatingScreen() {
       {/* شريط الإجراء الثابت أسفل الشاشة */}
       <View className="absolute bottom-0 left-0 right-0 rounded-t-xl bg-white px-5 pb-8 pt-4 dark:bg-neutral-800">
         <Pressable
-          onPress={() => router.push('/payment')}
+          onPress={onSubmit}
+          disabled={busy}
           className="h-14 flex-row items-center justify-center gap-2 rounded-xl bg-brand-600 active:scale-[0.98]"
         >
-          <Text className="font-plex-semibold text-xl text-white">إرسال التقييم</Text>
-          <MaterialIcons name="send" size={22} color="#ffffff" />
+          {busy ? (
+            <ActivityIndicator color="#ffffff" />
+          ) : (
+            <>
+              <Text className="font-plex-semibold text-xl text-white">إرسال التقييم</Text>
+              <MaterialIcons name="send" size={22} color="#ffffff" />
+            </>
+          )}
         </Pressable>
       </View>
     </SafeAreaView>

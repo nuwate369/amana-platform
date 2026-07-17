@@ -14,6 +14,7 @@ import {
 import Toast from 'react-native-toast-message';
 import { i18n } from '@/lib/i18n';
 import { AuthProvider } from '@/lib/auth';
+import { NotificationsProvider } from '@/lib/notifications';
 import { useProtectedRoute } from '@/lib/useProtectedRoute';
 
 /** مكوّن داخلي يشغّل حارس المسارات ثم يعرض شجرة التنقّل. */
@@ -59,11 +60,13 @@ export default function RootLayout() {
   return (
     <I18nextProvider i18n={i18n}>
       <AuthProvider>
-        <SafeAreaProvider>
-          <StatusBar style="auto" />
-          <RootNavigator />
-          <Toast />
-        </SafeAreaProvider>
+        <NotificationsProvider>
+          <SafeAreaProvider>
+            <StatusBar style="auto" />
+            <RootNavigator />
+            <Toast />
+          </SafeAreaProvider>
+        </NotificationsProvider>
       </AuthProvider>
     </I18nextProvider>
   );

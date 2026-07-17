@@ -1,9 +1,9 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { passengerPurple } from '@amana/shared-ui/tokens';
+import { useNotifications } from '@/lib/notifications';
 
 /**
  * شاشة «الرئيسية (الخريطة)» — تحويل مطابق لتصميم Stitch
@@ -40,6 +40,7 @@ function QuickDestination({
 }
 
 export default function HomeScreen() {
+  const { unread } = useNotifications();
   return (
     <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-900" edges={['top']}>
       {/* الشريط العلوي */}
@@ -49,9 +50,16 @@ export default function HomeScreen() {
         </Pressable>
         <Text className="font-plex-bold text-2xl text-brand-700 dark:text-brand-200">Amana</Text>
         <View className="flex-row items-center gap-2">
-          <Pressable className="h-10 w-10 items-center justify-center rounded-full active:bg-neutral-200 dark:active:bg-neutral-800">
+          <Pressable
+            onPress={() => router.push('/notifications')}
+            className="relative h-10 w-10 items-center justify-center rounded-full active:bg-neutral-200 dark:active:bg-neutral-800"
+          >
             <MaterialIcons name="notifications" size={24} color={passengerPurple[700]} />
-            <View className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500" />
+            {unread > 0 ? (
+              <View className="absolute right-1.5 top-1.5 h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1">
+                <Text className="font-plex-bold text-[9px] text-white">{unread > 9 ? '9+' : unread}</Text>
+              </View>
+            ) : null}
           </Pressable>
           <View className="h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-neutral-300 bg-neutral-200 dark:border-neutral-600 dark:bg-neutral-700">
             <MaterialIcons name="person" size={20} color="#9ca3af" />

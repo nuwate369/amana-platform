@@ -15,6 +15,7 @@ import Toast from 'react-native-toast-message';
 import { i18n } from '@/lib/i18n';
 import { AuthProvider } from '@/lib/auth';
 import { PreferencesProvider, usePreferences } from '@/lib/preferences';
+import { NotificationsProvider } from '@/lib/notifications';
 import { useProtectedRoute } from '@/lib/useProtectedRoute';
 
 /** شاشة انتظار بسيطة أثناء تحميل الخطوط أو قراءة التفضيلات. */
@@ -39,6 +40,7 @@ function RootNavigator() {
       <Stack.Screen name="pending" />
       <Stack.Screen name="about" />
       <Stack.Screen name="terms" />
+      <Stack.Screen name="notifications" />
     </Stack>
   );
 }
@@ -66,11 +68,13 @@ export default function RootLayout() {
     <I18nextProvider i18n={i18n}>
       <PreferencesProvider>
         <AuthProvider>
-          <SafeAreaProvider>
-            <StatusBar style="auto" />
-            <Gate />
-            <Toast />
-          </SafeAreaProvider>
+          <NotificationsProvider>
+            <SafeAreaProvider>
+              <StatusBar style="auto" />
+              <Gate />
+              <Toast />
+            </SafeAreaProvider>
+          </NotificationsProvider>
         </AuthProvider>
       </PreferencesProvider>
     </I18nextProvider>
