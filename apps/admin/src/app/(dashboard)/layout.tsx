@@ -35,7 +35,7 @@ const NAV_I18N: Record<string, { ar: string; en: string; descAr?: string; descEn
   '/system-notifications':{ ar: 'الإشعارات',                   en: 'Notifications' },
 };
 
-function Sidebar({ isOpen, onClose, isCollapsed }: { isOpen: boolean, onClose: () => void, isCollapsed: boolean }) {
+function Sidebar({ isOpen, onClose, isCollapsed, onNavigate }: { isOpen: boolean, onClose: () => void, isCollapsed: boolean, onNavigate: () => void }) {
   const pathname = usePathname();
   const { i18n, t } = useTranslation();
   const { role } = useAuth();
@@ -45,9 +45,16 @@ function Sidebar({ isOpen, onClose, isCollapsed }: { isOpen: boolean, onClose: (
   // إظهار العناصر التي يملك المستخدم صلاحيتها فقط (بلا صلاحية = متاح للجميع).
   const items = NAV_ITEMS.filter((item) => !item.permission || (role != null && can(role, item.permission)));
   
-  // Close sidebar when route changes on mobile
+  // عند اكتمال الانتقال (تغيّر المسار): أغلِق على الجوال واطوِ إلى شريط الأيقونات
+  // على سطح المكتب. نفعلها كردّ فعل على الانتقال — لا على النقرة — كي لا يُبتلع
+  // تنقّل Next. ونتجاوز أوّل تشغيل لتبدأ القائمة موسّعة عند أوّل تحميل.
+  const firstRun = useRef(true);
   useEffect(() => {
-    onClose();
+    if (firstRun.current) {
+      firstRun.current = false;
+      return;
+    }
+    onNavigate();
   }, [pathname]);
 
   return (
@@ -70,14 +77,14 @@ function Sidebar({ isOpen, onClose, isCollapsed }: { isOpen: boolean, onClose: (
         <div className={`flex h-16 shrink-0 items-center border-b border-border px-4 ${isCollapsed && !isOpen ? 'justify-center' : 'justify-between'}`}>
           {!(isCollapsed && !isOpen) ? (
             <div className="flex items-center gap-2">
-              <div className="relative w-8 h-8">
+              <div className="relative w-8 h-8 overflow-hidden rounded-md bg-white">
                 <Image src="/logo.png" alt="Amana Logo" fill className="object-contain" />
               </div>
               <span className="text-xl font-bold text-primary">{t('app.passenger', 'أمانة')}</span>
             </div>
           ) : (
             <div className="flex items-center justify-center">
-              <div className="relative w-8 h-8">
+              <div className="relative w-8 h-8 overflow-hidden rounded-md bg-white">
                 <Image src="/logo.png" alt="Amana Logo" fill className="object-contain" />
               </div>
             </div>
@@ -369,7 +376,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <RequireAuth>
       <div className="flex h-screen w-full overflow-hidden bg-background relative">
-        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} isCollapsed={isCollapsed} />
+        <Sidebar
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+          isCollapsed={isCollapsed}
+          onNavigate={() => {
+            // طيّ القائمة عند التنقّل: إغلاق على الجوال + طيّ لشريط الأيقونات على سطح المكتب.
+            setSidebarOpen(false);
+            setIsCollapsed(true);
+          }}
+        />
         <div className="flex flex-1 flex-col w-full h-full overflow-hidden min-w-0">
           <Topbar 
             onMenuToggle={() => setSidebarOpen(true)} 

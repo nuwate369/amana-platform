@@ -488,11 +488,12 @@
       "name": "Name",
       "phone": "Mobile",
       "vehicle": "Vehicle",
-      "status": "Status",
+      "status": "Account status",
       "actions": "Actions",
       "rides": "Rides",
       "rating": "Rating",
-      "kyc": "KYC Status"
+      "kyc": "KYC Status",
+      "presence": "Connection"
     },
     "filters": {
       "all": "All",
@@ -538,6 +539,11 @@
       "thisAccount": "this account",
       "confirmDescSuffix": " and reactivate it?",
       "confirmBtn": "Unban"
+    },
+    "presence": {
+      "online": "Online",
+      "idle": "App open",
+      "offline": "Offline"
     }
   },
   "notificationSettings": {
@@ -565,14 +571,22 @@
     "stats": {
       "ongoing": "Ongoing Rides",
       "onlineDrivers": "Online Drivers",
-      "pendingRequests": "Pending Requests"
+      "pendingRequests": "Pending Requests",
+      "activeDrivers": "Drivers on a Ride"
     },
     "map": {
       "title": "Live Map",
       "placeholder": {
         "title": "Live Rides Map",
         "subtitle": "Real-time location of drivers and passengers appears here"
-      }
+      },
+      "pickup": "Pickup",
+      "dropoff": "Dropoff",
+      "noToken": "Add your public Mapbox token to show the live map",
+      "expand": "Expand map",
+      "collapse": "Exit fullscreen",
+      "driverOnline": "Driver online",
+      "viewDetails": "View details"
     },
     "list": {
       "title": "Currently Ongoing Rides",
@@ -581,8 +595,18 @@
     },
     "status": {
       "ongoing": "Ongoing",
-      "onTheWay": "On the way"
-    }
+      "onTheWay": "On the way",
+      "inProgress": "In progress",
+      "matched": "En route to rider",
+      "requested": "New request"
+    },
+    "empty": {
+      "title": "No active rides right now",
+      "subtitle": "Rides will appear here as soon as they start"
+    },
+    "liveBadge": "Live",
+    "unknown": "Unknown",
+    "waitingDriver": "Awaiting a driver"
   },
   "profile": {
     "title": "Profile",
@@ -644,10 +668,22 @@
     "agreePrefix": "I agree to the",
     "agreeLink": "Terms & Conditions",
     "sections": [
-      { "h": "Acceptance & Eligibility", "b": "You must be legally eligible to provide transportation services, and all your information and documents must be accurate and valid. Amana reserves the right to accept or reject any application." },
-      { "h": "Verification & Documents", "b": "You agree to provide accurate documents (ID/Iqama, driving license, vehicle registration) and to have them processed for verification. Misleading information may lead to rejection or account suspension." },
-      { "h": "Obligations & Conduct", "b": "You agree to comply with traffic laws, safety and professional conduct standards, and to protect the privacy and safety of riders throughout each trip." },
-      { "h": "Privacy & Data", "b": "Your data is processed per the Privacy Policy for verification and service operation. Your data will not be shared with external parties except as required to operate the platform or by law." }
+      {
+        "h": "Acceptance & Eligibility",
+        "b": "You must be legally eligible to provide transportation services, and all your information and documents must be accurate and valid. Amana reserves the right to accept or reject any application."
+      },
+      {
+        "h": "Verification & Documents",
+        "b": "You agree to provide accurate documents (ID/Iqama, driving license, vehicle registration) and to have them processed for verification. Misleading information may lead to rejection or account suspension."
+      },
+      {
+        "h": "Obligations & Conduct",
+        "b": "You agree to comply with traffic laws, safety and professional conduct standards, and to protect the privacy and safety of riders throughout each trip."
+      },
+      {
+        "h": "Privacy & Data",
+        "b": "Your data is processed per the Privacy Policy for verification and service operation. Your data will not be shared with external parties except as required to operate the platform or by law."
+      }
     ]
   },
   "support": {

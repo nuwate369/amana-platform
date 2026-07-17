@@ -33,7 +33,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       <div className="relative z-10 w-full max-w-md flex flex-col items-center">
         {/* Shared Logo & Header */}
         <div className="flex flex-col items-center mb-8">
-          <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/5 border border-primary/10 shadow-sm mb-4 overflow-hidden relative">
+          <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-white border border-primary/10 shadow-sm mb-4 overflow-hidden relative">
             <Image src="/logo.png" alt="Amana Logo" fill className="object-contain p-2" />
           </div>
           <h1 className="text-xl font-bold text-foreground tracking-tight">

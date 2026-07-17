@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Car, Ban, RotateCcw, Lock, Eye, ShieldCheck, Trash2, FileSearch } from 'lucide-react';
+import { Car, Ban, RotateCcw, Lock, Eye, ShieldCheck, Trash2, FileSearch, Wifi } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { listDrivers, type DriverRow } from '@/app/actions/admin';
+import { listDriverPresence, type DriverLiveStatus } from '@/app/actions/presence';
 import { banUser, unbanUser, approveDriver, rejectDriver, deleteUser } from '@/app/actions/moderation';
 import { ActionDialog } from '@/components/ActionDialog';
 import { UserDetailsModal } from '@/components/UserDetailsModal';
@@ -32,6 +33,13 @@ export default function DriversPage() {
     rejected: t('drivers.filters.rejected', 'مرفوضة'),
   };
 
+  // عرض حالة الحضور (اتصال التطبيق) — لون + تسمية.
+  const PRESENCE_UI: Record<DriverLiveStatus, { color: string; label: string }> = {
+    online: { color: 'bg-green-500', label: t('drivers.presence.online', 'متصلة') },
+    idle: { color: 'bg-amber-500', label: t('drivers.presence.idle', 'التطبيق مفتوح') },
+    offline: { color: 'bg-neutral-400', label: t('drivers.presence.offline', 'غير متصلة') },
+  };
+
   // الحالة المعروضة: سائقة pending لم تضغط «إرسال» بعد ⇒ «مسودّة» لا «قيد المراجعة».
   const displayStatusOf = (d: DriverRow): string =>
     d.status === 'pending' && !d.submitted ? 'draft' : d.status;
@@ -57,7 +65,9 @@ type KycTarget = { row: DriverRow; mode: 'approve' | 'reject' };
   const [sortBy, setSortBy] = useState<'name' | 'status'>('name');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const [statusFilter, setStatusFilter] = useState('');
+  const [presenceFilter, setPresenceFilter] = useState('');
   const [drivers, setDrivers] = useState<DriverRow[]>([]);
+  const [presence, setPresence] = useState<Record<string, DriverLiveStatus>>({});
   const [loading, setLoading] = useState(true);
   const [canManage, setCanManage] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -97,6 +107,26 @@ type KycTarget = { row: DriverRow; mode: 'approve' | 'reject' };
     };
   }, []);
 
+  // حضور السائقات (متصلة/مفتوح/غير متصلة) — لحظيًّا + تحديث دوريّ لإسقاط المنقطعات بصمت.
+  const loadPresence = useCallback(async () => {
+    const list = await listDriverPresence();
+    const map: Record<string, DriverLiveStatus> = {};
+    for (const p of list) map[p.userId] = p.status;
+    setPresence(map);
+  }, []);
+  useEffect(() => {
+    loadPresence();
+    const ch = supabase
+      .channel('admin-drivers-presence')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'presence' }, () => loadPresence())
+      .subscribe();
+    const timer = setInterval(loadPresence, 20_000);
+    return () => {
+      clearInterval(timer);
+      supabase.removeChannel(ch);
+    };
+  }, [loadPresence]);
+
   // صلاحية الإدارة: super_admin فقط (متسامح قبل تطبيق الهجرة)
   useEffect(() => {
     if (!user) return;
@@ -122,6 +152,11 @@ type KycTarget = { row: DriverRow; mode: 'approve' | 'reject' };
           : result.filter((d) => displayStatusOf(d) === statusFilter);
     }
 
+    // فلتر حالة الاتصال (منفصل تمامًا عن حالة الحساب).
+    if (presenceFilter) {
+      result = result.filter((d) => (presence[d.id] ?? 'offline') === presenceFilter);
+    }
+
     const q = search.trim().toLowerCase();
     if (q) {
       result = result.filter(
@@ -138,19 +173,19 @@ type KycTarget = { row: DriverRow; mode: 'approve' | 'reject' };
       return sortDir === 'asc' ? cmp : -cmp;
     });
     return sorted;
-  }, [drivers, statusFilter, search, sortBy, sortDir]);
+  }, [drivers, statusFilter, presenceFilter, presence, search, sortBy, sortDir]);
 
   // خيارات الترتيب لشريط الأدوات (لا يوجد حقل تاريخ في DriverRow).
   const sortOptions = [
     { value: 'name', label: lang === 'ar' ? 'الاسم' : 'Name' },
-    { value: 'status', label: lang === 'ar' ? 'الحالة' : 'Status' },
+    { value: 'status', label: lang === 'ar' ? 'حالة الحساب' : 'Account status' },
   ];
 
   // شريحة فلتر الحالة (نشطة/قيد المراجعة/مرفوضة/محظورة).
   const filterConfigs: FilterConfig[] = [
     {
       key: 'status',
-      label: lang === 'ar' ? 'كل الحالات' : 'All statuses',
+      label: lang === 'ar' ? 'كل حالات الحساب' : 'All account statuses',
       icon: ShieldCheck,
       value: statusFilter,
       options: [
@@ -161,9 +196,20 @@ type KycTarget = { row: DriverRow; mode: 'approve' | 'reject' };
         { value: 'banned', label: lang === 'ar' ? 'محظورة' : 'Banned' },
       ],
     },
+    {
+      key: 'presence',
+      label: lang === 'ar' ? 'كل حالات الاتصال' : 'All connection',
+      icon: Wifi,
+      value: presenceFilter,
+      options: [
+        { value: 'online', label: lang === 'ar' ? 'متصلة' : 'Online' },
+        { value: 'idle', label: lang === 'ar' ? 'التطبيق مفتوح' : 'App open' },
+        { value: 'offline', label: lang === 'ar' ? 'غير متصلة' : 'Offline' },
+      ],
+    },
   ];
 
-  const hasActiveFilters = Boolean(search.trim() || statusFilter);
+  const hasActiveFilters = Boolean(search.trim() || statusFilter || presenceFilter);
 
   async function doBan(reason: string) {
     if (!banTarget) return;
@@ -238,6 +284,7 @@ type KycTarget = { row: DriverRow; mode: 'approve' | 'reject' };
           filters={filterConfigs}
           onFilterChange={(key, value) => {
             if (key === 'status') setStatusFilter(value);
+            else if (key === 'presence') setPresenceFilter(value);
           }}
           defaultOpen
           lang={lang}
@@ -254,20 +301,21 @@ type KycTarget = { row: DriverRow; mode: 'approve' | 'reject' };
                 <th className="px-5 py-3 font-medium">{t('drivers.table.name', 'الاسم')}</th>
                 <th className="px-5 py-3 font-medium">{t('drivers.table.phone', 'الجوال')}</th>
                 <th className="px-5 py-3 font-medium">{t('drivers.table.vehicle', 'المركبة')}</th>
-                <th className="px-5 py-3 font-medium">{t('drivers.table.status', 'الحالة')}</th>
+                <th className="px-5 py-3 font-medium">{t('drivers.table.status', 'حالة الحساب')}</th>
+                <th className="px-5 py-3 font-medium">{t('drivers.table.presence', 'الاتصال')}</th>
                 <th className="px-5 py-3 font-medium">{t('drivers.table.actions', 'إجراءات')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="px-5 py-8 text-center text-muted-foreground">
+                  <td colSpan={6} className="px-5 py-8 text-center text-muted-foreground">
                     {t('common.loading', 'جارٍ التحميل…')}
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-5 py-8 text-center text-muted-foreground">
+                  <td colSpan={6} className="px-5 py-8 text-center text-muted-foreground">
                     {hasActiveFilters
                       ? (lang === 'ar' ? 'لا توجد نتائج تطابق البحث.' : 'No results match your filters.')
                       : t('common.noData', 'لا توجد بيانات')}
@@ -301,6 +349,14 @@ type KycTarget = { row: DriverRow; mode: 'approve' | 'reject' };
                           </span>
                         )}
                       </div>
+                    </td>
+                    <td className="px-5 py-3">
+                      <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-xs">
+                        <span className={`h-2 w-2 rounded-full ${PRESENCE_UI[presence[d.id] ?? 'offline'].color}`} />
+                        <span className="text-muted-foreground">
+                          {PRESENCE_UI[presence[d.id] ?? 'offline'].label}
+                        </span>
+                      </span>
                     </td>
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-1.5">

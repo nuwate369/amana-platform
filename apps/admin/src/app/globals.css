@@ -68,3 +68,34 @@
     @apply bg-background text-foreground antialiased;
   }
 }
+
+/* ملاءمة نافذة Mapbox المنبثقة لهوية اللوحة (فاتح/داكن) بدل الأبيض الافتراضي. */
+.mapboxgl-popup.amana-ride-popup .mapboxgl-popup-content {
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.25);
+  padding: 0.75rem 0.9rem;
+}
+.mapboxgl-popup.amana-ride-popup .mapboxgl-popup-close-button {
+  color: hsl(var(--muted-foreground));
+  font-size: 1.1rem;
+  padding: 0 0.35rem;
+}
+.mapboxgl-popup.amana-ride-popup .mapboxgl-popup-close-button:hover {
+  background: transparent;
+  color: hsl(var(--foreground));
+}
+.mapboxgl-popup.amana-ride-popup.mapboxgl-popup-anchor-top .mapboxgl-popup-tip {
+  border-bottom-color: hsl(var(--card));
+}
+.mapboxgl-popup.amana-ride-popup.mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip {
+  border-top-color: hsl(var(--card));
+}
+.mapboxgl-popup.amana-ride-popup.mapboxgl-popup-anchor-left .mapboxgl-popup-tip {
+  border-right-color: hsl(var(--card));
+}
+.mapboxgl-popup.amana-ride-popup.mapboxgl-popup-anchor-right .mapboxgl-popup-tip {
+  border-left-color: hsl(var(--card));
+}
