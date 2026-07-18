@@ -76,8 +76,18 @@ export default function HomeScreen() {
       </MapBoundary>
 
       {/* الشريط العلوي: الهوية + حالة الاتصال + مفتاح التبديل (يسار) */}
-      <SafeAreaView edges={['top']} className="absolute inset-x-0 top-0" pointerEvents="box-none">
-        <View className="mx-4 mt-2 flex-row items-center justify-between rounded-2xl bg-white/95 px-4 py-3 shadow-md dark:bg-neutral-900/95">
+      {/* elevation/zIndex ضروريّان: بدونهما تمرّ اللمسات إلى خريطة Mapbox الأصلية (native)
+          تحتها فلا يستجيب زرّ الجرس على أندرويد. */}
+      <SafeAreaView
+        edges={['top']}
+        className="absolute inset-x-0 top-0"
+        style={{ zIndex: 20, elevation: 20 }}
+        pointerEvents="box-none"
+      >
+        <View
+          className="mx-4 mt-2 flex-row items-center justify-between rounded-2xl bg-white/95 px-4 py-3 shadow-md dark:bg-neutral-900/95"
+          style={{ elevation: 12 }}
+        >
           <View className="items-end">
             <Text className="font-plex-bold text-base text-brand-700 dark:text-brand-200">أمانة</Text>
             <Text
@@ -116,6 +126,7 @@ export default function HomeScreen() {
       {/* زر إعادة التمركز */}
       <Pressable
         onPress={() => mapRef.current?.recenter()}
+        style={{ elevation: 12, zIndex: 12 }}
         className={`absolute right-5 h-12 w-12 items-center justify-center rounded-full bg-white shadow-md active:scale-95 dark:bg-neutral-800 ${
           active || request ? 'bottom-52' : 'bottom-8'
         }`}

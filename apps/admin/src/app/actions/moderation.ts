@@ -20,6 +20,8 @@ export type AuditActionType =
   | 'unban_user'
   | 'approve_driver'
   | 'reject_driver'
+  | 'approve_passenger'
+  | 'revoke_passenger'
   | 'invite_staff'
   | 'edit_staff'
   | 'toggle_staff'
@@ -270,6 +272,75 @@ export async function approveDriver(driverId: string, actorId: string | null): P
     });
 
     revalidatePath('/drivers');
+    revalidatePath('/audit-log');
+    return { success: true };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'حدث خطأ غير متوقع.';
+    return { success: false, error: message };
+  }
+}
+
+/**
+ * تفعيل راكبة: profiles.status = 'active'. (في نسخة التجربة الراكب أيضًا يحتاج
+ * تفعيل الإدارة قبل استخدام التطبيق — مطابق لاعتماد السائقة.)
+ */
+export async function approvePassenger(
+  passengerId: string,
+  actorId: string | null,
+): Promise<ActionResult> {
+  try {
+    const target = await getTarget(passengerId);
+    if (target.error) return { success: false, error: target.error };
+
+    const db = getAdminSupabase();
+    const { error } = await db.from('profiles').update({ status: 'active' }).eq('id', passengerId);
+    if (error) return { success: false, error: error.message };
+
+    await logAudit({
+      actorId,
+      action: 'approve_passenger',
+      targetType: 'profile',
+      targetId: passengerId,
+      targetName: target.name,
+    });
+
+    revalidatePath('/passengers');
+    revalidatePath('/audit-log');
+    return { success: true };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'حدث خطأ غير متوقع.';
+    return { success: false, error: message };
+  }
+}
+
+/** إلغاء تفعيل راكبة: إعادتها إلى 'pending_approval' (تعود لشاشة الانتظار). */
+export async function revokePassenger(
+  passengerId: string,
+  actorId: string | null,
+): Promise<ActionResult> {
+  try {
+    const target = await getTarget(passengerId);
+    if (target.error) return { success: false, error: target.error };
+    if (target.protected) {
+      return { success: false, error: 'هذا الحساب محمي.' };
+    }
+
+    const db = getAdminSupabase();
+    const { error } = await db
+      .from('profiles')
+      .update({ status: 'pending_approval' })
+      .eq('id', passengerId);
+    if (error) return { success: false, error: error.message };
+
+    await logAudit({
+      actorId,
+      action: 'revoke_passenger',
+      targetType: 'profile',
+      targetId: passengerId,
+      targetName: target.name,
+    });
+
+    revalidatePath('/passengers');
     revalidatePath('/audit-log');
     return { success: true };
   } catch (err) {

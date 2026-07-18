@@ -39,6 +39,27 @@ export function estimatePrice(km: number, multiplier = 1): number {
   return Math.max(BASE_FARE, Math.round((BASE_FARE + PER_KM * km) * multiplier));
 }
 
+/** ضريبة القيمة المضافة (السعودية) — تُطبَّق على الأجرة قبل الضريبة. */
+const VAT_RATE = 0.15;
+
+export interface Invoice {
+  base: number; // أجرة الأساس
+  distance: number; // قيمة المسافة (الأجرة قبل الضريبة ناقص الأساس)
+  subtotal: number; // الأجرة قبل الضريبة
+  vat: number; // القيمة المضافة
+  total: number; // الإجمالي المستحقّ
+}
+
+/** تفصيل فاتورة الرحلة من أجرتها التقديرية (أسعار حقيقية). */
+export function computeInvoice(fare: number | null | undefined): Invoice {
+  const subtotal = Math.max(BASE_FARE, Math.round(fare ?? BASE_FARE));
+  const base = BASE_FARE;
+  const distance = Math.max(0, subtotal - base);
+  const vat = Math.round(subtotal * VAT_RATE * 100) / 100;
+  const total = Math.round((subtotal + vat) * 100) / 100;
+  return { base, distance, subtotal, vat, total };
+}
+
 export type CreateRideResult = { id: string } | { error: string };
 
 /** ينشئ طلب رحلة جديدًا (status=requested) للراكبة الحاليّة. */
@@ -121,6 +142,22 @@ export async function completeRide(rideId: string): Promise<{ ok: boolean; error
   const { error } = await supabase
     .from('rides')
     .update({ status: 'completed', completed_at: new Date().toISOString() })
+    .eq('id', rideId);
+  return error ? { ok: false, error: error.message } : { ok: true };
+}
+
+/**
+ * تسجيل دفع الرحلة (تجريبي/محاكى) — يخزّن الإجمالي ووقت الدفع ووسيلته على صفّ
+ * الرحلة. لا بوابة حقيقية بعد؛ يُستبدَل لاحقًا بربط بوابة دفع (يتطلّب سجلًّا تجاريًّا).
+ */
+export async function payRide(
+  rideId: string,
+  total: number,
+  method = 'demo_card',
+): Promise<{ ok: boolean; error?: string }> {
+  const { error } = await supabase
+    .from('rides')
+    .update({ paid_at: new Date().toISOString(), fare_total: total, payment_method: method })
     .eq('id', rideId);
   return error ? { ok: false, error: error.message } : { ok: true };
 }

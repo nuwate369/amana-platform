@@ -3,25 +3,43 @@ import { useRouter, useSegments } from 'expo-router';
 import { useAuth } from '@/lib/auth';
 
 /**
- * يحمي المسارات حسب حالة الجلسة:
- *  - بلا جلسة وخارج مجموعة (auth) ⇐ توجيه لتسجيل الدخول.
- *  - بجلسة وداخل مجموعة (auth) ⇐ توجيه للصفحة الرئيسية.
- * محميّ ضد حلقات إعادة التوجيه عبر التحقق من المقطع الأول قبل التوجيه.
+ * يحمي المسارات حسب الجلسة + حالة التفعيل:
+ *  - بلا جلسة وخارج (auth) ⇐ تسجيل الدخول.
+ *  - بجلسة لكن غير مفعّلة (بانتظار موافقة الإدارة أو محظورة) ⇐ شاشة «قيد المراجعة».
+ *  - بجلسة ومفعّلة وداخل (auth)/الانتظار/الجذر ⇐ الرئيسية.
+ * محميّ ضد حلقات إعادة التوجيه بالتحقق من المقطع الأول قبل التوجيه.
  */
 export function useProtectedRoute() {
-  const { session, isLoading } = useAuth();
+  const { session, isLoading, isApproved, profileLoading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
 
   useEffect(() => {
     if (isLoading) return;
 
-    const inAuthGroup = segments[0] === '(auth)';
+    // نتعامل مع المقاطع كسلاسل عامّة (أنواع المسارات المولّدة تمنع فحص length===0).
+    const seg = segments as string[];
+    const inAuthGroup = seg[0] === '(auth)';
 
-    if (!session && !inAuthGroup) {
-      router.replace('/(auth)/sign-in');
-    } else if (session && inAuthGroup) {
-      router.replace('/');
+    if (!session) {
+      if (!inAuthGroup) router.replace('/(auth)/sign-in');
+      return;
     }
-  }, [session, isLoading, segments, router]);
+
+    // جلسة قائمة — ننتظر تحميل حالة التفعيل قبل القرار.
+    if (profileLoading) return;
+
+    const onPending = seg[0] === 'pending';
+
+    if (!isApproved) {
+      // غير مفعّلة ⇒ تُحبَس في شاشة الانتظار (لا تدخل التطبيق).
+      if (!onPending) router.replace('/pending');
+      return;
+    }
+
+    // مفعّلة ⇒ تُنقَل من شاشات المصادقة/الانتظار/الجذر إلى الرئيسية.
+    if (inAuthGroup || onPending || seg.length === 0) {
+      router.replace('/(tabs)/home');
+    }
+  }, [session, isLoading, isApproved, profileLoading, segments, router]);
 }

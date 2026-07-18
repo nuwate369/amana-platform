@@ -220,6 +220,7 @@
     "currency": "ريال",
     "methodTitle": "وسيلة الدفع",
     "defaultCard": "البطاقة الافتراضية",
+    "demoCard": "دفع تجريبي",
     "addCard": "إضافة بطاقة جديدة",
     "invoiceTitle": "تفاصيل الفاتورة",
     "baseFare": "رسوم الخدمة الأساسية",

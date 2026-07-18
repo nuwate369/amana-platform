@@ -220,6 +220,7 @@
     "currency": "SAR",
     "methodTitle": "Payment Method",
     "defaultCard": "Default Card",
+    "demoCard": "Demo payment",
     "addCard": "Add New Card",
     "invoiceTitle": "Invoice Details",
     "baseFare": "Base Fare",

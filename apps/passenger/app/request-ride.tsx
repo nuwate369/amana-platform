@@ -116,6 +116,7 @@ export default function RequestRideScreen() {
         {/* زر إعادة التمركز */}
         <Pressable
           onPress={() => mapRef.current?.recenter()}
+          style={{ elevation: 12, zIndex: 12 }}
           className="absolute bottom-3 right-3 h-11 w-11 items-center justify-center rounded-full bg-white shadow active:scale-95 dark:bg-neutral-800"
         >
           <MaterialIcons name="my-location" size={20} color={passengerPurple[700]} />

@@ -31,6 +31,7 @@ export default function DriversPage() {
     pending: t('drivers.filters.pending', 'قيد المراجعة'),
     draft: t('drivers.filters.draft', 'مسودّة'),
     rejected: t('drivers.filters.rejected', 'مرفوضة'),
+    unconfirmed: t('drivers.filters.unconfirmed', 'لم تؤكّد البريد'),
   };
 
   // عرض حالة الحضور (اتصال التطبيق) — لون + تسمية.
@@ -42,13 +43,18 @@ export default function DriversPage() {
 
   // الحالة المعروضة: سائقة pending لم تضغط «إرسال» بعد ⇒ «مسودّة» لا «قيد المراجعة».
   const displayStatusOf = (d: DriverRow): string =>
-    d.status === 'pending' && !d.submitted ? 'draft' : d.status;
+    !d.emailConfirmedAt
+      ? 'unconfirmed'
+      : d.status === 'pending' && !d.submitted
+        ? 'draft'
+        : d.status;
 
 function StatusBadge({ label }: { label: string }) {
   const map: Record<string, string> = {
     نشطة: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
     'قيد المراجعة': 'bg-primary/10 text-primary',
     مسودّة: 'bg-muted text-muted-foreground',
+    'لم تؤكّد البريد': 'bg-muted text-muted-foreground',
     مرفوضة: 'bg-destructive/10 text-destructive',
   };
   return (

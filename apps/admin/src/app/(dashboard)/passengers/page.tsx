@@ -2,10 +2,10 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { User, Ban, RotateCcw, Lock, Eye, Users, Trash2, UserCheck } from 'lucide-react';
+import { User, Ban, RotateCcw, Lock, Eye, Users, Trash2, UserCheck, CheckCircle2, XCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { listPassengers, type ProfileRow } from '@/app/actions/admin';
-import { banUser, unbanUser, deleteUser } from '@/app/actions/moderation';
+import { banUser, unbanUser, deleteUser, approvePassenger, revokePassenger } from '@/app/actions/moderation';
 import { ActionDialog } from '@/components/ActionDialog';
 import { UserDetailsModal } from '@/components/UserDetailsModal';
 import { FilterToolbar, type FilterConfig } from '@/components/ui/FilterToolbar';
@@ -20,6 +20,32 @@ import type { UserType } from '@amana/shared-types';
  */
 
 type BanTarget = { row: ProfileRow; mode: 'ban' | 'unban' };
+type EffState = 'banned' | 'unconfirmed' | 'pending' | 'active';
+
+/** الحالة الفعليّة المعروضة: الحظر ثم عدم تأكيد البريد ثم انتظار الموافقة ثم نشط. */
+function effState(p: ProfileRow): EffState {
+  if (!p.isActive) return 'banned';
+  if (!p.emailConfirmedAt) return 'unconfirmed';
+  return p.status === 'active' ? 'active' : 'pending';
+}
+
+function StatusChip({ state, lang, banReason }: { state: EffState; lang: 'ar' | 'en'; banReason: string | null }) {
+  const map = {
+    active: { ar: 'نشطة', en: 'Active', cls: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' },
+    pending: { ar: 'بانتظار الموافقة', en: 'Pending approval', cls: 'bg-amber-500/10 text-amber-600 dark:text-amber-400' },
+    unconfirmed: { ar: 'لم تؤكّد البريد', en: 'Email unconfirmed', cls: 'bg-muted text-muted-foreground' },
+    banned: { ar: 'محظورة', en: 'Banned', cls: 'bg-destructive/10 text-destructive' },
+  } as const;
+  const m = map[state];
+  return (
+    <span
+      className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${m.cls}`}
+      title={state === 'banned' ? (banReason ?? undefined) : undefined}
+    >
+      {lang === 'ar' ? m.ar : m.en}
+    </span>
+  );
+}
 
 export default function PassengersPage() {
   const { t, i18n } = useTranslation();
@@ -88,10 +114,8 @@ export default function PassengersPage() {
       );
     }
 
-    if (statusFilter === 'active') {
-      result = result.filter((p) => p.isActive !== false);
-    } else if (statusFilter === 'banned') {
-      result = result.filter((p) => p.isActive === false);
+    if (statusFilter) {
+      result = result.filter((p) => effState(p) === statusFilter);
     }
 
     const sorted = [...result].sort((a, b) => {
@@ -136,6 +160,24 @@ export default function PassengersPage() {
     await reload();
   }
 
+  async function doApprove(p: ProfileRow) {
+    setBusy(true);
+    const res = await approvePassenger(p.id, user?.id ?? null);
+    setBusy(false);
+    if (!res.success) { notify.error(res.error); return; }
+    notify.success(t('passengers.approve.success', 'تم تفعيل الحساب'));
+    await reload();
+  }
+
+  async function doRevoke(p: ProfileRow) {
+    setBusy(true);
+    const res = await revokePassenger(p.id, user?.id ?? null);
+    setBusy(false);
+    if (!res.success) { notify.error(res.error); return; }
+    notify.success(t('passengers.revoke.success', 'تم إلغاء التفعيل'));
+    await reload();
+  }
+
   const sortOptions = [
     { value: 'name', label: lang === 'ar' ? 'الاسم' : 'Name' },
     { value: 'joinDate', label: lang === 'ar' ? 'تاريخ الانضمام' : 'Join date' },
@@ -149,6 +191,8 @@ export default function PassengersPage() {
       value: statusFilter,
       options: [
         { value: 'active', label: lang === 'ar' ? 'نشطة' : 'Active' },
+        { value: 'pending', label: lang === 'ar' ? 'بانتظار الموافقة' : 'Pending approval' },
+        { value: 'unconfirmed', label: lang === 'ar' ? 'لم تؤكّد البريد' : 'Email unconfirmed' },
         { value: 'banned', label: lang === 'ar' ? 'محظورة' : 'Banned' },
       ],
     },
@@ -229,18 +273,7 @@ export default function PassengersPage() {
                     </td>
                     <td className="px-5 py-3 font-mono text-muted-foreground">{p.phone ?? '—'}</td>
                     <td className="px-5 py-3">
-                      {p.isActive ? (
-                        <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                          {t('passengers.status.active', 'نشطة')}
-                        </span>
-                      ) : (
-                        <span
-                          className="rounded-full bg-destructive/10 px-2.5 py-0.5 text-xs font-medium text-destructive"
-                          title={p.banReason ?? undefined}
-                        >
-                          {t('passengers.status.banned', 'محظورة')}
-                        </span>
-                      )}
+                      <StatusChip state={effState(p)} lang={lang} banReason={p.banReason} />
                     </td>
                     <td className="px-5 py-3 text-muted-foreground">
                       {new Date(p.createdAt).toLocaleDateString('ar-SA')}
@@ -260,6 +293,25 @@ export default function PassengersPage() {
                           </span>
                         ) : (
                           <>
+                            {p.isActive && p.status !== 'active' && (
+                              <button
+                                onClick={() => doApprove(p)}
+                                disabled={busy}
+                                className="inline-flex items-center gap-1 rounded-lg border border-emerald-500/30 px-3 py-1.5 text-xs font-medium text-emerald-600 transition-colors hover:bg-emerald-500/10 disabled:opacity-50"
+                              >
+                                <CheckCircle2 size={14} /> {t('passengers.actions.approve', 'تفعيل')}
+                              </button>
+                            )}
+                            {p.isActive && p.status === 'active' && (
+                              <button
+                                onClick={() => doRevoke(p)}
+                                disabled={busy}
+                                title={t('passengers.actions.revoke', 'إلغاء التفعيل')}
+                                className="inline-flex items-center gap-1 rounded-lg border border-amber-500/30 px-3 py-1.5 text-xs font-medium text-amber-600 transition-colors hover:bg-amber-500/10 disabled:opacity-50"
+                              >
+                                <XCircle size={14} /> {t('passengers.actions.revoke', 'إلغاء التفعيل')}
+                              </button>
+                            )}
                             {p.isActive ? (
                               <button
                                 onClick={() => setBanTarget({ row: p, mode: 'ban' })}

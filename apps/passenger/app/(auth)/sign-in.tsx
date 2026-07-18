@@ -29,10 +29,20 @@ export default function SignInScreen() {
       password: values.password,
     });
     if (error) {
+      // بريد غير مُفعّل ⇐ رسالة عربية + توجيه لشاشة الرمز (مع إتاحة إعادة الإرسال).
+      const unconfirmed =
+        (error as { code?: string }).code === 'email_not_confirmed' ||
+        /not confirmed/i.test(error.message);
+      if (unconfirmed) {
+        notify.error('بريدكِ غير مُفعّل — أدخلي رمز التحقق المُرسَل إليكِ');
+        router.push({ pathname: '/(auth)/verify-email', params: { email: values.email.trim() } });
+        return;
+      }
       notify.error(error.message || t('common.error'));
       return;
     }
-    router.replace('/(tabs)/home');
+    // نعود للجذر وبوّابة التوجيه تقرّر الوجهة (رئيسية إن مفعّلة، أو شاشة الانتظار).
+    router.replace('/');
   }
 
   return (

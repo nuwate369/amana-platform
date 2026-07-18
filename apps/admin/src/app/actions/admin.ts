@@ -90,6 +90,8 @@ export interface DriverRow {
   status: string;
   /** أرسلت طلبها للتدقيق فعلاً؟ (status='pending' + submitted=false ⇒ مسودّة). */
   submitted: boolean;
+  /** وقت تأكيد البريد (null ⇒ لم تُكمل التسجيل). */
+  emailConfirmedAt: string | null;
   vehicle: string;
   plate: string | null;
   isActive: boolean;
@@ -101,7 +103,7 @@ export interface DriverRow {
 export async function listDrivers(): Promise<DriverRow[]> {
   const db = getAdminSupabase();
   const rich =
-    'id, status, kyc_submitted_at, vehicle_make, vehicle_model, vehicle_plate, profiles(full_name, phone, is_active, is_protected, ban_reason, banned_at)';
+    'id, status, kyc_submitted_at, vehicle_make, vehicle_model, vehicle_plate, profiles(full_name, phone, is_active, is_protected, ban_reason, banned_at, email_confirmed_at)';
   const basic = 'id, status, vehicle_make, vehicle_model, vehicle_plate, profiles(full_name, phone)';
 
   const first = await db.from('drivers').select(rich).order('status');
@@ -118,6 +120,7 @@ export async function listDrivers(): Promise<DriverRow[]> {
       phone: (profile?.phone as string | null) ?? null,
       status: d.status,
       submitted: Boolean(d.kyc_submitted_at),
+      emailConfirmedAt: (profile?.email_confirmed_at as string | null) ?? null,
       vehicle: [d.vehicle_make, d.vehicle_model].filter(Boolean).join(' ') || '—',
       plate: d.vehicle_plate,
       ...pickModeration(profile),
@@ -130,6 +133,10 @@ export interface ProfileRow {
   fullName: string | null;
   phone: string | null;
   createdAt: string;
+  /** حالة التفعيل (pending_approval | active | suspended | disabled). */
+  status: string;
+  /** وقت تأكيد البريد (null ⇒ لم يُكمل التسجيل بعد). */
+  emailConfirmedAt: string | null;
   isActive: boolean;
   isProtected: boolean;
   banReason: string | null;
@@ -144,7 +151,8 @@ async function listProfilesByType(
   userType: 'passenger' | 'driver',
 ): Promise<ProfileRow[]> {
   const db = getAdminSupabase();
-  const rich = 'id, full_name, phone, created_at, is_active, is_protected, ban_reason, banned_at';
+  const rich =
+    'id, full_name, phone, created_at, status, email_confirmed_at, is_active, is_protected, ban_reason, banned_at';
   const basic = 'id, full_name, phone, created_at';
 
   // قبل الهجرة: عمود user_type غير موجود؛ فلترة الراكبات تسقط للاعتماد على role.
@@ -168,6 +176,8 @@ async function listProfilesByType(
     fullName: p.full_name,
     phone: p.phone,
     createdAt: p.created_at,
+    status: (p.status as string | undefined) ?? 'active',
+    emailConfirmedAt: (p.email_confirmed_at as string | null) ?? null,
     ...pickModeration(p as Record<string, unknown>),
   }));
 }

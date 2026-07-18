@@ -92,11 +92,15 @@ export default function TrackingScreen() {
         <AmanaMap ref={mapRef} style={{ flex: 1 }} showUserLocation={false} markers={markers} />
         <Pressable
           onPress={() => mapRef.current?.recenter()}
+          style={{ elevation: 12, zIndex: 12 }}
           className="absolute bottom-6 right-5 h-12 w-12 items-center justify-center rounded-full bg-white shadow-lg active:scale-95 dark:bg-neutral-800"
         >
           <MaterialIcons name="my-location" size={22} color={passengerPurple[700]} />
         </Pressable>
-        <Pressable className="absolute bottom-6 left-5 flex-row items-center gap-2 rounded-full bg-red-600 px-6 py-3 shadow-xl active:scale-90">
+        <Pressable
+          style={{ elevation: 12, zIndex: 12 }}
+          className="absolute bottom-6 left-5 flex-row items-center gap-2 rounded-full bg-red-600 px-6 py-3 shadow-xl active:scale-90"
+        >
           <MaterialIcons name="emergency" size={22} color="#ffffff" />
           <Text className="font-plex-bold text-xs tracking-widest text-white">SOS</Text>
         </Pressable>
