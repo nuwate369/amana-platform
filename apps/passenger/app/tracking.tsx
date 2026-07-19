@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { passengerPurple } from '@amana/shared-ui/tokens';
 import { AmanaMap, type AmanaMapHandle, type MapMarker } from '@amana/shared-ui/MapView';
 import { supabase } from '@/lib/supabase';
-import { completeRide, getRide, haversineKm, type RideDetails } from '@/lib/rides';
+import { getRide, haversineKm, type RideDetails } from '@/lib/rides';
 
 /**
  * شاشة «تتبع الرحلة» — حقيقية: تعرض السائقة المطابَقة (لقطة على صفّ الرحلة) وموقعها
@@ -19,7 +19,6 @@ export default function TrackingScreen() {
   const mapRef = useRef<AmanaMapHandle>(null);
   const [ride, setRide] = useState<RideDetails | null>(null);
   const [loading, setLoading] = useState(true);
-  const [ending, setEnding] = useState(false);
 
   useEffect(() => {
     if (!rideId) {
@@ -32,7 +31,13 @@ export default function TrackingScreen() {
         if (!alive) return;
         setRide(r);
         setLoading(false);
-        if (r && r.status === 'cancelled') router.replace('/(tabs)/home');
+        if (!r) return;
+        // الرحلة تقودها السائقة: إلغاء ⇒ الرئيسية؛ إنهاء ⇒ الانتقال التلقائي للتقييم.
+        if (r.status === 'cancelled') {
+          router.replace('/(tabs)/home');
+        } else if (r.status === 'completed') {
+          router.replace(`/rating?rideId=${rideId}${r.driverId ? `&driverId=${r.driverId}` : ''}`);
+        }
       });
     refresh();
     const ch = supabase
@@ -66,12 +71,14 @@ export default function TrackingScreen() {
   }, [ride]);
   const etaMin = Math.max(1, Math.round(kmRemaining / 0.5)); // ~30 كم/س
 
-  async function onArrived() {
-    if (!rideId || ending) return;
-    setEnding(true);
-    await completeRide(rideId);
-    router.replace(`/rating?rideId=${rideId}${ride?.driverId ? `&driverId=${ride.driverId}` : ''}`);
-  }
+  // حالة الرحلة كما تقودها السائقة (الراكبة تُشاهد فقط).
+  const statusText = !ride
+    ? ''
+    : ride.status === 'in_progress'
+      ? 'الرحلة جارية إلى وجهتك'
+      : ride.driverArrivedAt
+        ? 'سائقتك وصلت — بانتظارك عند نقطة الالتقاط'
+        : 'سائقتك في الطريق إليك';
 
   return (
     <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-900" edges={['top']}>
@@ -173,23 +180,23 @@ export default function TrackingScreen() {
               </Pressable>
             </View>
 
-            {/* زر الوصول */}
-            <Pressable
-              onPress={onArrived}
-              disabled={ending}
-              className="mt-4 h-14 flex-row items-center justify-center gap-2 rounded-xl border border-brand-600 active:scale-95 active:bg-brand-50 dark:active:bg-brand-900/20"
-            >
-              {ending ? (
-                <ActivityIndicator color={passengerPurple[700]} />
-              ) : (
-                <>
-                  <MaterialIcons name="flag" size={22} color={passengerPurple[700]} />
-                  <Text className="font-plex-semibold text-base text-brand-700 dark:text-brand-200">
-                    وصلت إلى وجهتي
-                  </Text>
-                </>
-              )}
-            </Pressable>
+            {/* شريط حالة الرحلة (الراكبة تُشاهد فقط — السائقة تقود المراحل) */}
+            <View className="mt-4 flex-row items-center justify-center gap-2 rounded-xl bg-brand-50 py-3 dark:bg-brand-900/30">
+              <MaterialIcons
+                name={
+                  ride?.status === 'in_progress'
+                    ? 'navigation'
+                    : ride?.driverArrivedAt
+                      ? 'directions-walk'
+                      : 'directions-car'
+                }
+                size={20}
+                color={passengerPurple[700]}
+              />
+              <Text className="font-plex-semibold text-sm text-brand-700 dark:text-brand-200">
+                {statusText}
+              </Text>
+            </View>
           </>
         )}
       </View>

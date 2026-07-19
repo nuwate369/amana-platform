@@ -7,9 +7,9 @@
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "icon": "./assets/images/logo.png",
+    "icon": "./assets/images/logo-amana.png",
     "splash": {
-      "image": "./assets/images/logo.png",
+      "image": "./assets/images/logo-amana.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -20,7 +20,7 @@
     "android": {
       "package": "sa.amana.driver",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/logo.png",
+        "foregroundImage": "./assets/images/logo-amana-adaptive.png",
         "backgroundColor": "#ffffff"
       }
     },

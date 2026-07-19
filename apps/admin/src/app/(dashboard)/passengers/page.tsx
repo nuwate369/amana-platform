@@ -62,6 +62,7 @@ export default function PassengersPage() {
   const [busy, setBusy] = useState(false);
   const [banTarget, setBanTarget] = useState<BanTarget | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ProfileRow | null>(null);
+  const [approveTarget, setApproveTarget] = useState<{ row: ProfileRow; mode: 'approve' | 'revoke' } | null>(null);
   const [detailsId, setDetailsId] = useState<string | null>(null);
 
   // فتح تفاصيل مستخدم محدد عند القدوم من إشعار (?highlight=<id>).
@@ -160,21 +161,22 @@ export default function PassengersPage() {
     await reload();
   }
 
-  async function doApprove(p: ProfileRow) {
+  async function doApproveConfirm() {
+    if (!approveTarget) return;
+    const { row, mode } = approveTarget;
     setBusy(true);
-    const res = await approvePassenger(p.id, user?.id ?? null);
+    const res =
+      mode === 'approve'
+        ? await approvePassenger(row.id, user?.id ?? null)
+        : await revokePassenger(row.id, user?.id ?? null);
     setBusy(false);
     if (!res.success) { notify.error(res.error); return; }
-    notify.success(t('passengers.approve.success', 'تم تفعيل الحساب'));
-    await reload();
-  }
-
-  async function doRevoke(p: ProfileRow) {
-    setBusy(true);
-    const res = await revokePassenger(p.id, user?.id ?? null);
-    setBusy(false);
-    if (!res.success) { notify.error(res.error); return; }
-    notify.success(t('passengers.revoke.success', 'تم إلغاء التفعيل'));
+    notify.success(
+      mode === 'approve'
+        ? t('passengers.approve.success', 'تم تفعيل الحساب')
+        : t('passengers.revoke.success', 'تم إلغاء التفعيل'),
+    );
+    setApproveTarget(null);
     await reload();
   }
 
@@ -295,7 +297,7 @@ export default function PassengersPage() {
                           <>
                             {p.isActive && p.status !== 'active' && (
                               <button
-                                onClick={() => doApprove(p)}
+                                onClick={() => setApproveTarget({ row: p, mode: 'approve' })}
                                 disabled={busy}
                                 className="inline-flex items-center gap-1 rounded-lg border border-emerald-500/30 px-3 py-1.5 text-xs font-medium text-emerald-600 transition-colors hover:bg-emerald-500/10 disabled:opacity-50"
                               >
@@ -304,7 +306,7 @@ export default function PassengersPage() {
                             )}
                             {p.isActive && p.status === 'active' && (
                               <button
-                                onClick={() => doRevoke(p)}
+                                onClick={() => setApproveTarget({ row: p, mode: 'revoke' })}
                                 disabled={busy}
                                 title={t('passengers.actions.revoke', 'إلغاء التفعيل')}
                                 className="inline-flex items-center gap-1 rounded-lg border border-amber-500/30 px-3 py-1.5 text-xs font-medium text-amber-600 transition-colors hover:bg-amber-500/10 disabled:opacity-50"
@@ -345,6 +347,43 @@ export default function PassengersPage() {
           </table>
         </div>
       </div>
+
+      {/* حوار تأكيد التفعيل / إلغاء التفعيل */}
+      <ActionDialog
+        open={!!approveTarget}
+        title={
+          approveTarget?.mode === 'approve'
+            ? t('passengers.approve.title', 'تفعيل الحساب')
+            : t('passengers.revoke.title', 'إلغاء التفعيل')
+        }
+        variant={approveTarget?.mode === 'approve' ? 'primary' : 'danger'}
+        targetName={approveTarget?.row.fullName}
+        actorName={actorName}
+        requireReason={false}
+        description={
+          approveTarget?.mode === 'approve' ? (
+            <>
+              {t('passengers.approve.desc', 'سيتم تفعيل ')}
+              <strong>{approveTarget?.row.fullName ?? t('common.thisAccount', 'هذا الحساب')}</strong>
+              {t('passengers.approve.descSuffix', ' وتمكينه من استخدام التطبيق.')}
+            </>
+          ) : (
+            <>
+              {t('passengers.revoke.desc', 'سيُعاد ')}
+              <strong>{approveTarget?.row.fullName ?? t('common.thisAccount', 'هذا الحساب')}</strong>
+              {t('passengers.revoke.descSuffix', ' إلى «بانتظار الموافقة» ولن يتمكّن من استخدام التطبيق حتى تفعيله مجددًا.')}
+            </>
+          )
+        }
+        confirmLabel={
+          approveTarget?.mode === 'approve'
+            ? t('passengers.approve.confirmBtn', 'تفعيل')
+            : t('passengers.revoke.confirmBtn', 'إلغاء التفعيل')
+        }
+        loading={busy}
+        onConfirm={doApproveConfirm}
+        onClose={() => setApproveTarget(null)}
+      />
 
       <ActionDialog
         open={!!banTarget}

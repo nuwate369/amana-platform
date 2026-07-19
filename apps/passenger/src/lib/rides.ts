@@ -109,6 +109,8 @@ export interface RideDetails {
   vehicle: string | null;
   plate: string | null;
   priceEstimate: number | null;
+  /** وصلت السائقة لنقطة الالتقاط؟ (null ⇒ لم تصل بعد). */
+  driverArrivedAt: string | null;
 }
 
 /** تفاصيل الرحلة — تُقرأ كلّها من صفّ الرحلة (بيانات السائقة لقطة، بلا انتهاك RLS). */
@@ -116,7 +118,7 @@ export async function getRide(rideId: string): Promise<RideDetails | null> {
   const { data, error } = await supabase
     .from('rides')
     .select(
-      'id, status, driver_id, pickup_lat, pickup_lng, dropoff_lat, dropoff_lng, driver_lat, driver_lng, driver_name, driver_vehicle, driver_plate, price_estimate',
+      'id, status, driver_id, pickup_lat, pickup_lng, dropoff_lat, dropoff_lng, driver_lat, driver_lng, driver_name, driver_vehicle, driver_plate, price_estimate, driver_arrived_at',
     )
     .eq('id', rideId)
     .single();
@@ -134,6 +136,7 @@ export async function getRide(rideId: string): Promise<RideDetails | null> {
     vehicle: data.driver_vehicle ?? null,
     plate: data.driver_plate ?? null,
     priceEstimate: data.price_estimate ?? null,
+    driverArrivedAt: data.driver_arrived_at ?? null,
   };
 }
 

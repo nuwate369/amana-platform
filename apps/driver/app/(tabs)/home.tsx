@@ -44,10 +44,26 @@ export default function HomeScreen() {
   const mapRef = useRef<AmanaMapHandle>(null);
   const { online, busy, setOnline } = usePresence();
   const { unread } = useNotifications();
-  const { incoming, active, busyId, accept, dismiss, startRide, completeRide } = useDriverRides();
+  const { incoming, active, busyId, accept, dismiss, markArrived, startRide, completeRide } =
+    useDriverRides();
 
   const request = !active && online ? incoming[0] : undefined;
   const target = active ?? request ?? null;
+
+  // مرحلة الرحلة النشطة تقود زرّ الإجراء: وصول لنقطة الالتقاط ← بدء ← إنهاء.
+  const phase: 'arrive' | 'start' | 'complete' | null = !active
+    ? null
+    : active.status === 'in_progress'
+      ? 'complete'
+      : active.arrivedAt
+        ? 'start'
+        : 'arrive';
+
+  const PHASE_UI = {
+    arrive: { label: 'وصلت لنقطة الالتقاط', hint: 'توجّهي إلى نقطة الالتقاط', icon: 'my-location' as const, cls: 'bg-brand-700 dark:bg-brand-600', run: markArrived },
+    start: { label: 'بدء الرحلة', hint: 'بانتظار ركوب الراكبة', icon: 'play-arrow' as const, cls: 'bg-brand-700 dark:bg-brand-600', run: startRide },
+    complete: { label: 'إنهاء الرحلة', hint: '', icon: 'flag' as const, cls: 'bg-green-600', run: completeRide },
+  };
 
   const markers = useMemo<MapMarker[]>(() => {
     if (!target) return [];
@@ -148,31 +164,25 @@ export default function HomeScreen() {
           <View className="mb-4 flex-row items-center gap-2">
             <MaterialIcons name="route" size={18} color={driverNavy[500]} />
             <Text className="font-plex text-sm text-neutral-600 dark:text-neutral-300">
-              {active.status === 'matched' ? 'توجّهي إلى نقطة الالتقاط' : `المسافة ${rideKm(active)}`}
+              {phase && PHASE_UI[phase].hint ? PHASE_UI[phase].hint : `المسافة ${rideKm(active)}`}
             </Text>
           </View>
-          <Pressable
-            onPress={() => (active.status === 'matched' ? void startRide() : void completeRide())}
-            disabled={busyId === active.id}
-            className={`h-14 flex-row items-center justify-center gap-2 rounded-2xl active:scale-[0.98] ${
-              active.status === 'matched' ? 'bg-brand-700 dark:bg-brand-600' : 'bg-green-600'
-            }`}
-          >
-            {busyId === active.id ? (
-              <ActivityIndicator color="#ffffff" />
-            ) : (
-              <>
-                <MaterialIcons
-                  name={active.status === 'matched' ? 'play-arrow' : 'flag'}
-                  size={22}
-                  color="#ffffff"
-                />
-                <Text className="font-plex-bold text-lg text-white">
-                  {active.status === 'matched' ? 'بدء الرحلة' : 'إنهاء الرحلة'}
-                </Text>
-              </>
-            )}
-          </Pressable>
+          {phase ? (
+            <Pressable
+              onPress={() => void PHASE_UI[phase].run()}
+              disabled={busyId === active.id}
+              className={`h-14 flex-row items-center justify-center gap-2 rounded-2xl active:scale-[0.98] ${PHASE_UI[phase].cls}`}
+            >
+              {busyId === active.id ? (
+                <ActivityIndicator color="#ffffff" />
+              ) : (
+                <>
+                  <MaterialIcons name={PHASE_UI[phase].icon} size={22} color="#ffffff" />
+                  <Text className="font-plex-bold text-lg text-white">{PHASE_UI[phase].label}</Text>
+                </>
+              )}
+            </Pressable>
+          ) : null}
         </View>
       ) : request ? (
         /* بطاقة طلب رحلة جديد */

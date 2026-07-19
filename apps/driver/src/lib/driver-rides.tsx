@@ -21,6 +21,8 @@ export interface DriverRide {
   pickup: Coord | null;
   dropoff: Coord | null;
   priceEstimate: number | null;
+  /** وقت وصول السائقة لنقطة الالتقاط (null ⇒ لم تصل بعد). */
+  arrivedAt: string | null;
 }
 
 interface DriverRidesValue {
@@ -29,6 +31,7 @@ interface DriverRidesValue {
   busyId: string | null;
   accept: (ride: DriverRide) => Promise<void>;
   dismiss: (rideId: string) => void;
+  markArrived: () => Promise<void>;
   startRide: () => Promise<void>;
   completeRide: () => Promise<void>;
 }
@@ -47,11 +50,12 @@ function toRide(r: any): DriverRide {
     pickup: coord(r.pickup_lat, r.pickup_lng),
     dropoff: coord(r.dropoff_lat, r.dropoff_lng),
     priceEstimate: r.price_estimate ?? null,
+    arrivedAt: r.driver_arrived_at ?? null,
   };
 }
 
 const SELECT =
-  'id, status, passenger_name, pickup_lat, pickup_lng, dropoff_lat, dropoff_lng, price_estimate, driver_id';
+  'id, status, passenger_name, pickup_lat, pickup_lng, dropoff_lat, dropoff_lng, price_estimate, driver_id, driver_arrived_at';
 
 export function DriverRidesProvider({ children }: { children: ReactNode }) {
   const [incoming, setIncoming] = useState<DriverRide[]>([]);
@@ -185,6 +189,21 @@ export function DriverRidesProvider({ children }: { children: ReactNode }) {
     setIncoming((prev) => prev.filter((r) => r.id !== rideId));
   }, []);
 
+  // السائقة وصلت لنقطة الالتقاط — تُعلِم الراكبة (الحالة تبقى matched).
+  const markArrived = useCallback(async () => {
+    if (!active || busyId) return;
+    setBusyId(active.id);
+    try {
+      await supabase
+        .from('rides')
+        .update({ driver_arrived_at: new Date().toISOString() })
+        .eq('id', active.id);
+      refresh();
+    } finally {
+      setBusyId(null);
+    }
+  }, [active, busyId, refresh]);
+
   const setActiveStatus = useCallback(
     async (status: 'in_progress' | 'completed') => {
       if (!active || busyId) return;
@@ -205,7 +224,7 @@ export function DriverRidesProvider({ children }: { children: ReactNode }) {
   const completeRide = useCallback(() => setActiveStatus('completed'), [setActiveStatus]);
 
   return (
-    <Ctx.Provider value={{ incoming, active, busyId, accept, dismiss, startRide, completeRide }}>
+    <Ctx.Provider value={{ incoming, active, busyId, accept, dismiss, markArrived, startRide, completeRide }}>
       {children}
     </Ctx.Provider>
   );
