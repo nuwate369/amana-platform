@@ -16,6 +16,7 @@ import {
 } from './actions';
 import { FilterToolbar, type FilterConfig, type SortState } from '@/components/ui/FilterToolbar';
 import { DateRangePicker, type DateRange } from '@/components/ui/DateRangePicker';
+import { AnnouncementDateRange, type AnnouncementDateRangeValue } from '@/components/ui/AnnouncementDateRange';
 import { useAuth } from '@/lib/auth';
 import { notify } from '@/lib/toast';
 
@@ -193,8 +194,8 @@ export default function NotificationsPage() {
                 <th className="px-5 py-3 font-medium">{ar ? 'النوع' : 'Type'}</th>
                 <th className="px-5 py-3 font-medium">{ar ? 'الجمهور' : 'Audience'}</th>
                 <th className="px-5 py-3 font-medium">{ar ? 'المستلمون' : 'Recipients'}</th>
-                <th className="px-5 py-3 font-medium">{ar ? 'التاريخ' : 'Date'}</th>
-                <th className="px-5 py-3 font-medium">{ar ? 'ينتهي في' : 'Expires At'}</th>
+                <th className="px-5 py-3 font-medium">{ar ? 'يبدأ' : 'Starts'}</th>
+                <th className="px-5 py-3 font-medium">{ar ? 'ينتهي' : 'Expires'}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -223,7 +224,7 @@ export default function NotificationsPage() {
                       {n.audience === 'specific' ? n.targetName ?? AUDIENCE_LABEL.specific : AUDIENCE_LABEL[n.audience]}
                     </td>
                     <td className="px-5 py-3 font-mono text-muted-foreground">{n.recipientCount}</td>
-                    <td className="px-5 py-3 font-mono text-muted-foreground">{fmtDate(n.createdAt)}</td>
+                    <td className="px-5 py-3 font-mono text-muted-foreground">{fmtDate(n.startsAt)}</td>
                     <td className="px-5 py-3 font-mono text-muted-foreground">{fmtDate(n.expiresAt)}</td>
                   </tr>
                 ))
@@ -271,11 +272,18 @@ function CreateModal({
   const [type, setType] = useState<AnnouncementType>('announcement');
   const [audience, setAudience] = useState<AnnouncementAudience>('all');
   const [targetUserId, setTargetUserId] = useState<string | null>(null);
-  
-  // Default to tomorrow
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const [expiresAtDate, setExpiresAtDate] = useState(tomorrow.toISOString().split('T')[0]);
+
+  // نطاق تاريخ البداية والانتهاء — الحدّ الأدنى يوم واحد
+  const defaultStart = new Date();
+  defaultStart.setHours(0, 0, 0, 0);
+  const defaultEnd = new Date(defaultStart);
+  defaultEnd.setDate(defaultEnd.getDate() + 1);
+  defaultEnd.setHours(23, 59, 59, 999);
+  const [dateRange, setDateRange] = useState<AnnouncementDateRangeValue>({
+    startsAt:  defaultStart.toISOString(),
+    expiresAt: defaultEnd.toISOString(),
+  });
+  const [dateError, setDateError] = useState<string | null>(null);
 
   const [recipients, setRecipients] = useState<RecipientOption[]>([]);
   const [recipientSearch, setRecipientSearch] = useState('');
@@ -301,15 +309,16 @@ function CreateModal({
   async function onSubmit() {
     if (!canSubmit) return;
     setSubmitting(true);
-    
-    // Convert YYYY-MM-DD to ISO at end of day
-    const expiresAt = new Date(expiresAtDate);
-    expiresAt.setHours(23, 59, 59, 999);
-    
-    const res = await createAnnouncement({ title, body, type, audience, targetUserId, createdBy, expiresAt: expiresAt.toISOString() });
+    const res = await createAnnouncement({
+      title, body, type, audience, targetUserId, createdBy,
+      startsAt:  dateRange.startsAt,
+      expiresAt: dateRange.expiresAt,
+    });
     setSubmitting(false);
     if (!res.ok) {
-      notify.error(res.error ?? (ar ? 'تعذّر الإرسال' : 'Failed to send'));
+      // تحقق إن كان الخطأ متعلقاً بالتاريخ
+      if (res.error?.includes('يوم')) setDateError(res.error);
+      else notify.error(res.error ?? (ar ? 'تعذّر الإرسال' : 'Failed to send'));
       return;
     }
     notify.success(ar ? 'تم إرسال الإشعار' : 'Notification sent');
@@ -356,18 +365,17 @@ function CreateModal({
             <textarea className={`${fieldCls} resize-none`} rows={4} value={body} onChange={(e) => setBody(e.target.value)} placeholder={ar ? 'اكتب محتوى الإشعار هنا' : 'Write the content here'} />
           </div>
 
-          <div>
-            <label className="mb-1 block text-sm text-muted-foreground">{ar ? 'تاريخ الانتهاء' : 'Expiry Date'}</label>
-            <input 
-              type="date" 
-              className={fieldCls} 
-              value={expiresAtDate} 
-              onChange={(e) => setExpiresAtDate(e.target.value)} 
-              min={new Date().toISOString().split('T')[0]}
+          <div className="relative">
+            <label className="mb-1 block text-sm text-muted-foreground">
+              {ar ? 'مدة ظهور الإشعار' : 'Visibility Period'}
+            </label>
+            <AnnouncementDateRange
+              value={dateRange}
+              onChange={(v) => { setDateRange(v); setDateError(null); }}
+              lang={ar ? 'ar' : 'en'}
+              isRtl={ar}
+              error={dateError}
             />
-            <p className="mt-1 text-xs text-muted-foreground">
-              {ar ? 'لن يظهر الإشعار للمستخدمين بعد هذا التاريخ.' : 'The notification will not be shown after this date.'}
-            </p>
           </div>
 
           <div>

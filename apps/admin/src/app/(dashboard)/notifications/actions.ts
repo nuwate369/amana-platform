@@ -22,6 +22,7 @@ export interface AnnouncementRow {
   status: 'sent' | 'scheduled';
   recipientCount: number;
   createdAt: string;
+  startsAt: string;
   expiresAt: string;
 }
 
@@ -32,6 +33,7 @@ export interface AnnouncementInput {
   audience: AnnouncementAudience;
   targetUserId?: string | null;
   createdBy?: string | null;
+  startsAt: string;
   expiresAt: string;
 }
 
@@ -110,7 +112,7 @@ export async function listAnnouncements(
   const db = getAdminSupabase();
   let q = db
     .from('announcements')
-    .select('id, title, body, type, audience, target_user_id, status, recipient_count, created_at, expires_at')
+    .select('id, title, body, type, audience, target_user_id, status, recipient_count, created_at, starts_at, expires_at')
     .order('created_at', { ascending: false })
     .limit(200);
   if (fromISO) q = q.gte('created_at', fromISO);
@@ -137,6 +139,7 @@ export async function listAnnouncements(
     status: r.status as 'sent' | 'scheduled',
     recipientCount: Number(r.recipient_count ?? 0),
     createdAt: r.created_at as string,
+    startsAt: r.starts_at as string,
     expiresAt: r.expires_at as string,
   }));
 }
@@ -149,6 +152,11 @@ export async function createAnnouncement(
   if (title.length < 3) return { ok: false, error: 'العنوان قصير جدًا.' };
   if (input.audience === 'specific' && !input.targetUserId) {
     return { ok: false, error: 'اختر المستخدم المستهدف.' };
+  }
+  // التحقق: الانتهاء بعد البداية بيوم على الأقل
+  const diffMs = new Date(input.expiresAt).getTime() - new Date(input.startsAt).getTime();
+  if (diffMs < 24 * 60 * 60 * 1000) {
+    return { ok: false, error: 'يجب أن يكون تاريخ الانتهاء بعد تاريخ البداية بيوم على الأقل.' };
   }
 
   const db = getAdminSupabase();
@@ -164,6 +172,7 @@ export async function createAnnouncement(
     recipient_count: recipientCount,
     created_by: input.createdBy ?? null,
     sent_at: new Date().toISOString(),
+    starts_at: input.startsAt,
     expires_at: input.expiresAt,
   });
   if (error) return { ok: false, error: error.message };
