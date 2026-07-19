@@ -6,6 +6,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/lib/supabase';
 
 /**
@@ -92,6 +93,28 @@ export async function markAllRead(): Promise<void> {
   await supabase.from('system_notifications').update({ is_read: true }).eq('is_read', false);
 }
 
+// الإعلانات (announcements) لا تملك حالة قراءة لكل مستخدم، فنحفظ ختم «آخر اطّلاع»
+// محليًّا: أي إعلان أقدم منه يُعدّ مقروءًا (لا يُحتسب في عدّاد الجرس).
+const NOTIF_LAST_SEEN_KEY = 'amana_notif_last_seen';
+
+async function getLastSeen(): Promise<string | null> {
+  try {
+    return await AsyncStorage.getItem(NOTIF_LAST_SEEN_KEY);
+  } catch {
+    return null;
+  }
+}
+
+/** يعلّم الكلّ كمقروء: تنبيهات النظام + ختم وقت رؤية الإعلانات (يُصفّر عدّاد الجرس). */
+export async function markAllSeen(): Promise<void> {
+  await markAllRead();
+  try {
+    await AsyncStorage.setItem(NOTIF_LAST_SEEN_KEY, new Date().toISOString());
+  } catch {
+    /* تجاهل */
+  }
+}
+
 interface NotificationsValue {
   unread: number;
   refresh: () => void;
@@ -113,10 +136,13 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       .select('id', { count: 'exact', head: true })
       .eq('is_read', false);
       
-    const { count: annCount } = await supabase
+    const lastSeen = await getLastSeen();
+    let annQuery = supabase
       .from('announcements')
       .select('id', { count: 'exact', head: true })
       .eq('status', 'sent');
+    if (lastSeen) annQuery = annQuery.gt('created_at', lastSeen);
+    const { count: annCount } = await annQuery;
 
     setUnread((sysCount ?? 0) + (annCount ?? 0));
   }, []);

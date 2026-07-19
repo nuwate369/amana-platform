@@ -1,5 +1,5 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -192,7 +192,15 @@ export default function TrackingScreen() {
                 <MaterialIcons name="call" size={22} color="#ffffff" />
                 <Text className="font-plex-semibold text-base text-white">اتصال</Text>
               </Pressable>
-              <Pressable className="h-14 flex-1 flex-row items-center justify-center gap-3 rounded-xl bg-brand-50 active:scale-95 dark:bg-brand-900/40">
+              <Pressable
+                onPress={() =>
+                  rideId &&
+                  router.push(
+                    `/chat?rideId=${rideId}&name=${encodeURIComponent(ride?.driverName ?? 'سائقتك')}` as Href,
+                  )
+                }
+                className="h-14 flex-1 flex-row items-center justify-center gap-3 rounded-xl bg-brand-50 active:scale-95 dark:bg-brand-900/40"
+              >
                 <MaterialIcons name="chat-bubble" size={22} color={passengerPurple[700]} />
                 <Text className="font-plex-semibold text-base text-brand-700 dark:text-brand-200">مراسلة</Text>
               </Pressable>

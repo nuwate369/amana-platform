@@ -47,8 +47,9 @@ export default function HomeScreen() {
         <AmanaMap ref={mapRef} style={{ flex: 1 }} showUserLocation />
       </MapBoundary>
 
-      {/* الشريط العلوي */}
-      <SafeAreaView edges={['top']} className="absolute inset-x-0 top-0" style={{ zIndex: 20, elevation: 20 }} pointerEvents="box-none">
+      {/* الشريط العلوي — طبقة لمس صلبة (بلا box-none) لتلتقط اللمسة قبل خريطة Mapbox
+          تحتها، وإلا تسرّبت لمسة الجرس/الحساب للخريطة فتُكبّرها على أندرويد. */}
+      <SafeAreaView edges={['top']} className="absolute inset-x-0 top-0" style={{ zIndex: 20, elevation: 20 }}>
         <View
           className="mx-4 mt-2 flex-row items-center justify-between rounded-2xl bg-white/95 px-4 py-3 shadow-md dark:bg-neutral-900/95"
           style={{ elevation: 12 }}
@@ -61,7 +62,7 @@ export default function HomeScreen() {
             <Pressable
               onPress={() => router.push('/(tabs)/notifications')}
               style={{ elevation: 24 }}
-              className="relative h-10 w-10 items-center justify-center rounded-full active:bg-neutral-200/60 dark:active:bg-neutral-700/60"
+              className="relative h-10 w-10 items-center justify-center rounded-full bg-brand-50 active:bg-neutral-200/60 dark:bg-brand-900/40"
             >
               <MaterialIcons name="notifications-none" size={24} color={passengerPurple[700]} />
               {unread > 0 ? (

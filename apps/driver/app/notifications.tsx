@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { driverNavy } from '@amana/shared-ui/tokens';
 import {
   listNotifications,
-  markAllRead,
+  markAllSeen,
   markRead,
   useNotifications,
   type AppNotification,
@@ -41,9 +41,11 @@ export default function NotificationsScreen() {
     setLoading(false);
   }, []);
 
+  // فتح الشاشة = اطّلاع: نعلّم الكلّ مقروءًا ونصفّر عدّاد الجرس.
   useEffect(() => {
     load();
-  }, [load]);
+    markAllSeen().then(refresh);
+  }, [load, refresh]);
 
   async function onTap(n: AppNotification) {
     if (!n.isRead) {
@@ -55,7 +57,7 @@ export default function NotificationsScreen() {
   }
 
   async function onMarkAll() {
-    await markAllRead();
+    await markAllSeen();
     setItems((prev) => prev.map((x) => ({ ...x, isRead: true })));
     refresh();
   }

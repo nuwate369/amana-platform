@@ -6,9 +6,9 @@ import { PresenceProvider } from '@/lib/presence';
 import { DriverRidesProvider } from '@/lib/driver-rides';
 
 /**
- * تبويبات السائقة السفلية — «الرئيسية» (خريطة القيادة) و«حسابي».
- * يلفّها PresenceProvider ليتتبّع حضور السائقة (فتح/اتصال/موقع) طوال الجلسة.
- * (تُضاف «الأرباح/الرحلات» في مرحلة لاحقة من القيادة.)
+ * تبويبات السائقة السفلية — «الرئيسية» (خريطة القيادة) و«رحلاتي».
+ * «حسابي» مسجَّلة كمسار لكنها مخفيّة من الشريط السفلي (href: null) — تُفتح من أيقونة
+ * الحساب في الشريط العلويّ للرئيسية (كتطبيق الراكب). يلفّها PresenceProvider للحضور.
  */
 export default function TabsLayout() {
   const { t } = useTranslation();
@@ -31,14 +31,16 @@ export default function TabsLayout() {
           }}
         />
         <Tabs.Screen
-          name="account"
+          name="ride-history"
           options={{
-            title: t('nav.account', 'حسابي'),
+            title: t('nav.myRides', 'رحلاتي'),
             tabBarIcon: ({ color, size }) => (
-              <MaterialIcons name="person" size={size} color={color} />
+              <MaterialIcons name="history" size={size} color={color} />
             ),
           }}
         />
+        {/* مخفيّة من الشريط السفلي — تُفتح من أيقونة الحساب في الشريط العلويّ */}
+        <Tabs.Screen name="account" options={{ href: null, title: t('nav.account', 'حسابي') }} />
       </Tabs>
       </DriverRidesProvider>
     </PresenceProvider>

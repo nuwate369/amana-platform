@@ -1,11 +1,12 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { router, type Href } from 'expo-router';
-import { Component, useMemo, useRef, type ReactNode } from 'react';
+import { Component, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { ActivityIndicator, Pressable, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { driverNavy } from '@amana/shared-ui/tokens';
 import { AmanaMap, type AmanaMapHandle, type MapMarker } from '@amana/shared-ui/MapView';
 import { rideClassLabel } from '@amana/shared-types';
+import { supabase } from '@/lib/supabase';
 import { usePresence } from '@/lib/presence';
 import { useNotifications } from '@/lib/notifications';
 import { useDriverRides, type Coord, type DriverRide } from '@/lib/driver-rides';
@@ -60,15 +61,54 @@ export default function HomeScreen() {
         ? 'start'
         : 'arrive';
 
-  // إنهاء الرحلة ثم الانتقال لتقييم الراكبة (نلتقط المعرّفات قبل أن تُصفَّر الرحلة النشطة).
+  // بعد إنهاء الرحلة ننتظر اكتمال دفع الراكبة، ثم تظهر بطاقة «قيّمي الراكبة».
+  const [awaitingRating, setAwaitingRating] = useState<{
+    rideId: string;
+    passengerId: string | null;
+    passengerName: string | null;
+    paid: boolean;
+  } | null>(null);
+
   async function handleComplete() {
     if (!active) return;
-    const rideId = active.id;
-    const passengerId = active.passengerId;
+    const info = {
+      rideId: active.id,
+      passengerId: active.passengerId,
+      passengerName: active.passengerName,
+      paid: false,
+    };
     await completeRide();
-    if (passengerId) {
-      router.push(`/rating?rideId=${rideId}&passengerId=${passengerId}` as Href);
-    }
+    setAwaitingRating(info); // لا ننتقل للتقييم الآن — ننتظر الدفع
+  }
+
+  // مراقبة اكتمال الدفع (paid_at) للرحلة المنتهية → تفعيل بطاقة التقييم.
+  useEffect(() => {
+    if (!awaitingRating || awaitingRating.paid) return;
+    const rid = awaitingRating.rideId;
+    const check = async () => {
+      const { data } = await supabase.from('rides').select('paid_at').eq('id', rid).maybeSingle();
+      if (data?.paid_at) {
+        setAwaitingRating((prev) => (prev && prev.rideId === rid ? { ...prev, paid: true } : prev));
+      }
+    };
+    void check();
+    const ch = supabase
+      .channel(`await-pay-${rid}-${Math.random().toString(36).slice(2)}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'rides', filter: `id=eq.${rid}` },
+        () => void check(),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(ch);
+    };
+  }, [awaitingRating]);
+
+  function openPassengerRating() {
+    const a = awaitingRating;
+    setAwaitingRating(null);
+    if (a) router.push(`/rating?rideId=${a.rideId}&passengerId=${a.passengerId ?? ''}` as Href);
   }
 
   const PHASE_UI = {
@@ -111,13 +151,13 @@ export default function HomeScreen() {
       </MapBoundary>
 
       {/* الشريط العلوي: الهوية + حالة الاتصال + مفتاح التبديل (يسار) */}
-      {/* elevation/zIndex ضروريّان: بدونهما تمرّ اللمسات إلى خريطة Mapbox الأصلية (native)
-          تحتها فلا يستجيب زرّ الجرس على أندرويد. */}
+      {/* بدون box-none: يجب أن يكون الشريط طبقة لمس صلبة تلتقط اللمسة قبل خريطة
+          Mapbox الأصلية تحته، وإلا تسرّبت لمسة الجرس (JS) للخريطة فتُكبّرها على أندرويد.
+          الشريط رفيع في الأعلى فلا يُعيق تحريك الخريطة عمليًّا. */}
       <SafeAreaView
         edges={['top']}
         className="absolute inset-x-0 top-0"
         style={{ zIndex: 20, elevation: 20 }}
-        pointerEvents="box-none"
       >
         <View
           className="mx-4 mt-2 flex-row items-center justify-between rounded-2xl bg-white/95 px-4 py-3 shadow-md dark:bg-neutral-900/95"
@@ -134,18 +174,20 @@ export default function HomeScreen() {
           <View className="flex-row items-center gap-3">
             {busy && <ActivityIndicator size="small" color={driverNavy[500]} />}
             <Switch
-              value={online}
+              value={active ? true : online}
               onValueChange={(v) => {
-                if (!busy) void setOnline(v);
+                if (!busy && !active) void setOnline(v);
               }}
-              disabled={busy}
+              disabled={busy || !!active}
               trackColor={{ false: '#d1d5db', true: '#16a34a' }}
               thumbColor="#ffffff"
               ios_backgroundColor="#d1d5db"
             />
             <Pressable
               onPress={() => router.push('/notifications' as Href)}
-              className="relative h-9 w-9 items-center justify-center rounded-full active:bg-neutral-200/60 dark:active:bg-neutral-700/60"
+              hitSlop={8}
+              style={{ elevation: 24, zIndex: 24 }}
+              className="relative h-9 w-9 items-center justify-center rounded-full bg-brand-50 active:bg-neutral-200 dark:bg-brand-900/40 dark:active:bg-neutral-700"
             >
               <MaterialIcons name="notifications-none" size={24} color={driverNavy[600]} />
               {unread > 0 ? (
@@ -153,6 +195,13 @@ export default function HomeScreen() {
                   <Text className="font-plex-bold text-[9px] text-white">{unread > 9 ? '9+' : unread}</Text>
                 </View>
               ) : null}
+            </Pressable>
+            <Pressable
+              onPress={() => router.push('/(tabs)/account' as Href)}
+              style={{ elevation: 24, zIndex: 24 }}
+              className="h-9 w-9 items-center justify-center rounded-full bg-brand-50 active:bg-neutral-200/60 dark:bg-brand-900/40"
+            >
+              <MaterialIcons name="person" size={20} color={driverNavy[600]} />
             </Pressable>
           </View>
         </View>
@@ -163,7 +212,7 @@ export default function HomeScreen() {
         onPress={() => mapRef.current?.recenter()}
         style={{ elevation: 12, zIndex: 12 }}
         className={`absolute right-5 h-12 w-12 items-center justify-center rounded-full bg-white shadow-md active:scale-95 dark:bg-neutral-800 ${
-          active || request ? 'bottom-52' : 'bottom-8'
+          active || request || awaitingRating?.paid ? 'bottom-52' : 'bottom-8'
         }`}
       >
         <MaterialIcons name="my-location" size={22} color={driverNavy[600]} />
@@ -180,12 +229,24 @@ export default function HomeScreen() {
               {active.priceEstimate != null ? `${active.priceEstimate} ر.س` : ''}
             </Text>
           </View>
-          <View className="mb-4 flex-row items-center gap-2">
+          <View className="mb-3 flex-row items-center gap-2">
             <MaterialIcons name="route" size={18} color={driverNavy[500]} />
             <Text className="font-plex text-sm text-neutral-600 dark:text-neutral-300">
               {phase && PHASE_UI[phase].hint ? PHASE_UI[phase].hint : `المسافة ${rideKm(active)}`}
             </Text>
           </View>
+          {/* مراسلة الراكبة */}
+          <Pressable
+            onPress={() =>
+              router.push(
+                `/chat?rideId=${active.id}&name=${encodeURIComponent(active.passengerName ?? 'الراكبة')}` as Href,
+              )
+            }
+            className="mb-3 h-11 flex-row items-center justify-center gap-2 rounded-xl border border-brand-200 active:scale-[0.98] dark:border-brand-800"
+          >
+            <MaterialIcons name="chat-bubble-outline" size={18} color={driverNavy[600]} />
+            <Text className="font-plex-medium text-sm text-brand-700 dark:text-brand-300">مراسلة الراكبة</Text>
+          </Pressable>
           {phase ? (
             <Pressable
               onPress={() => void PHASE_UI[phase].run()}
@@ -202,6 +263,29 @@ export default function HomeScreen() {
               )}
             </Pressable>
           ) : null}
+        </View>
+      ) : awaitingRating?.paid ? (
+        /* بطاقة تقييم الراكبة بعد اكتمال الدفع */
+        <View className="absolute inset-x-0 bottom-0 rounded-t-3xl bg-white px-5 pb-8 pt-4 shadow-2xl dark:bg-neutral-800">
+          <View className="mb-1 flex-row items-center justify-between">
+            <View className="flex-row items-center gap-2">
+              <MaterialIcons name="check-circle" size={22} color="#16a34a" />
+              <Text className="font-plex-bold text-lg text-neutral-900 dark:text-neutral-50">اكتمل الدفع</Text>
+            </View>
+            <Pressable onPress={() => setAwaitingRating(null)} className="h-8 w-8 items-center justify-center rounded-full">
+              <MaterialIcons name="close" size={20} color="#9ca3af" />
+            </Pressable>
+          </View>
+          <Text className="mb-4 font-plex text-sm text-neutral-500 dark:text-neutral-300">
+            قيّمي راكبتك {awaitingRating.passengerName ?? ''}
+          </Text>
+          <Pressable
+            onPress={openPassengerRating}
+            className="h-14 flex-row items-center justify-center gap-2 rounded-2xl bg-brand-700 active:scale-[0.98] dark:bg-brand-600"
+          >
+            <MaterialIcons name="rate-review" size={22} color="#ffffff" />
+            <Text className="font-plex-bold text-lg text-white">تقييم الراكبة</Text>
+          </Pressable>
         </View>
       ) : request ? (
         /* بطاقة طلب رحلة جديد */

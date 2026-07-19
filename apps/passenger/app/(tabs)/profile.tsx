@@ -1,11 +1,13 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { router, useFocusEffect, type Href } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { passengerPurple } from '@amana/shared-ui/tokens';
 import { supabase } from '@/lib/supabase';
 import { getMyProfile, type MyProfile } from '@/lib/account';
+import { pickAndUploadAvatar, type AvatarSource } from '@/lib/avatar';
+import { notify } from '@/lib/toast';
 
 /**
  * شاشة «الملف الشخصي» — بيانات حقيقية للراكبة (الاسم/البريد/تاريخ الانضمام +
@@ -59,6 +61,9 @@ function joinedLabel(iso: string | null): string {
 export default function ProfileScreen() {
   const [profile, setProfile] = useState<MyProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  // الصورة المرفوعة حديثًا (تتجاوز صورة الملف حتى إعادة الجلب).
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   // يُعاد الجلب عند كل دخول للشاشة (كي تُحدَّث الإحصاءات بعد رحلة جديدة).
   useFocusEffect(
@@ -67,6 +72,7 @@ export default function ProfileScreen() {
       getMyProfile().then((p) => {
         if (!alive) return;
         setProfile(p);
+        setAvatarUrl(p?.avatarUrl ?? null);
         setLoading(false);
       });
       return () => {
@@ -76,6 +82,30 @@ export default function ProfileScreen() {
   );
 
   const initials = (profile?.fullName ?? '؟').trim().charAt(0);
+
+  async function uploadAvatar(source: AvatarSource) {
+    const { data } = await supabase.auth.getUser();
+    if (!data.user) return;
+    setUploadingAvatar(true);
+    const res = await pickAndUploadAvatar(data.user.id, source);
+    setUploadingAvatar(false);
+    if (res.cancelled) return;
+    if (!res.ok) {
+      notify.error(res.message ?? 'تعذّر تحديث الصورة');
+      return;
+    }
+    setAvatarUrl(res.url ?? null);
+    notify.success('تم تحديث الصورة');
+  }
+
+  function chooseAvatar() {
+    if (uploadingAvatar) return;
+    Alert.alert('تغيير الصورة', 'اختاري مصدر الصورة', [
+      { text: 'الكاميرا', onPress: () => void uploadAvatar('camera') },
+      { text: 'المعرض', onPress: () => void uploadAvatar('library') },
+      { text: 'إلغاء', style: 'cancel' },
+    ]);
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-900" edges={['top']}>
@@ -103,17 +133,26 @@ export default function ProfileScreen() {
         >
           {/* رأس الملف الشخصي */}
           <View className="mb-6 items-center">
-            <View className="mb-4">
+            <Pressable className="mb-4" onPress={chooseAvatar}>
               <View className="h-28 w-28 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-brand-100 shadow-lg dark:border-neutral-800 dark:bg-brand-900/50">
-                {profile?.avatarUrl ? (
-                  <Image source={{ uri: profile.avatarUrl }} className="h-full w-full" resizeMode="cover" />
+                {avatarUrl ? (
+                  <Image source={{ uri: avatarUrl }} className="h-full w-full" resizeMode="cover" />
                 ) : (
                   <Text className="font-plex-bold text-4xl text-brand-700 dark:text-brand-200">
                     {initials}
                   </Text>
                 )}
+                {uploadingAvatar ? (
+                  <View className="absolute inset-0 items-center justify-center bg-black/40">
+                    <ActivityIndicator color="#ffffff" />
+                  </View>
+                ) : null}
               </View>
-            </View>
+              {/* شارة الكاميرا */}
+              <View className="absolute bottom-0 right-0 h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-brand-600 dark:border-neutral-800">
+                <MaterialIcons name="photo-camera" size={18} color="#ffffff" />
+              </View>
+            </Pressable>
             <Text className="mb-1 font-plex-semibold text-xl text-neutral-900 dark:text-neutral-50">
               {profile?.fullName ?? 'راكبة أمانة'}
             </Text>
