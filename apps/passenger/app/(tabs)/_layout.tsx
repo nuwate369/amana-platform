@@ -3,7 +3,9 @@ import { Tabs } from 'expo-router';
 import { passengerPurple } from '@amana/shared-ui/tokens';
 
 /**
- * مجموعة التبويبات السفلية للراكبة — أربعة تبويبات رئيسية.
+ * مجموعة التبويبات السفلية للراكبة — تبويبان ظاهران (الرئيسية، رحلاتي).
+ * «الإشعارات» و«حسابي» مسجَّلتان كمسارات لكنهما مخفيّتان من الشريط السفلي
+ * (href: null) لأنهما تُفتحان من الشريط العلوي في الرئيسية — تفاديًا للتكرار.
  * اللون النشط أرجواني العلامة، غير النشط رمادي محايد، والخط IBM Plex Sans Arabic.
  */
 export default function TabsLayout() {
@@ -37,24 +39,9 @@ export default function TabsLayout() {
           ),
         }}
       />
-      <Tabs.Screen
-        name="notifications"
-        options={{
-          title: 'الإشعارات',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="notifications" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'حسابي',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="person" size={size} color={color} />
-          ),
-        }}
-      />
+      {/* مخفيّة من الشريط السفلي (href: null) — تُفتح من الشريط العلوي في الرئيسية */}
+      <Tabs.Screen name="notifications" options={{ href: null, title: 'الإشعارات' }} />
+      <Tabs.Screen name="profile" options={{ href: null, title: 'حسابي' }} />
     </Tabs>
   );
 }

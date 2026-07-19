@@ -5,6 +5,12 @@ import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'rea
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { passengerPurple } from '@amana/shared-ui/tokens';
 import { AmanaMap, type AmanaMapHandle, type MapMarker } from '@amana/shared-ui/MapView';
+import {
+  RIDE_CLASSES,
+  DEFAULT_RIDE_CLASS,
+  getRideClass,
+  type RideClassId,
+} from '@amana/shared-types';
 import { createRide, estimatePrice, haversineKm, type Coord } from '@/lib/rides';
 
 /**
@@ -14,26 +20,21 @@ import { createRide, estimatePrice, haversineKm, type Coord } from '@/lib/rides'
  * الهوية أرجوانية (لوحة الراكبة) وخط IBM Plex Sans Arabic.
  */
 
-type RideType = {
-  id: string;
-  icon: keyof typeof MaterialIcons.glyphMap;
-  title: string;
-  subtitle: string;
-  multiplier: number;
+/** أيقونات الفئات — خاصّة بواجهة الراكبة؛ التسميات والمعاملات من المصدر المشترك. */
+const CLASS_ICONS: Record<RideClassId, keyof typeof MaterialIcons.glyphMap> = {
+  standard: 'directions-car',
+  premium: 'local-taxi',
+  group: 'airport-shuttle',
 };
-
-const RIDE_TYPES: RideType[] = [
-  { id: 'standard', icon: 'directions-car', title: 'أمانة أساسية', subtitle: 'سيارة مريحة وحديثة', multiplier: 1 },
-  { id: 'premium', icon: 'local-taxi', title: 'أمانة فخمة', subtitle: 'خدمة راقية وسيارات فارهة', multiplier: 1.8 },
-  { id: 'group', icon: 'airport-shuttle', title: 'مجموعة نقل', subtitle: 'تتسع حتى ٦ أشخاص', multiplier: 1.5 },
-];
 
 export default function RequestRideScreen() {
   const mapRef = useRef<AmanaMapHandle>(null);
   const [pickup, setPickup] = useState<Coord | null>(null);
   const [dropoff, setDropoff] = useState<Coord | null>(null);
-  const [selected, setSelected] = useState('standard');
+  const [selected, setSelected] = useState<RideClassId>(DEFAULT_RIDE_CLASS);
   const [busy, setBusy] = useState(false);
+  // طلب سائقة بدون تحديد وجهة (تُحدَّد أثناء الرحلة؛ الأجرة بالعدّاد لاحقًا).
+  const [noDestination, setNoDestination] = useState(false);
 
   const km = useMemo(
     () => (pickup && dropoff ? haversineKm(pickup, dropoff) : 0),
@@ -47,16 +48,17 @@ export default function RequestRideScreen() {
     return m;
   }, [pickup, dropoff]);
 
-  const ready = Boolean(pickup && dropoff) && !busy;
+  const ready = Boolean(pickup && (dropoff || noDestination)) && !busy;
 
   async function onRequest() {
-    if (!pickup || !dropoff || busy) return;
-    const type = RIDE_TYPES.find((t) => t.id === selected) ?? RIDE_TYPES[0];
+    if (!pickup || (!dropoff && !noDestination) || busy) return;
+    const cls = getRideClass(selected);
     setBusy(true);
     const res = await createRide({
       pickup,
-      dropoff,
-      priceEstimate: estimatePrice(km, type.multiplier),
+      dropoff: noDestination ? null : dropoff,
+      priceEstimate: noDestination ? null : estimatePrice(km, cls.multiplier),
+      requestedClass: selected,
     });
     setBusy(false);
     if ('error' in res) {
@@ -125,6 +127,27 @@ export default function RequestRideScreen() {
 
       {/* بطاقة أنواع الرحلات + زر الطلب */}
       <View className="rounded-t-3xl bg-white px-5 pb-8 pt-4 shadow-lg dark:bg-neutral-800">
+        {/* طلب بدون تحديد وجهة */}
+        <Pressable
+          onPress={() => setNoDestination((v) => !v)}
+          className="mb-3 flex-row items-center justify-between rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 dark:border-neutral-700 dark:bg-neutral-900"
+        >
+          <View className="flex-row items-center gap-2">
+            <MaterialIcons name="location-off" size={20} color={passengerPurple[600]} />
+            <View>
+              <Text className="font-plex-medium text-sm text-neutral-800 dark:text-neutral-100">بدون تحديد وجهة</Text>
+              <Text className="font-plex text-[11px] text-neutral-400">تحدّدينها مع السائقة أثناء الرحلة</Text>
+            </View>
+          </View>
+          <View
+            className={`h-6 w-11 flex-row items-center rounded-full px-0.5 ${
+              noDestination ? 'justify-end bg-brand-600' : 'justify-start bg-neutral-300 dark:bg-neutral-600'
+            }`}
+          >
+            <View className="h-5 w-5 rounded-full bg-white" />
+          </View>
+        </Pressable>
+
         <ScrollView
           className="max-h-64"
           contentContainerStyle={{ paddingBottom: 8 }}
@@ -132,7 +155,7 @@ export default function RequestRideScreen() {
         >
           <Text className="mb-3 font-plex-semibold text-lg text-neutral-900 dark:text-neutral-50">اختاري نوع الرحلة</Text>
           <View className="gap-2.5">
-            {RIDE_TYPES.map((option) => {
+            {RIDE_CLASSES.map((option) => {
               const isActive = selected === option.id;
               const price = km > 0 ? `${estimatePrice(km, option.multiplier)} ر.س` : '—';
               return (
@@ -147,13 +170,13 @@ export default function RequestRideScreen() {
                 >
                   <View className="flex-row items-center gap-3">
                     <View className="h-11 w-14 items-center justify-center rounded-lg bg-neutral-100 dark:bg-neutral-700">
-                      <MaterialIcons name={option.icon} size={24} color={passengerPurple[700]} />
+                      <MaterialIcons name={CLASS_ICONS[option.id]} size={24} color={passengerPurple[700]} />
                     </View>
                     <View>
                       <Text className="font-plex-semibold text-base text-neutral-900 dark:text-neutral-50">
-                        {option.title}
+                        {option.labelAr}
                       </Text>
-                      <Text className="font-plex text-xs text-neutral-500 dark:text-neutral-400">{option.subtitle}</Text>
+                      <Text className="font-plex text-xs text-neutral-500 dark:text-neutral-400">{option.subtitleAr}</Text>
                     </View>
                   </View>
                   <Text className="font-plex-semibold text-base text-brand-700 dark:text-brand-300">{price}</Text>
@@ -175,9 +198,9 @@ export default function RequestRideScreen() {
           ) : (
             <>
               <Text className="font-plex-semibold text-xl text-white">
-                {dropoff ? 'اطلبي الرحلة' : 'حدّدي وجهتك أولًا'}
+                {dropoff || noDestination ? 'اطلبي الرحلة' : 'حدّدي وجهتك أولًا'}
               </Text>
-              {dropoff && <MaterialIcons name="chevron-left" size={22} color="#ffffff" />}
+              {(dropoff || noDestination) && <MaterialIcons name="chevron-left" size={22} color="#ffffff" />}
             </>
           )}
         </Pressable>

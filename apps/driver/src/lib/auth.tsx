@@ -23,6 +23,7 @@ export interface DriverRecord {
   car_photo_url: string | null;
   // الحقول النصية — تُستخدم لإعادة تعبئة النموذج بعد رفض سابق.
   national_id_number: string | null;
+  vehicle_class: string | null;
   vehicle_make: string | null;
   vehicle_model: string | null;
   vehicle_year: number | null;
@@ -64,7 +65,7 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 const DRIVER_COLUMNS =
   'id, status, national_id_url, license_url, vehicle_registration_url, car_photo_url, ' +
-  'national_id_number, vehicle_make, vehicle_model, vehicle_year, vehicle_plate, vehicle_registration_number, ' +
+  'national_id_number, vehicle_class, vehicle_make, vehicle_model, vehicle_year, vehicle_plate, vehicle_registration_number, ' +
   'rejection_reason, kyc_submitted_at';
 
 /**

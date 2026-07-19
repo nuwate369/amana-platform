@@ -3,7 +3,16 @@ import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { signInSchema, type SignInInput, translateError } from '@amana/shared-ui/validation';
 import { supabase } from '@/lib/supabase';
@@ -50,7 +59,16 @@ export default function SignInScreen() {
       {/* Decorative Blob */}
       <View className="absolute top-[-10%] left-[-10%] w-[120%] h-[40%] bg-brand-100 dark:bg-brand-800 rounded-b-full opacity-60" />
 
-      <View className="flex-1 justify-center px-6">
+      <KeyboardAvoidingView
+        className="flex-1"
+        behavior="padding"
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 24}
+      >
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24 }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
         {/* Header Area */}
         <View className="items-center mb-8">
           <Text className="text-4xl font-plex-bold text-brand-700 dark:text-brand-100 mb-6">
@@ -164,7 +182,8 @@ export default function SignInScreen() {
             </Link>
           </View>
         </View>
-      </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

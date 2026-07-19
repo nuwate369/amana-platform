@@ -13,9 +13,13 @@ export interface Coord {
 export interface RideDraft {
   pickup: Coord;
   pickupAddress?: string | null;
-  dropoff: Coord;
+  /** الوجهة — اختيارية: null عند «طلب بدون تحديد وجهة» (تُحدَّد في الطريق). */
+  dropoff?: Coord | null;
   dropoffAddress?: string | null;
-  priceEstimate: number;
+  /** التقدير — null عند غياب الوجهة (الأجرة تُحسب لاحقًا). */
+  priceEstimate: number | null;
+  /** فئة المركبة التي اختارتها الراكبة (standard | premium | group). */
+  requestedClass?: string | null;
 }
 
 /** تسعير مبسّط: أجرة أساس + سعر لكل كيلومتر (قابل للضبط لاحقًا من إعدادات المنصّة). */
@@ -79,10 +83,11 @@ export async function createRide(d: RideDraft): Promise<CreateRideResult> {
       pickup_lat: d.pickup.latitude,
       pickup_lng: d.pickup.longitude,
       pickup_address: d.pickupAddress ?? null,
-      dropoff_lat: d.dropoff.latitude,
-      dropoff_lng: d.dropoff.longitude,
+      dropoff_lat: d.dropoff?.latitude ?? null,
+      dropoff_lng: d.dropoff?.longitude ?? null,
       dropoff_address: d.dropoffAddress ?? null,
       price_estimate: d.priceEstimate,
+      requested_class: d.requestedClass ?? null,
     })
     .select('id')
     .single();

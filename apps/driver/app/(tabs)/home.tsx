@@ -5,6 +5,7 @@ import { ActivityIndicator, Pressable, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { driverNavy } from '@amana/shared-ui/tokens';
 import { AmanaMap, type AmanaMapHandle, type MapMarker } from '@amana/shared-ui/MapView';
+import { rideClassLabel } from '@amana/shared-types';
 import { usePresence } from '@/lib/presence';
 import { useNotifications } from '@/lib/notifications';
 import { useDriverRides, type Coord, type DriverRide } from '@/lib/driver-rides';
@@ -59,17 +60,28 @@ export default function HomeScreen() {
         ? 'start'
         : 'arrive';
 
+  // إنهاء الرحلة ثم الانتقال لتقييم الراكبة (نلتقط المعرّفات قبل أن تُصفَّر الرحلة النشطة).
+  async function handleComplete() {
+    if (!active) return;
+    const rideId = active.id;
+    const passengerId = active.passengerId;
+    await completeRide();
+    if (passengerId) {
+      router.push(`/rating?rideId=${rideId}&passengerId=${passengerId}` as Href);
+    }
+  }
+
   const PHASE_UI = {
     arrive: { label: 'وصلت لنقطة الالتقاط', hint: 'توجّهي إلى نقطة الالتقاط', icon: 'my-location' as const, cls: 'bg-brand-700 dark:bg-brand-600', run: markArrived },
     start: { label: 'بدء الرحلة', hint: 'بانتظار ركوب الراكبة', icon: 'play-arrow' as const, cls: 'bg-brand-700 dark:bg-brand-600', run: startRide },
-    complete: { label: 'إنهاء الرحلة', hint: '', icon: 'flag' as const, cls: 'bg-green-600', run: completeRide },
+    complete: { label: 'إنهاء الرحلة', hint: '', icon: 'flag' as const, cls: 'bg-green-600', run: handleComplete },
   };
 
   const markers = useMemo<MapMarker[]>(() => {
     if (!target) return [];
     const m: MapMarker[] = [];
-    if (target.pickup) m.push({ id: 'pickup', ...target.pickup, color: '#16a34a' });
-    if (target.dropoff) m.push({ id: 'dropoff', ...target.dropoff, color: '#dc2626' });
+    if (target.pickup) m.push({ id: 'pickup', ...target.pickup, color: '#16a34a', kind: 'pickup' });
+    if (target.dropoff) m.push({ id: 'dropoff', ...target.dropoff, color: '#dc2626', kind: 'dropoff' });
     return m;
   }, [target]);
 
@@ -88,7 +100,14 @@ export default function HomeScreen() {
   return (
     <View className="flex-1">
       <MapBoundary fallback={mapFallback}>
-        <AmanaMap ref={mapRef} style={{ flex: 1 }} showUserLocation markers={markers} />
+        <AmanaMap
+          ref={mapRef}
+          style={{ flex: 1 }}
+          showUserLocation
+          markers={markers}
+          routeFrom={target?.pickup ?? null}
+          routeTo={target?.dropoff ?? null}
+        />
       </MapBoundary>
 
       {/* الشريط العلوي: الهوية + حالة الاتصال + مفتاح التبديل (يسار) */}
@@ -187,13 +206,22 @@ export default function HomeScreen() {
       ) : request ? (
         /* بطاقة طلب رحلة جديد */
         <View className="absolute inset-x-0 bottom-0 rounded-t-3xl bg-white px-5 pb-8 pt-4 shadow-2xl dark:bg-neutral-800">
-          <View className="mb-1 flex-row items-center gap-2">
-            <View className="h-2.5 w-2.5 rounded-full bg-green-500" />
-            <Text className="font-plex-bold text-lg text-neutral-900 dark:text-neutral-50">طلب رحلة جديد</Text>
+          <View className="mb-1 flex-row items-center justify-between">
+            <View className="flex-row items-center gap-2">
+              <View className="h-2.5 w-2.5 rounded-full bg-green-500" />
+              <Text className="font-plex-bold text-lg text-neutral-900 dark:text-neutral-50">طلب رحلة جديد</Text>
+            </View>
+            {request.requestedClass ? (
+              <View className="rounded-full bg-brand-100 px-2.5 py-1 dark:bg-brand-900/40">
+                <Text className="font-plex-medium text-xs text-brand-700 dark:text-brand-300">
+                  {rideClassLabel(request.requestedClass)}
+                </Text>
+              </View>
+            ) : null}
           </View>
           <View className="mb-4 flex-row items-center justify-between">
             <Text className="font-plex text-sm text-neutral-600 dark:text-neutral-300">
-              {request.passengerName ?? 'راكبة'} · {rideKm(request)}
+              {request.passengerName ?? 'راكبة'} · {request.dropoff ? rideKm(request) : 'بدون وجهة محدّدة'}
             </Text>
             <Text className="font-plex-semibold text-base text-brand-700 dark:text-brand-300">
               {request.priceEstimate != null ? `${request.priceEstimate} ر.س` : ''}

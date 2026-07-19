@@ -44,6 +44,8 @@ export interface MapMarker {
   longitude: number;
   /** لون العلامة (افتراضي: كحليّ أمانة). */
   color?: string;
+  /** نوع العلامة — يحدّد شكلها (سائقة = أيقونة سيارة، انطلاق/وجهة = دبوس). */
+  kind?: 'driver' | 'pickup' | 'dropoff';
 }
 
 export interface AmanaMapProps {
@@ -62,6 +64,10 @@ export interface AmanaMapProps {
   onUserLocation?: (coord: { latitude: number; longitude: number }) => void;
   /** يُستدعى عند الضغط على الخريطة (لتحديد الوجهة مثلًا). */
   onMapPress?: (coord: { latitude: number; longitude: number }) => void;
+  /** بداية مسار الطريق (يُرسَم خطًّا يتبع الطرق عبر Mapbox Directions). */
+  routeFrom?: { latitude: number; longitude: number } | null;
+  /** نهاية مسار الطريق. */
+  routeTo?: { latitude: number; longitude: number } | null;
 }
 
 /** مقبض تحكّم أمريّ (إعادة التمركز على موقع المستخدم). */
@@ -74,11 +80,14 @@ const DEFAULT_CENTER = { latitude: 24.7136, longitude: 46.6753 };
 const BRAND_NAVY = '#254594';
 
 export const AmanaMap = forwardRef<AmanaMapHandle, AmanaMapProps>(function AmanaMap(
-  { style, markers = [], showUserLocation = true, followUser = false, initialCenter, zoom = 13, onUserLocation, onMapPress },
+  { style, markers = [], showUserLocation = true, followUser = false, initialCenter, zoom = 13, onUserLocation, onMapPress, routeFrom, routeTo },
   ref,
 ) {
   const [perm, setPerm] = useState<'unknown' | 'granted' | 'denied'>('unknown');
   const [userCoord, setUserCoord] = useState<{ latitude: number; longitude: number } | null>(null);
+  // هندسة مسار الطريق (GeoJSON LineString) من Mapbox Directions.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [routeGeo, setRouteGeo] = useState<any>(null);
   // كاميرا Mapbox تُحمّل شرطيًّا؛ نوعها any مقبول هنا (المرجع اختياريّ).
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const cameraRef = useRef<any>(null);
@@ -125,6 +134,32 @@ export const AmanaMap = forwardRef<AmanaMapHandle, AmanaMapProps>(function Amana
       active = false;
     };
   }, [onUserLocation]);
+
+  // جلب مسار الطريق (يتبع الشوارع) عبر Mapbox Directions ورسمه خطًّا على الخريطة.
+  useEffect(() => {
+    if (!Mapbox || !MAPBOX_TOKEN || !routeFrom || !routeTo) {
+      setRouteGeo(null);
+      return;
+    }
+    let active = true;
+    const url =
+      `https://api.mapbox.com/directions/v5/mapbox/driving/` +
+      `${routeFrom.longitude},${routeFrom.latitude};${routeTo.longitude},${routeTo.latitude}` +
+      `?geometries=geojson&overview=full&access_token=${MAPBOX_TOKEN}`;
+    fetch(url)
+      .then((r) => r.json())
+      .then((d) => {
+        if (!active) return;
+        const g = d?.routes?.[0]?.geometry;
+        setRouteGeo(g ?? null);
+      })
+      .catch(() => {
+        if (active) setRouteGeo(null);
+      });
+    return () => {
+      active = false;
+    };
+  }, [routeFrom?.latitude, routeFrom?.longitude, routeTo?.latitude, routeTo?.longitude]);
 
   // بديل نظيف: الخريطة تتطلّب Dev Build (Expo Go لا يدعم الوحدة الأصلية).
   if (!Mapbox) {
@@ -185,9 +220,27 @@ export const AmanaMap = forwardRef<AmanaMapHandle, AmanaMapProps>(function Amana
         {showUserLocation && perm === 'granted' ? (
           <Mapbox.UserLocation visible androidRenderMode="normal" />
         ) : null}
+        {routeGeo ? (
+          <Mapbox.ShapeSource id="amana-route" shape={{ type: 'Feature', geometry: routeGeo, properties: {} }}>
+            <Mapbox.LineLayer
+              id="amana-route-casing"
+              style={{ lineColor: '#ffffff', lineWidth: 7, lineCap: 'round', lineJoin: 'round', lineOpacity: 0.9 }}
+            />
+            <Mapbox.LineLayer
+              id="amana-route-line"
+              style={{ lineColor: BRAND_NAVY, lineWidth: 4, lineCap: 'round', lineJoin: 'round' }}
+            />
+          </Mapbox.ShapeSource>
+        ) : null}
         {markers.map((m) => (
           <Mapbox.PointAnnotation key={m.id} id={m.id} coordinate={[m.longitude, m.latitude]}>
-            <View style={[styles.marker, { backgroundColor: m.color ?? BRAND_NAVY }]} />
+            {m.kind === 'driver' ? (
+              <View style={styles.driverMarker}>
+                <Text style={styles.driverGlyph}>🚗</Text>
+              </View>
+            ) : (
+              <View style={[styles.pin, { backgroundColor: m.color ?? BRAND_NAVY }]} />
+            )}
           </Mapbox.PointAnnotation>
         ))}
       </Mapbox.MapView>
@@ -211,7 +264,23 @@ const styles = StyleSheet.create({
   container: { flex: 1, overflow: 'hidden' },
   fallback: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, backgroundColor: '#eef1f6' },
   fallbackText: { textAlign: 'center', color: '#5b6472', fontSize: 14, lineHeight: 22 },
-  marker: { width: 18, height: 18, borderRadius: 9, borderWidth: 3, borderColor: '#ffffff' },
+  pin: { width: 18, height: 18, borderRadius: 9, borderWidth: 3, borderColor: '#ffffff' },
+  driverMarker: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#ffffff',
+    borderWidth: 2,
+    borderColor: '#16a34a',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 5,
+  },
+  driverGlyph: { fontSize: 20, lineHeight: 24 },
   permOverlay: { position: 'absolute', bottom: 16, left: 16, right: 16, alignItems: 'center' },
   permCard: {
     backgroundColor: '#ffffff',

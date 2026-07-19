@@ -3,7 +3,16 @@ import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { emailOnlySchema, translateError } from '@amana/shared-ui/validation';
 import { z } from 'zod';
@@ -40,7 +49,17 @@ export default function ForgotPasswordScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-white dark:bg-brand-900">
-      <View className="flex-1 justify-center gap-4 px-6">
+      <KeyboardAvoidingView
+        className="flex-1"
+        behavior="padding"
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 24}
+      >
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24 }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View className="gap-4">
         <Text className="mb-2 text-2xl font-bold text-brand-700 dark:text-brand-100">
           {t('auth.forgotPasswordTitle')}
         </Text>
@@ -83,10 +102,12 @@ export default function ForgotPasswordScreen() {
           </>
         )}
 
-        <Link href="/(auth)/sign-in" className="mt-4 text-center text-brand-500">
-          {t('auth.backToSignIn')}
-        </Link>
-      </View>
+          <Link href="/(auth)/sign-in" className="mt-4 text-center text-brand-500">
+            {t('auth.backToSignIn')}
+          </Link>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

@@ -17,10 +17,13 @@ export interface Coord {
 export interface DriverRide {
   id: string;
   status: string;
+  passengerId: string | null;
   passengerName: string | null;
   pickup: Coord | null;
   dropoff: Coord | null;
   priceEstimate: number | null;
+  /** الفئة التي طلبتها الراكبة (standard | premium | group) — للعرض فقط. */
+  requestedClass: string | null;
   /** وقت وصول السائقة لنقطة الالتقاط (null ⇒ لم تصل بعد). */
   arrivedAt: string | null;
 }
@@ -46,16 +49,18 @@ function toRide(r: any): DriverRide {
   return {
     id: r.id,
     status: r.status,
+    passengerId: r.passenger_id ?? null,
     passengerName: r.passenger_name ?? null,
     pickup: coord(r.pickup_lat, r.pickup_lng),
     dropoff: coord(r.dropoff_lat, r.dropoff_lng),
     priceEstimate: r.price_estimate ?? null,
+    requestedClass: r.requested_class ?? null,
     arrivedAt: r.driver_arrived_at ?? null,
   };
 }
 
 const SELECT =
-  'id, status, passenger_name, pickup_lat, pickup_lng, dropoff_lat, dropoff_lng, price_estimate, driver_id, driver_arrived_at';
+  'id, status, passenger_id, passenger_name, pickup_lat, pickup_lng, dropoff_lat, dropoff_lng, price_estimate, requested_class, driver_id, driver_arrived_at';
 
 export function DriverRidesProvider({ children }: { children: ReactNode }) {
   const [incoming, setIncoming] = useState<DriverRide[]>([]);
@@ -234,4 +239,27 @@ export function useDriverRides(): DriverRidesValue {
   const v = useContext(Ctx);
   if (!v) throw new Error('useDriverRides يجب أن يُستخدم داخل <DriverRidesProvider>.');
   return v;
+}
+
+/**
+ * تقييم السائقة للراكبة بعد إنهاء الرحلة (الاتجاه المعاكس للتقييم).
+ * يكتب صفًّا في جدول `ratings` المتماثل: rater=السائقة، ratee=الراكبة.
+ * سياسة RLS تسمح بالإدراج ما دام rater_id = المستخدم الحالي.
+ */
+export async function ratePassenger(
+  rideId: string,
+  passengerId: string,
+  stars: number,
+  comment: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const { data: u } = await supabase.auth.getUser();
+  if (!u.user) return { ok: false, error: 'يجب تسجيل الدخول.' };
+  const { error } = await supabase.from('ratings').insert({
+    ride_id: rideId,
+    rater_id: u.user.id,
+    ratee_id: passengerId,
+    stars,
+    comment: comment.trim() || null,
+  });
+  return error ? { ok: false, error: error.message } : { ok: true };
 }

@@ -1,5 +1,5 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { router, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect, type Href } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -160,9 +160,14 @@ export default function ProfileScreen() {
             />
             <MenuItem icon="settings" label="الإعدادات" onPress={() => router.push('/settings')} />
             <MenuItem
-              icon="support-agent"
+              icon="notifications"
               label="التنبيهات"
               onPress={() => router.push('/(tabs)/notifications')}
+            />
+            <MenuItem
+              icon="support-agent"
+              label="الدعم الفني"
+              onPress={() => router.push('/support' as Href)}
             />
           </View>
 

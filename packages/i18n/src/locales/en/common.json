@@ -276,16 +276,16 @@
       "title": "Announcement Title",
       "body": "Announcement Body",
       "sendTo": "Send To",
-      "titlePlaceholder": "أدخل عنوان الإشعار",
-      "type": "النوع",
-      "bodyPlaceholder": "اكتب محتوى الإشعار هنا"
+      "titlePlaceholder": "Enter the announcement title",
+      "type": "Type",
+      "bodyPlaceholder": "Write the announcement content here"
     },
     "send": "Send Announcement",
     "recent": "Recent Sent Announcements",
     "table": {
       "date": "Sent Date",
       "target": "Target Audience",
-      "status": "الحالة"
+      "status": "Status"
     },
     "targets": {
       "all": "All Users",
@@ -299,16 +299,16 @@
     "stats": {
       "active": "Active Groups",
       "members": "Total Members",
-      "rides": "Today's Rides"
+      "rides": "Pending Requests"
     },
     "table": {
       "name": "Group Name",
       "region": "Region",
-      "supervisor": "Supervisor",
+      "supervisor": "Owner",
       "members": "Members",
       "rides": "Rides",
       "status": "Status",
-      "actions": "إجراء"
+      "actions": "Action"
     },
     "status": {
       "open": "Open",
@@ -329,9 +329,9 @@
       "type": "Type",
       "status": "Status",
       "actions": "Actions",
-      "answers": "الإجابات",
-      "average": "المتوسط",
-      "lastAnswer": "آخر إجابة"
+      "answers": "Answers",
+      "average": "Average",
+      "lastAnswer": "Last Answer"
     }
   },
   "reports": {
@@ -341,7 +341,7 @@
       "revenue": "Revenue & Finance",
       "performance": "Operational Performance",
       "users": "Users & Growth",
-      "rides": "الرحلات"
+      "rides": "Rides"
     },
     "filters": {
       "fromDate": "From Date",
@@ -372,28 +372,6 @@
     "subtitle": "Adjust base fare and peak multipliers for ride pricing",
     "sections": {
       "baseFare": {
-        "0": "B",
-        "1": "a",
-        "2": "s",
-        "3": "e",
-        "4": " ",
-        "5": "F",
-        "6": "a",
-        "7": "r",
-        "8": "e",
-        "9": " ",
-        "10": "&",
-        "11": " ",
-        "12": "C",
-        "13": "o",
-        "14": "m",
-        "15": "m",
-        "16": "i",
-        "17": "s",
-        "18": "s",
-        "19": "i",
-        "20": "o",
-        "21": "n",
         "title": "Base Fare",
         "basePrice": "Base Fare (SAR)",
         "basePriceHint": "Fixed fee at the start of each ride",

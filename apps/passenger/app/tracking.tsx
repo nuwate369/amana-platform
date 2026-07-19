@@ -2,7 +2,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { passengerPurple } from '@amana/shared-ui/tokens';
 import { AmanaMap, type AmanaMapHandle, type MapMarker } from '@amana/shared-ui/MapView';
 import { supabase } from '@/lib/supabase';
@@ -17,8 +17,11 @@ import { getRide, haversineKm, type RideDetails } from '@/lib/rides';
 export default function TrackingScreen() {
   const { rideId } = useLocalSearchParams<{ rideId?: string }>();
   const mapRef = useRef<AmanaMapHandle>(null);
+  const insets = useSafeAreaInsets();
   const [ride, setRide] = useState<RideDetails | null>(null);
   const [loading, setLoading] = useState(true);
+  // الورقة السفلية قابلة للطيّ (الضغط على المقبض) — لإظهار/إخفاء التفاصيل.
+  const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
     if (!rideId) {
@@ -57,9 +60,9 @@ export default function TrackingScreen() {
   const markers = useMemo<MapMarker[]>(() => {
     if (!ride) return [];
     const m: MapMarker[] = [];
-    if (ride.pickup) m.push({ id: 'pickup', ...ride.pickup, color: passengerPurple[600] });
-    if (ride.dropoff) m.push({ id: 'dropoff', ...ride.dropoff, color: '#dc2626' });
-    if (ride.driver) m.push({ id: 'driver', ...ride.driver, color: '#16a34a' });
+    if (ride.pickup) m.push({ id: 'pickup', ...ride.pickup, color: passengerPurple[600], kind: 'pickup' });
+    if (ride.dropoff) m.push({ id: 'dropoff', ...ride.dropoff, color: '#dc2626', kind: 'dropoff' });
+    if (ride.driver) m.push({ id: 'driver', ...ride.driver, color: '#16a34a', kind: 'driver' });
     return m;
   }, [ride]);
 
@@ -96,7 +99,14 @@ export default function TrackingScreen() {
 
       {/* الخريطة الحيّة */}
       <View className="relative flex-1 overflow-hidden">
-        <AmanaMap ref={mapRef} style={{ flex: 1 }} showUserLocation={false} markers={markers} />
+        <AmanaMap
+          ref={mapRef}
+          style={{ flex: 1 }}
+          showUserLocation={false}
+          markers={markers}
+          routeFrom={ride?.pickup ?? null}
+          routeTo={ride?.dropoff ?? null}
+        />
         <Pressable
           onPress={() => mapRef.current?.recenter()}
           style={{ elevation: 12, zIndex: 12 }}
@@ -114,8 +124,14 @@ export default function TrackingScreen() {
       </View>
 
       {/* الورقة السفلية */}
-      <View className="rounded-t-[32px] bg-white px-5 pb-8 pt-3 shadow-2xl dark:bg-neutral-800">
-        <View className="mx-auto mb-4 h-1 w-10 rounded-full bg-neutral-300 dark:bg-neutral-600" />
+      <View
+        className="rounded-t-[32px] bg-white px-5 pt-2 shadow-2xl dark:bg-neutral-800"
+        style={{ paddingBottom: insets.bottom + 16 }}
+      >
+        {/* المقبض — الضغط عليه يطوي/يوسّع الورقة */}
+        <Pressable onPress={() => setCollapsed((c) => !c)} hitSlop={12} className="items-center py-2">
+          <View className="h-1.5 w-12 rounded-full bg-neutral-300 dark:bg-neutral-600" />
+        </Pressable>
 
         {loading ? (
           <View className="items-center py-10">
@@ -123,6 +139,8 @@ export default function TrackingScreen() {
           </View>
         ) : (
           <>
+            {collapsed ? null : (
+            <>
             {/* حالة الرحلة */}
             <View className="mb-6 flex-row items-start justify-between">
               <View>
@@ -180,7 +198,10 @@ export default function TrackingScreen() {
               </Pressable>
             </View>
 
-            {/* شريط حالة الرحلة (الراكبة تُشاهد فقط — السائقة تقود المراحل) */}
+            </>
+            )}
+
+            {/* شريط حالة الرحلة (يبقى ظاهرًا حتى عند طيّ الورقة) */}
             <View className="mt-4 flex-row items-center justify-center gap-2 rounded-xl bg-brand-50 py-3 dark:bg-brand-900/30">
               <MaterialIcons
                 name={

@@ -17,7 +17,7 @@ import { driverNavy } from '@amana/shared-ui/tokens';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import { notify } from '@/lib/toast';
-import { plateLettersToLatin } from '@amana/shared-types';
+import { plateLettersToLatin, RIDE_CLASSES } from '@amana/shared-types';
 import { SearchableSelect } from '@/components/SearchableSelect';
 import { CAR_MAKE_NAMES, manufactureYears, modelsForMake } from '@/lib/carData';
 import {
@@ -65,6 +65,7 @@ export default function KycScreen() {
   const [values, setValues] = useState<KycFieldValues>(() => ({
     phone: '',
     nationalIdNumber: driver?.national_id_number ?? '',
+    vehicleClass: driver?.vehicle_class ?? '',
     vehicleMake: driver?.vehicle_make ?? '',
     vehicleModel: driver?.vehicle_model ?? '',
     vehicleYear: driver?.vehicle_year ? String(driver.vehicle_year) : '',
@@ -145,6 +146,7 @@ export default function KycScreen() {
   // ===== التحقّق من صحّة الحقول =====
   const phoneValid = SAUDI_PHONE_RE.test(values.phone);
   const nationalIdValid = NATIONAL_ID_RE.test(values.nationalIdNumber);
+  const classValid = RIDE_CLASSES.some((c) => c.id === values.vehicleClass);
   const makeValid = values.vehicleMake.trim().length > 0;
   const modelValid = values.vehicleModel.trim().length > 0;
   const yearValid =
@@ -154,7 +156,7 @@ export default function KycScreen() {
   const plateValid = PLATE_LETTERS_RE.test(plateLetters) && PLATE_DIGITS_RE.test(plateDigits);
   const regValid = values.vehicleRegistrationNumber.trim().length > 0;
   const textComplete =
-    phoneValid && nationalIdValid && makeValid && modelValid && yearValid && plateValid && regValid;
+    phoneValid && nationalIdValid && classValid && makeValid && modelValid && yearValid && plateValid && regValid;
 
   const allUploaded = KYC_DOCS.every((d) => uploaded[d.key]);
   const uploadedCount = KYC_DOCS.filter((d) => uploaded[d.key]).length;
@@ -295,6 +297,45 @@ export default function KycScreen() {
           {/* ===== القسم 2: بيانات المركبة ===== */}
           <SectionTitle index={2} icon="directions-car" title="بيانات المركبة" />
           <View className="mb-6 gap-4">
+            {/* فئة المركبة — تحدّد الفئة التي تظهر لطلبات الراكبة */}
+            <View className="gap-2">
+              <Text className="font-plex-medium text-sm text-neutral-700 dark:text-neutral-200">
+                فئة المركبة
+              </Text>
+              <View className="gap-2">
+                {RIDE_CLASSES.map((c) => {
+                  const selected = values.vehicleClass === c.id;
+                  return (
+                    <Pressable
+                      key={c.id}
+                      onPress={() => setField('vehicleClass', c.id)}
+                      className={`flex-row items-center justify-between rounded-2xl border px-4 py-3 active:scale-[0.99] ${
+                        selected ? 'border-transparent' : 'border-neutral-200 dark:border-neutral-700'
+                      }`}
+                      style={selected ? { backgroundColor: driverNavy[600] } : undefined}
+                    >
+                      <View className="flex-1">
+                        <Text
+                          className={`font-plex-semibold ${selected ? 'text-white' : 'text-neutral-900 dark:text-white'}`}
+                        >
+                          {c.labelAr}
+                        </Text>
+                        <Text
+                          className={`text-xs ${selected ? 'text-white/80' : 'text-neutral-500 dark:text-neutral-400'}`}
+                        >
+                          {c.subtitleAr}
+                        </Text>
+                      </View>
+                      <MaterialIcons
+                        name={selected ? 'radio-button-checked' : 'radio-button-unchecked'}
+                        size={22}
+                        color={selected ? '#ffffff' : '#9ca3af'}
+                      />
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
             <SearchableSelect
               label="الشركة الصانعة"
               icon="directions-car"

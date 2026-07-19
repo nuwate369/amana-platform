@@ -30,6 +30,7 @@ const BUCKET = 'kyc-documents';
 export interface KycFieldValues {
   phone: string;
   nationalIdNumber: string;
+  vehicleClass: string;
   vehicleMake: string;
   vehicleModel: string;
   vehicleYear: string;
@@ -41,6 +42,7 @@ export interface KycFieldValues {
 export const KYC_FIELD_KEYS: (keyof KycFieldValues)[] = [
   'phone',
   'nationalIdNumber',
+  'vehicleClass',
   'vehicleMake',
   'vehicleModel',
   'vehicleYear',
@@ -139,6 +141,7 @@ export async function saveKycFields(
     {
       id: userId,
       national_id_number: values.nationalIdNumber.trim(),
+      vehicle_class: values.vehicleClass || null,
       vehicle_make: values.vehicleMake.trim(),
       vehicle_model: values.vehicleModel.trim(),
       vehicle_year: Number.isFinite(year) ? year : null,

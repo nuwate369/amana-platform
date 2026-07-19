@@ -60,6 +60,7 @@ export default function HomeScreen() {
           <View className="flex-row items-center gap-2">
             <Pressable
               onPress={() => router.push('/(tabs)/notifications')}
+              style={{ elevation: 24 }}
               className="relative h-10 w-10 items-center justify-center rounded-full active:bg-neutral-200/60 dark:active:bg-neutral-700/60"
             >
               <MaterialIcons name="notifications-none" size={24} color={passengerPurple[700]} />
@@ -71,6 +72,7 @@ export default function HomeScreen() {
             </Pressable>
             <Pressable
               onPress={() => router.push('/(tabs)/profile')}
+              style={{ elevation: 24 }}
               className="h-10 w-10 items-center justify-center rounded-full bg-brand-50 active:bg-neutral-200/60 dark:bg-brand-900/40"
             >
               <MaterialIcons name="person" size={22} color={passengerPurple[700]} />

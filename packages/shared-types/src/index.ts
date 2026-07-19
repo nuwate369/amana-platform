@@ -385,3 +385,68 @@ export function formatPlate(plate: string | null | undefined): string {
   const parts = [arabicSpaced, latin, digits].filter(Boolean);
   return parts.join(' · ');
 }
+
+// =============================================================================
+// فئات المركبة/الرحلة — مصدر واحد تستهلكه الراكبة (اختيار الفئة + التسعير)
+// والسائقة (تحديد فئة مركبتها في التوثيق) والإدارة. مخزّنة في:
+//   drivers.vehicle_class   (فئة مركبة السائقة)
+//   rides.requested_class   (الفئة التي طلبتها الراكبة)
+// =============================================================================
+
+/** معرّف فئة المركبة الثابت (يُخزَّن في قاعدة البيانات — لا يُترجم). */
+export type RideClassId = 'standard' | 'premium' | 'group';
+
+/** وصف فئة مركبة/رحلة. `multiplier` مُعامل تقدير السعر (تستخدمه الراكبة فقط). */
+export interface RideClass {
+  id: RideClassId;
+  labelAr: string;
+  labelEn: string;
+  subtitleAr: string;
+  subtitleEn: string;
+  /** مُعامل ضرب السعر التقديري بالنسبة للفئة الأساسية. */
+  multiplier: number;
+}
+
+/** الفئات المعتمدة — مصدر الحقيقة الوحيد لكلا التطبيقين. */
+export const RIDE_CLASSES: RideClass[] = [
+  {
+    id: 'standard',
+    labelAr: 'أمانة أساسية',
+    labelEn: 'Amana Basic',
+    subtitleAr: 'سيارة مريحة وحديثة',
+    subtitleEn: 'A comfortable, modern car',
+    multiplier: 1,
+  },
+  {
+    id: 'premium',
+    labelAr: 'أمانة فخمة',
+    labelEn: 'Amana Premium',
+    subtitleAr: 'خدمة راقية وسيارات فارهة',
+    subtitleEn: 'Premium service, luxury cars',
+    multiplier: 1.8,
+  },
+  {
+    id: 'group',
+    labelAr: 'مجموعة نقل',
+    labelEn: 'Group ride',
+    subtitleAr: 'تتسع حتى ٦ أشخاص',
+    subtitleEn: 'Seats up to 6 people',
+    multiplier: 1.5,
+  },
+];
+
+/** الفئة الافتراضية عند غياب اختيار. */
+export const DEFAULT_RIDE_CLASS: RideClassId = 'standard';
+
+/** بحث عن فئة بمعرّفها (يعيد الأساسية عند غياب المطابقة). */
+export function getRideClass(id: string | null | undefined): RideClass {
+  return RIDE_CLASSES.find((c) => c.id === id) ?? RIDE_CLASSES[0]!;
+}
+
+/** تسمية الفئة حسب اللغة (يعيد "—" إن فرغت). */
+export function rideClassLabel(id: string | null | undefined, locale: AppLocale = 'ar'): string {
+  if (!id) return '—';
+  const cls = RIDE_CLASSES.find((c) => c.id === id);
+  if (!cls) return '—';
+  return locale === 'en' ? cls.labelEn : cls.labelAr;
+}
