@@ -84,5 +84,5 @@ export const palettes = {
 export type AppName = keyof typeof palettes;
 
 /** رموز الحواف والمسافات المشتركة (Voice Design System). */
-export const radii = { sm: 6, md: 10, lg: 16, xl: 22, full: 9999 } as const;
+export const radii = { sm: 8, md: 12, lg: 20, xl: 28, '2xl': 36, '3xl': 48, full: 9999 } as const;
 export const spacing = { xs: 4, sm: 8, md: 16, lg: 24, xl: 32 } as const;

@@ -1,6 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { router, type Href } from 'expo-router';
 import { useRef, useState } from 'react';
+import { LinearGradient } from 'expo-linear-gradient';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -10,8 +11,9 @@ import {
   Text,
   TextInput,
   View,
+  Image,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { passengerPurple } from '@amana/shared-ui/tokens';
 import { askSupportAi } from '@/lib/support';
 
@@ -40,6 +42,7 @@ export default function SupportAiScreen() {
   const [ticketNumber, setTicketNumber] = useState<string | null>(null);
   const scrollRef = useRef<ScrollView>(null);
   const counter = useRef(0);
+  const insets = useSafeAreaInsets();
 
   const nextId = () => `m${counter.current++}`;
   const scrollDown = () => setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 60);
@@ -80,26 +83,41 @@ export default function SupportAiScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-900" edges={['top']}>
-      {/* الشريط العلوي */}
-      <View className="h-16 flex-row items-center justify-between border-b border-neutral-200 px-4 dark:border-neutral-800">
-        <Pressable
-          onPress={() => router.back()}
-          className="h-10 w-10 items-center justify-center rounded-full active:bg-neutral-200 dark:active:bg-neutral-800"
-        >
-          <MaterialIcons name="arrow-forward" size={24} color={passengerPurple[600]} />
-        </Pressable>
-        <View className="flex-row items-center gap-2">
-          <MaterialIcons name="support-agent" size={22} color={passengerPurple[600]} />
-          <Text className="font-plex-bold text-xl text-neutral-900 dark:text-neutral-50">الدعم الفني</Text>
+    <View className="flex-1 bg-neutral-50 dark:bg-neutral-900">
+      {/* الشريط العلوي بالتدرج الأرجواني المنحني */}
+      <LinearGradient
+        colors={[passengerPurple[800], passengerPurple[600]]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={{ paddingTop: insets.top, borderBottomLeftRadius: 36, borderBottomRightRadius: 36 }}
+        className="overflow-hidden pb-6 shadow-lg"
+      >
+        <View className="flex-row items-center justify-between px-5 pt-2">
+          <Pressable
+            onPress={() => router.back()}
+            className="h-10 w-10 items-center justify-center rounded-full bg-white/20 active:bg-white/30"
+          >
+            <MaterialIcons name="arrow-forward" size={24} color="#ffffff" />
+          </Pressable>
+          <Pressable
+            onPress={() => router.push('/support/tickets' as Href)}
+            className="h-9 items-center justify-center rounded-full bg-white/20 px-4 active:bg-white/30"
+          >
+            <Text className="font-plex-medium text-sm text-white">تذاكري</Text>
+          </Pressable>
         </View>
-        <Pressable
-          onPress={() => router.push('/support/tickets' as Href)}
-          className="h-10 items-center justify-center rounded-full px-2"
-        >
-          <Text className="font-plex-medium text-sm text-brand-600 dark:text-brand-300">تذاكري</Text>
-        </Pressable>
-      </View>
+
+        <View className="mt-4 items-center gap-2">
+          <View className="h-16 w-16 items-center justify-center rounded-full bg-white shadow-md">
+            <MaterialIcons name="support-agent" size={32} color={passengerPurple[600]} />
+          </View>
+          <Text className="font-plex-bold text-xl text-white">مساعدة أمانة الذكية</Text>
+          <View className="flex-row items-center gap-1.5 rounded-full bg-white/20 px-3 py-1">
+            <View className="h-2 w-2 rounded-full bg-green-400" />
+            <Text className="font-plex-medium text-xs text-white">متصلة الآن</Text>
+          </View>
+        </View>
+      </LinearGradient>
 
       <KeyboardAvoidingView
         className="flex-1"
@@ -113,25 +131,36 @@ export default function SupportAiScreen() {
           showsVerticalScrollIndicator={false}
           onContentSizeChange={scrollDown}
         >
-          <View className="gap-3">
-            {chat.map((m) => (
-              <View
-                key={m.id}
-                className={`max-w-[85%] rounded-2xl px-4 py-2.5 ${
-                  m.role === 'user'
-                    ? 'self-start bg-brand-700 dark:bg-brand-600'
-                    : 'self-end bg-white dark:bg-neutral-800'
-                }`}
-              >
-                <Text
-                  className={`font-plex text-sm leading-6 ${
-                    m.role === 'user' ? 'text-white' : 'text-neutral-900 dark:text-neutral-50'
+          <View className="gap-4">
+            {chat.map((m) => {
+              const isUser = m.role === 'user';
+              return (
+                <View
+                  key={m.id}
+                  className={`max-w-[85%] rounded-3xl px-5 py-3.5 shadow-sm ${
+                    isUser
+                      ? 'self-start rounded-tr-sm bg-brand-600 dark:bg-brand-700'
+                      : 'self-end rounded-tl-sm bg-white dark:bg-neutral-800'
                   }`}
                 >
-                  {m.content}
-                </Text>
-              </View>
-            ))}
+                  {!isUser && m.id === 'greeting' && (
+                    <View className="mb-2 flex-row items-center gap-1.5 opacity-70">
+                      <MaterialIcons name="auto-awesome" size={14} color={passengerPurple[600]} />
+                      <Text className="font-plex-medium text-[10px] text-brand-700 dark:text-brand-300">
+                        أمانة AI
+                      </Text>
+                    </View>
+                  )}
+                  <Text
+                    className={`font-plex text-sm leading-7 ${
+                      isUser ? 'text-white' : 'text-neutral-700 dark:text-neutral-200'
+                    }`}
+                  >
+                    {m.content}
+                  </Text>
+                </View>
+              );
+            })}
 
             {sending ? (
               <View className="self-end rounded-2xl bg-white px-4 py-3 dark:bg-neutral-800">
@@ -161,11 +190,14 @@ export default function SupportAiScreen() {
         </ScrollView>
 
         {/* حقل الإدخال */}
-        <View className="flex-row items-end gap-2 border-t border-neutral-200 px-4 py-3 dark:border-neutral-800">
-          <View className="max-h-28 flex-1 rounded-2xl border border-neutral-200 bg-white px-4 py-2 dark:border-neutral-700 dark:bg-neutral-800">
+        <View
+          style={{ paddingBottom: Math.max(insets.bottom, 12) }}
+          className="flex-row items-end gap-3 bg-white px-5 pt-3 shadow-[0_-4px_24px_rgba(0,0,0,0.04)] dark:bg-neutral-900"
+        >
+          <View className="max-h-28 flex-1 flex-row items-end rounded-3xl bg-neutral-100 px-2 py-1 dark:bg-neutral-800">
             <TextInput
-              className="font-plex text-base text-neutral-900 dark:text-neutral-50"
-              placeholder="اكتبي رسالتك للمساعِدة..."
+              className="max-h-24 flex-1 px-4 py-3 font-plex text-sm text-neutral-900 dark:text-neutral-50"
+              placeholder="اكتبي سؤالكِ..."
               placeholderTextColor="#9ca3af"
               value={input}
               onChangeText={setInput}
@@ -177,14 +209,14 @@ export default function SupportAiScreen() {
           <Pressable
             onPress={onSend}
             disabled={!input.trim() || sending}
-            className={`h-12 w-12 items-center justify-center rounded-full active:scale-95 ${
-              input.trim() && !sending ? 'bg-brand-700 dark:bg-brand-600' : 'bg-neutral-300 dark:bg-neutral-700'
+            className={`mb-1 h-12 w-12 items-center justify-center rounded-full active:scale-95 ${
+              input.trim() && !sending ? 'bg-brand-600 shadow-md shadow-brand-500/30' : 'bg-neutral-200 dark:bg-neutral-800'
             }`}
           >
-            <MaterialIcons name="send" size={20} color="#ffffff" />
+            <MaterialIcons name="send" size={20} color={input.trim() && !sending ? '#ffffff' : '#9ca3af'} />
           </Pressable>
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }

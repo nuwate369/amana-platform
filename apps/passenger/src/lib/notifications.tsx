@@ -46,12 +46,42 @@ const COLS =
   'id, type, title_ar, title_en, body_ar, body_en, related_entity_type, related_entity_id, is_read, created_at';
 
 export async function listNotifications(): Promise<AppNotification[]> {
-  const { data } = await supabase
-    .from('system_notifications')
-    .select(COLS)
-    .order('created_at', { ascending: false })
-    .limit(50);
-  return (data ?? []).map(toN);
+  const [sysRes, annRes] = await Promise.all([
+    supabase
+      .from('system_notifications')
+      .select(COLS)
+      .order('created_at', { ascending: false })
+      .limit(30),
+    supabase
+      .from('announcements')
+      .select('id, type, title, body, created_at')
+      .eq('status', 'sent')
+      .order('created_at', { ascending: false })
+      .limit(20)
+  ]);
+
+  const sysList = (sysRes.data ?? []).map(toN);
+  
+  // دمج الإعلانات (Announcements) كإشعارات مقروءة مبدئياً
+  // في المستقبل يمكن تخزين حالة قراءتها محلياً (AsyncStorage)
+  const annList: AppNotification[] = (annRes.data ?? []).map((a: any) => ({
+    id: a.id,
+    type: a.type,
+    titleAr: a.title,
+    titleEn: a.title,
+    bodyAr: a.body,
+    bodyEn: a.body,
+    entityType: 'announcement',
+    entityId: a.id,
+    isRead: false, // نعرضها كغير مقروءة دائماً أو يمكن تحسينها لاحقاً
+    createdAt: a.created_at,
+  }));
+
+  const all = [...sysList, ...annList].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+
+  return all;
 }
 
 export async function markRead(id: string): Promise<void> {
@@ -78,11 +108,17 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       setUnread(0);
       return;
     }
-    const { count } = await supabase
+    const { count: sysCount } = await supabase
       .from('system_notifications')
       .select('id', { count: 'exact', head: true })
       .eq('is_read', false);
-    setUnread(count ?? 0);
+      
+    const { count: annCount } = await supabase
+      .from('announcements')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'sent');
+
+    setUnread((sysCount ?? 0) + (annCount ?? 0));
   }, []);
 
   useEffect(() => {

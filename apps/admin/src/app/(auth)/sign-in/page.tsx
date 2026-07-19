@@ -52,7 +52,7 @@ export default function SignInPage() {
     }
 
     notify.success(t('common.success'));
-    router.replace('/');
+    router.replace('/dashboard');
   });
 
   // استرجاع البريد المحفوظ

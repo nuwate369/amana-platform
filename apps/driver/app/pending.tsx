@@ -71,9 +71,7 @@ export default function PendingScreen() {
 
         {/* بطاقات الخطوات */}
         <View className="w-full gap-4">
-          {/* overflow-hidden + شريط كحليّ كطفل بدل border-r على حاوية دائرية
-              (حدٌّ من جهة واحدة مع rounded-xl يُرسَم كقوس لوني كبير يبدو مكسورًا). */}
-          <View className="flex-row items-center gap-3 overflow-hidden rounded-xl bg-white p-4 dark:bg-neutral-800">
+          <View className="flex-row items-center gap-3 overflow-hidden rounded-[24px] bg-white p-5 shadow-sm dark:bg-neutral-800">
             <View className="w-1.5 self-stretch rounded-full bg-brand-600" />
             <View className="h-10 w-10 items-center justify-center rounded-full bg-brand-100 dark:bg-neutral-700">
               <MaterialIcons name="assignment-turned-in" size={22} color={driverNavy[700]} />
@@ -88,9 +86,9 @@ export default function PendingScreen() {
             </View>
           </View>
 
-          <View className="flex-row items-center gap-4 overflow-hidden rounded-xl bg-brand-800 p-4">
-            <View className="h-10 w-10 items-center justify-center rounded-full bg-white">
-              <MaterialIcons name="manage-search" size={22} color={driverNavy[800]} />
+          <View className="flex-row items-center gap-4 overflow-hidden rounded-[24px] bg-brand-800 p-5 shadow-md">
+            <View className="h-10 w-10 items-center justify-center rounded-full bg-white/20">
+              <MaterialIcons name="manage-search" size={22} color="#ffffff" />
             </View>
             <View className="flex-1">
               <Text className="font-plex-semibold text-base text-white">التدقيق الإداري</Text>
@@ -106,7 +104,7 @@ export default function PendingScreen() {
           <Pressable
             onPress={onRefresh}
             disabled={checking}
-            className="h-14 flex-row items-center justify-center gap-2 rounded-xl bg-brand-700 px-8 active:scale-[0.98] dark:bg-brand-600"
+            className="h-14 flex-row items-center justify-center gap-2 rounded-[20px] bg-brand-700 px-8 shadow-sm active:scale-[0.98] dark:bg-brand-600"
           >
             {checking ? (
               <ActivityIndicator color="#ffffff" />

@@ -96,7 +96,7 @@ export default function SupportListScreen() {
                   <Pressable
                     key={tk.id}
                     onPress={() => router.push({ pathname: '/support/[id]', params: { id: tk.id } })}
-                    className="rounded-xl border border-neutral-200 bg-white p-4 active:scale-[0.99] dark:border-neutral-700 dark:bg-neutral-800"
+                    className="rounded-[20px] border border-neutral-200 bg-white p-5 shadow-sm active:scale-[0.99] dark:border-neutral-700 dark:bg-neutral-800"
                   >
                     <View className="flex-row items-center justify-between gap-2">
                       <Text

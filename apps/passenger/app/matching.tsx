@@ -2,7 +2,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef } from 'react';
-import { Animated, Easing, Pressable, Text, View } from 'react-native';
+import { Animated, Easing, Pressable, Text, View, BackHandler, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { passengerPurple } from '@amana/shared-ui/tokens';
 import { supabase } from '@/lib/supabase';
@@ -92,6 +92,20 @@ export default function MatchingScreen() {
     router.replace('/(tabs)/home');
   }
 
+  // اعتراض زر الرجوع (Hardware Back Button) لمنع الراكب من ترك الشاشة والطلب معلّق
+  useEffect(() => {
+    const backAction = () => {
+      Alert.alert('إلغاء الطلب', 'هل أنتِ متأكدة من إلغاء هذا الطلب والعودة للرئيسية؟', [
+        { text: 'تراجع', style: 'cancel' },
+        { text: 'نعم، إلغاء', style: 'destructive', onPress: onCancel },
+      ]);
+      return true; // منع الإجراء الافتراضي (العودة)
+    };
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+    return () => backHandler.remove();
+  }, [rideId]);
+
   return (
     <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-900" edges={['top']}>
       <View className="h-14 flex-row items-center justify-between px-5">
@@ -114,8 +128,8 @@ export default function MatchingScreen() {
           </View>
         </View>
 
-        <View className="absolute bottom-0 left-0 right-0 gap-4 px-5 pb-8">
-          <View className="rounded-2xl border border-white/50 bg-white/95 p-6 shadow-xl dark:border-neutral-700 dark:bg-neutral-800/95">
+        <View className="absolute bottom-0 left-0 right-0 gap-5 px-5 pb-8">
+          <View className="rounded-[32px] border border-white/50 bg-white/95 p-6 shadow-pop dark:border-neutral-700 dark:bg-neutral-800/95">
             <View className="mb-6 flex-row items-center gap-4">
               <LinearGradient
                 colors={[passengerPurple[700], passengerPurple[500]]}
@@ -137,9 +151,9 @@ export default function MatchingScreen() {
             </View>
 
             <View className="mb-6 flex-row items-center gap-2">
-              <View className="h-1.5 flex-1 rounded-full bg-brand-600" />
-              <View className="h-1.5 flex-1 rounded-full bg-brand-300" />
-              <View className="h-1.5 flex-1 rounded-full bg-brand-100 dark:bg-neutral-700" />
+              <View className="h-2 flex-1 rounded-full bg-brand-600" />
+              <View className="h-2 flex-1 rounded-full bg-brand-300" />
+              <View className="h-2 flex-1 rounded-full bg-brand-100 dark:bg-neutral-700" />
             </View>
 
             <View className="flex-row gap-4">
@@ -150,10 +164,10 @@ export default function MatchingScreen() {
 
           <Pressable
             onPress={onCancel}
-            className="h-14 flex-row items-center justify-center gap-2 rounded-xl border border-red-500 active:scale-95 active:bg-red-50 dark:active:bg-red-900/20"
+            className="h-14 flex-row items-center justify-center gap-2 rounded-2xl border-2 border-red-500 bg-white/80 shadow-sm active:scale-95 active:bg-red-50 dark:bg-neutral-900/80 dark:active:bg-red-900/20"
           >
             <MaterialIcons name="close" size={22} color="#ef4444" />
-            <Text className="font-plex-semibold text-base text-red-500">إلغاء الطلب</Text>
+            <Text className="font-plex-bold text-base text-red-500">إلغاء الطلب</Text>
           </Pressable>
         </View>
       </View>
