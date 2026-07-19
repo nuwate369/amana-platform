@@ -375,6 +375,7 @@ function CreateModal({
                 className={fieldCls}
                 value={startsAtDate}
                 onChange={(e) => { setStartsAtDate(e.target.value); setDateError(null); }}
+                min={todayStr}
                 max={expiresAtDate}
               />
             </div>
@@ -385,18 +386,14 @@ function CreateModal({
                 className={fieldCls}
                 value={expiresAtDate}
                 onChange={(e) => { setExpiresAtDate(e.target.value); setDateError(null); }}
-                min={startsAtDate}
+                min={startsAtDate || todayStr}
               />
             </div>
             {dateError && (
               <p className="col-span-2 text-xs text-destructive">{dateError}</p>
             )}
-            {!dateError && (
-              <p className="col-span-2 text-xs text-muted-foreground">
-                {ar ? 'لن يظهر الإشعار للمستخدمين خارج هذا النطاق. الحدّ الأدنى: يوم واحد.' : 'Notification is only shown within this date range. Minimum: 1 day.'}
-              </p>
-            )}
           </div>
+
 
           <div>
             <label className="mb-1 block text-sm text-muted-foreground">{ar ? 'الجمهور' : 'Audience'}</label>
