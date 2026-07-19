@@ -16,7 +16,6 @@ import {
 } from './actions';
 import { FilterToolbar, type FilterConfig, type SortState } from '@/components/ui/FilterToolbar';
 import { DateRangePicker, type DateRange } from '@/components/ui/DateRangePicker';
-import { AnnouncementDateRange, type AnnouncementDateRangeValue } from '@/components/ui/AnnouncementDateRange';
 import { useAuth } from '@/lib/auth';
 import { notify } from '@/lib/toast';
 
@@ -273,17 +272,12 @@ function CreateModal({
   const [audience, setAudience] = useState<AnnouncementAudience>('all');
   const [targetUserId, setTargetUserId] = useState<string | null>(null);
 
-  // نطاق تاريخ البداية والانتهاء — الحدّ الأدنى يوم واحد
-  const defaultStart = new Date();
-  defaultStart.setHours(0, 0, 0, 0);
-  const defaultEnd = new Date(defaultStart);
-  defaultEnd.setDate(defaultEnd.getDate() + 1);
-  defaultEnd.setHours(23, 59, 59, 999);
-  const [dateRange, setDateRange] = useState<AnnouncementDateRangeValue>({
-    startsAt:  defaultStart.toISOString(),
-    expiresAt: defaultEnd.toISOString(),
-  });
-  const [dateError, setDateError] = useState<string | null>(null);
+  // تاريخا البداية والانتهاء — الحدّ الأدنى يوم واحد
+  const todayStr    = new Date().toISOString().split('T')[0];
+  const tomorrowStr = (() => { const d = new Date(); d.setDate(d.getDate()+1); return d.toISOString().split('T')[0]; })();
+  const [startsAtDate,  setStartsAtDate]  = useState(todayStr);
+  const [expiresAtDate, setExpiresAtDate] = useState(tomorrowStr);
+  const [dateError,     setDateError]     = useState<string | null>(null);
 
   const [recipients, setRecipients] = useState<RecipientOption[]>([]);
   const [recipientSearch, setRecipientSearch] = useState('');
@@ -308,17 +302,25 @@ function CreateModal({
 
   async function onSubmit() {
     if (!canSubmit) return;
+    // تحقّق من الحدّ الأدنى
+    const sDate = new Date(startsAtDate);
+    const eDate = new Date(expiresAtDate);
+    eDate.setHours(23,59,59,999);
+    const diffMs = eDate.getTime() - sDate.getTime();
+    if (diffMs < 24*60*60*1000) {
+      setDateError(ar ? 'يجب أن يكون تاريخ الانتهاء بعد البداية بيوم على الأقل.' : 'End date must be at least 1 day after start date.');
+      return;
+    }
+    setDateError(null);
     setSubmitting(true);
     const res = await createAnnouncement({
       title, body, type, audience, targetUserId, createdBy,
-      startsAt:  dateRange.startsAt,
-      expiresAt: dateRange.expiresAt,
+      startsAt:  sDate.toISOString(),
+      expiresAt: eDate.toISOString(),
     });
     setSubmitting(false);
     if (!res.ok) {
-      // تحقق إن كان الخطأ متعلقاً بالتاريخ
-      if (res.error?.includes('يوم')) setDateError(res.error);
-      else notify.error(res.error ?? (ar ? 'تعذّر الإرسال' : 'Failed to send'));
+      notify.error(res.error ?? (ar ? 'تعذّر الإرسال' : 'Failed to send'));
       return;
     }
     notify.success(ar ? 'تم إرسال الإشعار' : 'Notification sent');
@@ -365,17 +367,35 @@ function CreateModal({
             <textarea className={`${fieldCls} resize-none`} rows={4} value={body} onChange={(e) => setBody(e.target.value)} placeholder={ar ? 'اكتب محتوى الإشعار هنا' : 'Write the content here'} />
           </div>
 
-          <div className="relative">
-            <label className="mb-1 block text-sm text-muted-foreground">
-              {ar ? 'مدة ظهور الإشعار' : 'Visibility Period'}
-            </label>
-            <AnnouncementDateRange
-              value={dateRange}
-              onChange={(v) => { setDateRange(v); setDateError(null); }}
-              lang={ar ? 'ar' : 'en'}
-              isRtl={ar}
-              error={dateError}
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-sm text-muted-foreground">{ar ? 'تاريخ البداية' : 'Start date'}</label>
+              <input
+                type="date"
+                className={fieldCls}
+                value={startsAtDate}
+                onChange={(e) => { setStartsAtDate(e.target.value); setDateError(null); }}
+                max={expiresAtDate}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm text-muted-foreground">{ar ? 'تاريخ الانتهاء' : 'End date'}</label>
+              <input
+                type="date"
+                className={fieldCls}
+                value={expiresAtDate}
+                onChange={(e) => { setExpiresAtDate(e.target.value); setDateError(null); }}
+                min={startsAtDate}
+              />
+            </div>
+            {dateError && (
+              <p className="col-span-2 text-xs text-destructive">{dateError}</p>
+            )}
+            {!dateError && (
+              <p className="col-span-2 text-xs text-muted-foreground">
+                {ar ? 'لن يظهر الإشعار للمستخدمين خارج هذا النطاق. الحدّ الأدنى: يوم واحد.' : 'Notification is only shown within this date range. Minimum: 1 day.'}
+              </p>
+            )}
           </div>
 
           <div>
