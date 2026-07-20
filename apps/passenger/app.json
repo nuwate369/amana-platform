@@ -7,9 +7,16 @@
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "icon": "./assets/images/logo-amana.png",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/7a1783e9-7335-4e19-ac70-d7bee695799d",
+      "fallbackToCacheTimeout": 0
+    },
+    "icon": "./assets/images/app-icon.png",
     "splash": {
-      "image": "./assets/images/logo-amana.png",
+      "image": "./assets/images/app-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -19,13 +26,20 @@
     },
     "android": {
       "package": "sa.amana.passenger",
+      "versionCode": 2,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/logo-amana-adaptive.png",
+        "foregroundImage": "./assets/images/app-icon-adaptive.png",
         "backgroundColor": "#ffffff"
       }
     },
     "plugins": [
       "expo-router",
+      [
+        "@amana/expo-plugins/with-release-signing",
+        {
+          "prefix": "AMANA_PASSENGER"
+        }
+      ],
       [
         "expo-location",
         {

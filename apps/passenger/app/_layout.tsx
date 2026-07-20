@@ -12,6 +12,9 @@ import {
   IBMPlexSansArabic_700Bold,
 } from '@expo-google-fonts/ibm-plex-sans-arabic';
 import Toast from 'react-native-toast-message';
+import { UpdateGate } from '@amana/shared-ui/UpdateGate';
+import { passengerPurple } from '@amana/shared-ui/tokens';
+import { supabase } from '@/lib/supabase';
 import { i18n } from '@/lib/i18n';
 import { AuthProvider } from '@/lib/auth';
 import { NotificationsProvider } from '@/lib/notifications';
@@ -65,6 +68,7 @@ export default function RootLayout() {
           <SafeAreaProvider>
             <StatusBar style="auto" />
             <RootNavigator />
+            <UpdateGate app="passenger" supabase={supabase} accent={passengerPurple[600]} />
             <Toast />
           </SafeAreaProvider>
         </NotificationsProvider>

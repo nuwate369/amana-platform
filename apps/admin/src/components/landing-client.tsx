@@ -65,8 +65,8 @@ const STR = {
         { t: 'تقييم مزدوج', d: 'تقييم بعد كلّ رحلة يرفع جودة الخدمة باستمرار.' },
       ],
     },
-    dl: { h: 'جاهزة لرحلتكِ الأولى؟', sub: 'حمّلي تطبيق أمانة الآن وابدئي التنقّل بثقة وطمأنينة. متاح على متجرَي Google Play وApp Store.' },
-    store: { from: 'حمّلي من' },
+    dl: { h: 'جاهزة لرحلتكِ الأولى؟', sub: 'حمّلي تطبيق أمانة الآن وابدئي التنقّل بثقة وطمأنينة.' },
+    store: { hint: 'تحميل مباشر', passenger: 'تطبيق الراكبة', driver: 'تطبيق السائقة', soon: 'قريبًا على' },
     footer: {
       tagline: 'منصّة تنقّل ذكيّة ونسائية مصمّمة للمرأة — رحلتكِ بأمان وراحة.',
       cPlatform: 'المنصّة', cCompany: 'الشركة', cLegal: 'قانونيّ',
@@ -125,8 +125,8 @@ const STR = {
         { t: 'Dual ratings', d: 'Ratings after every ride continuously raise service quality.' },
       ],
     },
-    dl: { h: 'Ready for your first ride?', sub: 'Download the Amana app now and start moving with confidence and peace of mind. Available on Google Play and App Store.' },
-    store: { from: 'Download on' },
+    dl: { h: 'Ready for your first ride?', sub: 'Download the Amana app now and start moving with confidence and peace of mind.' },
+    store: { hint: 'Direct download', passenger: 'Passenger app', driver: 'Driver app', soon: 'Coming soon to' },
     footer: {
       tagline: 'A smart, women-only ride-hailing platform — your ride, safe and comfortable.',
       cPlatform: 'Platform', cCompany: 'Company', cLegal: 'Legal',
@@ -168,29 +168,64 @@ const HOW_ICONS = [ICONS.pin, ICONS.route, ICONS.check];
 const SAFETY_ICONS = [ICONS.women, ICONS.bell, ICONS.share, ICONS.star];
 
 /* --------------------------------- مكوّنات --------------------------------- */
-function AppBadge({ store, from }: { store: 'apple' | 'google'; from: string }) {
+
+/**
+ * زرّ تنزيل حقيقي — يشير إلى `/api/download/<app>` الذي يعيد التوجيه إلى أحدث
+ * إصدار منشور، فلا يحتاج الرابط تحديثًا يدويًّا مع كل بناء جديد.
+ */
+function DownloadButton({
+  app,
+  label,
+  hint,
+  onDark = false,
+}: {
+  app: 'passenger' | 'driver';
+  label: string;
+  hint: string;
+  onDark?: boolean;
+}) {
   return (
     <a
-      href="#download"
-      className="group flex items-center gap-3 rounded-2xl bg-slate-900 px-5 py-3 text-white shadow-sm ring-1 ring-white/10 transition hover:bg-slate-800 dark:bg-white/10 dark:hover:bg-white/20"
+      href={`/api/download/${app}`}
+      className={`group flex items-center gap-3 rounded-2xl px-5 py-3 shadow-sm ring-1 transition ${
+        onDark
+          ? 'bg-white text-slate-900 ring-black/5 hover:bg-white/90'
+          : 'bg-slate-900 text-white ring-white/10 hover:bg-slate-800 dark:bg-white/10 dark:hover:bg-white/20'
+      }`}
+    >
+      <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+        <polyline points="7 10 12 15 17 10" />
+        <line x1="12" y1="15" x2="12" y2="3" />
+      </svg>
+      <span className="flex flex-col items-start leading-tight">
+        <span className="text-[10px] opacity-70">{hint}</span>
+        <span className="text-sm font-bold">{label}</span>
+      </span>
+    </a>
+  );
+}
+
+/** شارة متجر «قريبًا» — غير قابلة للضغط، للإشارة إلى النشر الرسمي لاحقًا. */
+function StoreSoon({ store, soon }: { store: 'apple' | 'google'; soon: string }) {
+  return (
+    <span
+      aria-disabled
+      className="flex cursor-default items-center gap-2 rounded-xl border border-current px-3.5 py-2 text-current opacity-50"
     >
       {store === 'apple' ? (
-        <svg viewBox="0 0 24 24" className="h-7 w-7 fill-white" aria-hidden>
+        <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current" aria-hidden>
           <path d="M16.7 12.6c0-2.2 1.8-3.3 1.9-3.4-1-1.5-2.6-1.7-3.2-1.7-1.4-.1-2.6.8-3.3.8s-1.7-.8-2.9-.8c-1.5 0-2.9.9-3.6 2.2-1.6 2.7-.4 6.7 1.1 8.9.7 1.1 1.6 2.3 2.7 2.2 1.1 0 1.5-.7 2.8-.7s1.7.7 2.9.7c1.2 0 1.9-1.1 2.6-2.1.8-1.2 1.2-2.4 1.2-2.5-.1 0-2.3-.9-2.3-3.5zM14.6 5.9c.6-.7 1-1.7.9-2.7-.9 0-1.9.6-2.5 1.3-.6.6-1 1.6-.9 2.6 1 .1 2-.5 2.5-1.2z" />
         </svg>
       ) : (
-        <svg viewBox="0 0 24 24" className="h-7 w-7" aria-hidden>
-          <path d="M3.6 2.4l10.3 9.6-2.6 2.5L3.6 2.4z" fill="#34D399" />
-          <path d="M3.6 21.6l7.7-11.7 2.6 2.5L3.6 21.6z" fill="#60A5FA" />
-          <path d="M17.9 9.3l2.9 1.7c.9.5.9 1.5 0 2l-2.9 1.7-3-2.7 3-2.7z" fill="#FBBF24" />
-          <path d="M11.3 12l2.6-2.5 3 2.7-3 2.7-2.6-2.9z" fill="#F87171" />
+        <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current" aria-hidden>
+          <path d="M3.6 2.4l10.3 9.6-2.6 2.5L3.6 2.4zM3.6 21.6l7.7-11.7 2.6 2.5L3.6 21.6zM17.9 9.3l2.9 1.7c.9.5.9 1.5 0 2l-2.9 1.7-3-2.7 3-2.7z" />
         </svg>
       )}
-      <span className="flex flex-col items-start leading-tight">
-        <span className="text-[10px] opacity-80">{from}</span>
-        <span className="text-sm font-bold">{store === 'apple' ? 'App Store' : 'Google Play'}</span>
+      <span className="text-xs font-medium">
+        {soon} {store === 'apple' ? 'App Store' : 'Google Play'}
       </span>
-    </a>
+    </span>
   );
 }
 
@@ -292,8 +327,12 @@ export default function LandingClient() {
             </h1>
             <p className="mt-5 max-w-lg text-lg leading-relaxed text-slate-500 dark:text-slate-400">{t.hero.sub}</p>
             <div className="mt-8 flex flex-wrap gap-4">
-              <AppBadge store="apple" from={t.store.from} />
-              <AppBadge store="google" from={t.store.from} />
+              <DownloadButton app="passenger" label={t.store.passenger} hint={t.store.hint} />
+              <DownloadButton app="driver" label={t.store.driver} hint={t.store.hint} />
+            </div>
+            <div className="mt-4 flex flex-wrap gap-3 text-slate-500 dark:text-slate-400">
+              <StoreSoon store="apple" soon={t.store.soon} />
+              <StoreSoon store="google" soon={t.store.soon} />
             </div>
             <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-3 text-sm text-slate-500 dark:text-slate-400">
               {[t.hero.c1, t.hero.c2, t.hero.c3].map((c) => (
@@ -449,8 +488,12 @@ export default function LandingClient() {
             <h2 className="text-3xl font-extrabold md:text-4xl">{t.dl.h}</h2>
             <p className="mt-4 text-white/85">{t.dl.sub}</p>
             <div className="mt-8 flex flex-wrap justify-center gap-4">
-              <AppBadge store="apple" from={t.store.from} />
-              <AppBadge store="google" from={t.store.from} />
+              <DownloadButton app="passenger" label={t.store.passenger} hint={t.store.hint} onDark />
+              <DownloadButton app="driver" label={t.store.driver} hint={t.store.hint} onDark />
+            </div>
+            <div className="mt-5 flex flex-wrap justify-center gap-3 text-white">
+              <StoreSoon store="apple" soon={t.store.soon} />
+              <StoreSoon store="google" soon={t.store.soon} />
             </div>
           </div>
         </div>

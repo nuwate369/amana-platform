@@ -9,7 +9,8 @@
     "./tailwind-preset": "./tailwind-preset.js",
     "./tokens": "./src/tokens.ts",
     "./validation": "./src/validation.ts",
-    "./MapView": "./src/MapView.tsx"
+    "./MapView": "./src/MapView.tsx",
+    "./UpdateGate": "./src/UpdateGate.tsx"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"

@@ -13,6 +13,7 @@ import {
   Star,
   Settings,
   Headphones,
+  Smartphone,
   type LucideIcon,
 } from 'lucide-react';
 import type { AdminAction } from '@amana/shared-types';
@@ -39,7 +40,8 @@ export const NAV_ITEMS: NavItem[] = [
   { href: '/support',             label: 'الدعم الفني',                   icon: Headphones,     permission: 'view_support',   description: 'تذاكر الدعم الفني — استقبال الأسئلة والشكاوى من الركاب والسائقين' },
   { href: '/groups',              label: 'مجموعات النقل المشتركة',      icon: UsersRound,     permission: 'view_groups',    description: 'مجموعات تنسيق الرحلات بين الراكبات — للمراقبة والإشراف فقط' },
   { href: '/notifications',       label: 'الإعلانات والتنبيهات العامة',  icon: Radio,          permission: 'view_notifications', description: 'إرسال رسائل تظهر داخل تطبيقي الراكبة والسائقة' },
-  { href: '/staff',               label: 'فريق العمل',                   icon: UserCog,        permission: 'view_staff'     },
+  { href: '/releases',            label: 'إصدارات التطبيقات',            icon: Smartphone,     permission: 'manage_releases', description: 'رفع ملفّات APK وإدارة نافذة «تحديث متاح» داخل التطبيقين' },
+  { href: '/staff',               label: 'فريق العمل',                 icon: UserCog,        permission: 'view_staff'     },
   { href: '/audit-log',           label: 'سجل الحركات',                  icon: ScrollText,     permission: 'view_audit_log', description: 'سجلّ زمني لكل إجراء حسّاس على النظام — للمدير العام فقط' },
   { href: '/notification-settings', label: 'إعدادات التنبيهات',           icon: Settings,       permission: 'manage_notification_settings', description: 'تخصيص كيفية وصول الإشعارات للموظفين' },
   { href: '/system-notifications',label: 'الإشعارات',                     icon: Bell            },

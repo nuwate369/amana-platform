@@ -1,8 +1,8 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { passengerPurple } from '@amana/shared-ui/tokens';
 import { AmanaMap, type AmanaMapHandle, type MapMarker } from '@amana/shared-ui/MapView';
 import {
@@ -29,6 +29,7 @@ const CLASS_ICONS: Record<RideClassId, keyof typeof MaterialIcons.glyphMap> = {
 
 export default function RequestRideScreen() {
   const mapRef = useRef<AmanaMapHandle>(null);
+  const insets = useSafeAreaInsets();
   const [pickup, setPickup] = useState<Coord | null>(null);
   const [dropoff, setDropoff] = useState<Coord | null>(null);
   const [selected, setSelected] = useState<RideClassId>(DEFAULT_RIDE_CLASS);
@@ -93,23 +94,30 @@ export default function RequestRideScreen() {
           onMapPress={(c) => setDropoff(c)}
         />
 
-        {/* بطاقتا الموقع */}
-        <View className="absolute left-3 right-3 top-3 gap-2" pointerEvents="none">
-          <View className="flex-row items-center gap-3 rounded-xl bg-white/95 p-3 shadow dark:bg-neutral-800/95">
-            <MaterialIcons name="radio-button-checked" size={18} color={passengerPurple[600]} />
-            <View className="flex-1">
-              <Text className="font-plex text-xs text-neutral-500 dark:text-neutral-400">موقعي الحالي</Text>
-              <Text className="font-plex-medium text-sm text-neutral-900 dark:text-neutral-50">
+        {/* بطاقة الموقع/الوجهة — مضغوطة سطرين لئلّا تحجب الخريطة */}
+        <View className="absolute left-3 right-3 top-3" pointerEvents="none">
+          <View className="rounded-xl bg-white/95 px-3 py-2 shadow dark:bg-neutral-800/95">
+            <View className="flex-row items-center gap-2">
+              <MaterialIcons name="radio-button-checked" size={15} color={passengerPurple[600]} />
+              <Text
+                numberOfLines={1}
+                className="flex-1 font-plex-medium text-xs text-neutral-900 dark:text-neutral-50"
+              >
                 {pickup ? 'تم تحديد موقعك' : 'جارٍ تحديد موقعك…'}
               </Text>
             </View>
-          </View>
-          <View className="flex-row items-center gap-3 rounded-xl bg-white/95 p-3 shadow dark:bg-neutral-800/95">
-            <MaterialIcons name="location-on" size={18} color="#dc2626" />
-            <View className="flex-1">
-              <Text className="font-plex text-xs text-neutral-500 dark:text-neutral-400">الوجهة</Text>
-              <Text className="font-plex-medium text-sm text-neutral-900 dark:text-neutral-50">
-                {dropoff ? `${km.toFixed(1)} كم` : 'اضغطي على الخريطة لتحديدها'}
+            <View className="my-1.5 h-px bg-neutral-200 dark:bg-neutral-700" />
+            <View className="flex-row items-center gap-2">
+              <MaterialIcons name="location-on" size={15} color="#dc2626" />
+              <Text
+                numberOfLines={1}
+                className="flex-1 font-plex-medium text-xs text-neutral-900 dark:text-neutral-50"
+              >
+                {noDestination
+                  ? 'بدون وجهة محدّدة'
+                  : dropoff
+                    ? `الوجهة · ${km.toFixed(1)} كم`
+                    : 'اضغطي على الخريطة لتحديد الوجهة'}
               </Text>
             </View>
           </View>
@@ -125,71 +133,71 @@ export default function RequestRideScreen() {
         </Pressable>
       </View>
 
-      {/* بطاقة أنواع الرحلات + زر الطلب */}
-      <View className="rounded-t-3xl bg-white px-5 pb-8 pt-4 shadow-lg dark:bg-neutral-800">
-        {/* طلب بدون تحديد وجهة */}
-        <Pressable
-          onPress={() => setNoDestination((v) => !v)}
-          className="mb-3 flex-row items-center justify-between rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 dark:border-neutral-700 dark:bg-neutral-900"
-        >
-          <View className="flex-row items-center gap-2">
-            <MaterialIcons name="location-off" size={20} color={passengerPurple[600]} />
-            <View>
-              <Text className="font-plex-medium text-sm text-neutral-800 dark:text-neutral-100">بدون تحديد وجهة</Text>
-              <Text className="font-plex text-[11px] text-neutral-400">تحدّدينها مع السائقة أثناء الرحلة</Text>
-            </View>
-          </View>
-          <View
-            className={`h-6 w-11 flex-row items-center rounded-full px-0.5 ${
-              noDestination ? 'justify-end bg-brand-600' : 'justify-start bg-neutral-300 dark:bg-neutral-600'
+      {/* الخيارات (خياران في كل صف) + زر الطلب */}
+      <View
+        className="rounded-t-3xl bg-white px-4 pt-3 shadow-lg dark:bg-neutral-800"
+        style={{ paddingBottom: insets.bottom + 12 }}
+      >
+        <View className="flex-row flex-wrap justify-between gap-y-2.5">
+          {/* بدون تحديد وجهة */}
+          <Pressable
+            onPress={() => setNoDestination((v) => !v)}
+            className={`w-[48.5%] rounded-xl border p-3 ${
+              noDestination
+                ? 'border-2 border-brand-600 bg-brand-50 dark:bg-brand-900/40'
+                : 'border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-800'
             }`}
           >
-            <View className="h-5 w-5 rounded-full bg-white" />
-          </View>
-        </Pressable>
+            <View className="h-6 flex-row items-center justify-between">
+              <MaterialIcons name="location-off" size={20} color={passengerPurple[700]} />
+              {noDestination ? (
+                <MaterialIcons name="check-circle" size={16} color={passengerPurple[600]} />
+              ) : null}
+            </View>
+            <Text className="mt-1 font-plex-semibold text-sm text-neutral-900 dark:text-neutral-50" numberOfLines={1}>
+              بدون وجهة
+            </Text>
+            <Text className="font-plex text-[10px] text-neutral-400" numberOfLines={1}>
+              تحدّدينها بالطريق
+            </Text>
+          </Pressable>
 
-        <ScrollView
-          className="max-h-64"
-          contentContainerStyle={{ paddingBottom: 8 }}
-          showsVerticalScrollIndicator={false}
-        >
-          <Text className="mb-3 font-plex-semibold text-lg text-neutral-900 dark:text-neutral-50">اختاري نوع الرحلة</Text>
-          <View className="gap-2.5">
-            {RIDE_CLASSES.map((option) => {
-              const isActive = selected === option.id;
-              const price = km > 0 ? `${estimatePrice(km, option.multiplier)} ر.س` : '—';
-              return (
-                <Pressable
-                  key={option.id}
-                  onPress={() => setSelected(option.id)}
-                  className={`flex-row items-center justify-between rounded-xl border p-3.5 ${
-                    isActive
-                      ? 'border-2 border-brand-600 bg-brand-50 dark:bg-brand-900/40'
-                      : 'border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-800'
-                  }`}
+          {/* الفئات */}
+          {RIDE_CLASSES.map((option) => {
+            const isActive = selected === option.id;
+            const price = km > 0 && !noDestination ? `${estimatePrice(km, option.multiplier)} ر.س` : '—';
+            return (
+              <Pressable
+                key={option.id}
+                onPress={() => setSelected(option.id)}
+                className={`w-[48.5%] rounded-xl border p-3 ${
+                  isActive
+                    ? 'border-2 border-brand-600 bg-brand-50 dark:bg-brand-900/40'
+                    : 'border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-800'
+                }`}
+              >
+                <View className="h-6 flex-row items-center justify-between">
+                  <MaterialIcons name={CLASS_ICONS[option.id]} size={20} color={passengerPurple[700]} />
+                  <Text className="font-plex-semibold text-xs text-brand-700 dark:text-brand-300">{price}</Text>
+                </View>
+                <Text
+                  className="mt-1 font-plex-semibold text-sm text-neutral-900 dark:text-neutral-50"
+                  numberOfLines={1}
                 >
-                  <View className="flex-row items-center gap-3">
-                    <View className="h-11 w-14 items-center justify-center rounded-lg bg-neutral-100 dark:bg-neutral-700">
-                      <MaterialIcons name={CLASS_ICONS[option.id]} size={24} color={passengerPurple[700]} />
-                    </View>
-                    <View>
-                      <Text className="font-plex-semibold text-base text-neutral-900 dark:text-neutral-50">
-                        {option.labelAr}
-                      </Text>
-                      <Text className="font-plex text-xs text-neutral-500 dark:text-neutral-400">{option.subtitleAr}</Text>
-                    </View>
-                  </View>
-                  <Text className="font-plex-semibold text-base text-brand-700 dark:text-brand-300">{price}</Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </ScrollView>
+                  {option.labelAr}
+                </Text>
+                <Text className="font-plex text-[10px] text-neutral-400" numberOfLines={1}>
+                  {option.subtitleAr}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
 
         <Pressable
           onPress={onRequest}
           disabled={!ready}
-          className={`mt-4 h-14 flex-row items-center justify-center gap-2 rounded-xl active:scale-[0.98] ${
+          className={`mt-3 h-14 flex-row items-center justify-center gap-2 rounded-xl active:scale-[0.98] ${
             ready ? 'bg-brand-600' : 'bg-neutral-300 dark:bg-neutral-700'
           }`}
         >

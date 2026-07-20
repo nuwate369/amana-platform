@@ -227,7 +227,8 @@ export type AdminAction =
   | 'view_ratings'      // عرض التقييمات وأسئلتها
   | 'manage_ratings'    // إدارة أسئلة التقييم (مدير النظام فقط)
   | 'view_support'      // عرض تذاكر الدعم الفني (جميع الموظفين)
-  | 'manage_support';   // إدارة التذاكر وتخصيصها (مدير النظام + مسؤول الدعم فقط)
+  | 'manage_support'    // إدارة التذاكر وتخصيصها (مدير النظام + مسؤول الدعم فقط)
+  | 'manage_releases';  // رفع إصدارات التطبيقات (مدير النظام فقط)
 
 /**
  * الدالة المركزية للتحقق من الصلاحيات.
@@ -257,6 +258,7 @@ export function can(userType: UserType, action: AdminAction): boolean {
     case 'manage_notification_settings':
     case 'manage_ratings':
     case 'invite_staff':
+    case 'manage_releases':
       return false;
 
     // -----------------------------------------------------------------------
