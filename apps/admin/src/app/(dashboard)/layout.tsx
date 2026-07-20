@@ -29,6 +29,7 @@ const NAV_I18N: Record<string, { ar: string; en: string; descAr?: string; descEn
   '/support':             { ar: 'الدعم الفني',                 en: 'Support', descAr: 'تذاكر الدعم الفني — استقبال الأسئلة والشكاوى من الركاب والسائقين', descEn: 'Support tickets — handle questions and complaints from riders and drivers' },
   '/groups':              { ar: 'مجموعات النقل المشتركة',    en: 'Shared Ride Groups', descAr: 'مجموعات تنسيق الرحلات بين الراكبات — للمراقبة والإشراف فقط', descEn: 'Ride coordination groups between passengers — for monitoring only' },
   '/notifications':       { ar: 'الإعلانات والتنبيهات العامة', en: 'Announcements & Alerts', descAr: 'إرسال رسائل تظهر داخل تطبيقي الراكبة والسائقة', descEn: 'Send messages that appear inside the passenger and driver apps' },
+  '/releases':            { ar: 'إصدارات التطبيقات',          en: 'App Releases', descAr: 'رفع ملفّات APK وإدارة نافذة «تحديث متاح» داخل التطبيقين', descEn: 'Upload APK files and manage the in-app update prompt' },
   '/staff':               { ar: 'فريق العمل',                 en: 'Staff' },
   '/audit-log':           { ar: 'سجل الحركات',                en: 'Audit Log', descAr: 'سجلّ زمني لكل إجراء حسّاس على النظام — للمدير العام والمدير', descEn: 'Chronological log of every sensitive action — for super admin and admin' },
   '/notification-settings': { ar: 'إعدادات التنبيهات',         en: 'Notification Settings', descAr: 'تخصيص كيفية وصول الإشعارات للموظفين', descEn: 'Customize how notifications reach staff' },

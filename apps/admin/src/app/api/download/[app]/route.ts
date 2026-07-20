@@ -23,7 +23,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ app: st
   const db = getAdminSupabase();
   const { data, error } = await db
     .from('app_versions')
-    .select('download_url')
+    .select('download_url, version_code')
     .eq('app', app)
     .eq('platform', 'android')
     .eq('published', true)
@@ -35,6 +35,14 @@ export async function GET(_req: Request, { params }: { params: Promise<{ app: st
     // لا يوجد إصدار منشور بعد — نُعيد الزائر لصفحة الهبوط بعلامة توضيحية.
     return NextResponse.redirect(new URL('/?download=soon', _req.url), 302);
   }
+
+  // نسجّل الضغطة قبل إعادة التوجيه. `k=update` تأتي من نافذة التحديث داخل
+  // التطبيق، وأيّ شيء آخر يُحتسب تثبيتًا أوّل. الفشل هنا لا يمنع التنزيل.
+  const kind = new URL(_req.url).searchParams.get('k') === 'update' ? 'update' : 'install';
+  await db
+    .from('app_downloads')
+    .insert({ app, version_code: data.version_code as number, kind })
+    .then(undefined, () => undefined);
 
   return NextResponse.redirect(data.download_url as string, 302);
 }

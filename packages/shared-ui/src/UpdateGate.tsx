@@ -75,8 +75,14 @@ export function UpdateGate({ app, supabase, accent }: UpdateGateProps) {
   async function download() {
     if (!latest) return;
     setOpening(true);
+
+    // نمرّ عبر مسار لوحة الإدارة كي تُحتسب الضغطة «تحديثًا» لا تثبيتًا أوّل،
+    // ونسقط إلى الرابط المباشر إن لم يكن عنوان اللوحة مضبوطًا.
+    const adminUrl = process.env.EXPO_PUBLIC_ADMIN_API_URL?.replace(/\/$/, '');
+    const target = adminUrl ? `${adminUrl}/api/download/${app}?k=update` : latest.download_url;
+
     try {
-      await Linking.openURL(latest.download_url);
+      await Linking.openURL(target);
     } catch {
       // المتصفّح غير متاح — نترك النافذة مفتوحة لتعيد المحاولة.
     }

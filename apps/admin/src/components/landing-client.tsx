@@ -186,7 +186,7 @@ function DownloadButton({
 }) {
   return (
     <a
-      href={`/api/download/${app}`}
+      href={`/download#${app}`}
       className={`group flex items-center gap-3 rounded-2xl px-5 py-3 shadow-sm ring-1 transition ${
         onDark
           ? 'bg-white text-slate-900 ring-black/5 hover:bg-white/90'

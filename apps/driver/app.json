@@ -40,6 +40,7 @@
           "prefix": "AMANA_DRIVER"
         }
       ],
+      "@amana/expo-plugins/with-device-abis-only",
       [
         "expo-image-picker",
         {
