@@ -3,6 +3,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useBottomInset, useScrollBottomPadding } from '@amana/shared-ui/layout';
 import { passengerPurple } from '@amana/shared-ui/tokens';
 import { submitRating } from '@/lib/rides';
 
@@ -21,6 +22,8 @@ export default function RatingScreen() {
   const [selectedChips, setSelectedChips] = useState<string[]>([]);
   const [comment, setComment] = useState('');
   const [busy, setBusy] = useState(false);
+  const bottomInset = useBottomInset(16);
+  const scrollPad = useScrollBottomPadding(140);
 
   const toggleChip = (chip: string) =>
     setSelectedChips((prev) =>
@@ -60,7 +63,7 @@ export default function RatingScreen() {
 
       <ScrollView
         className="flex-1 px-5"
-        contentContainerStyle={{ paddingTop: 24, paddingBottom: 140 }}
+        contentContainerStyle={{ paddingTop: 24, ...scrollPad }}
         showsVerticalScrollIndicator={false}
       >
         {/* ملف السائقة */}
@@ -156,7 +159,10 @@ export default function RatingScreen() {
       </ScrollView>
 
       {/* شريط الإجراء الثابت أسفل الشاشة */}
-      <View className="absolute bottom-0 left-0 right-0 rounded-t-xl bg-white px-5 pb-8 pt-4 dark:bg-neutral-800">
+      <View
+        className="absolute bottom-0 left-0 right-0 rounded-t-xl bg-white px-5 pt-4 dark:bg-neutral-800"
+        style={bottomInset}
+      >
         <Pressable
           onPress={onSubmit}
           disabled={busy}

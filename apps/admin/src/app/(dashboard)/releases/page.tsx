@@ -13,6 +13,10 @@ import {
   Download,
   Tag,
   CircleCheck,
+  Pencil,
+  ExternalLink,
+  Star,
+  Link2,
 } from 'lucide-react';
 import {
   listReleases,
@@ -22,8 +26,12 @@ import {
   nextVersionCode,
   setReleasePublished,
   deleteRelease,
+  updateRelease,
+  listAppReviews,
+  setReviewVisible,
   type ReleaseRow,
   type ReleaseApp,
+  type ReleaseReview,
 } from './actions';
 import { Button } from '@/components/ui/Button';
 import { ActionDialog } from '@/components/ActionDialog';
@@ -39,6 +47,9 @@ import { notify } from '@/lib/toast';
  * لصاحبته نافذة «تحديث متاح» مع رابط التنزيل. التعديلات الخفيفة (JS) لا تمرّ
  * من هنا — تصل تلقائيًّا عبر EAS Update.
  */
+
+/** يزيل بادئة v الزائدة إن كتبتها الإدارة (v0.3.0 ← 0.3.0). */
+const cleanVersion = (v: string) => v.replace(/^v/i, '');
 
 const APP_LABEL: Record<ReleaseApp, string> = {
   passenger: 'تطبيق الراكبة',
@@ -79,6 +90,10 @@ export default function ReleasesPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<ReleaseRow | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [viewTarget, setViewTarget] = useState<ReleaseRow | null>(null);
+  const [editTarget, setEditTarget] = useState<ReleaseRow | null>(null);
+  const [publishTarget, setPublishTarget] = useState<ReleaseRow | null>(null);
+  const [publishing, setPublishing] = useState(false);
 
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState<'date' | 'versionCode' | 'downloads'>('date');
@@ -166,10 +181,14 @@ export default function ReleasesPage() {
     [visible],
   );
 
-  async function togglePublished(row: ReleaseRow) {
-    const ok = await setReleasePublished(row.id, !row.published);
+  async function confirmTogglePublished() {
+    if (!publishTarget) return;
+    setPublishing(true);
+    const ok = await setReleasePublished(publishTarget.id, !publishTarget.published);
+    setPublishing(false);
     if (!ok) return notify.error('تعذّر تغيير حالة النشر');
-    notify.success(row.published ? 'أُخفي الإصدار' : 'نُشر الإصدار');
+    notify.success(publishTarget.published ? 'أُخفي الإصدار' : 'نُشر الإصدار');
+    setPublishTarget(null);
     void refresh();
   }
 
@@ -256,6 +275,7 @@ export default function ReleasesPage() {
                 <th className="px-5 py-3 font-medium">تثبيت</th>
                 <th className="px-5 py-3 font-medium">تحديث</th>
                 <th className="px-5 py-3 font-medium">الحالة</th>
+                <th className="px-5 py-3 font-medium">التعليقات</th>
                 <th className="px-5 py-3 font-medium">التاريخ</th>
                 <th className="px-5 py-3 font-medium">إجراءات</th>
               </tr>
@@ -264,7 +284,7 @@ export default function ReleasesPage() {
               {visible.map((r) => (
                 <tr key={r.id} className="border-t border-border/60 hover:bg-muted/30">
                   <td className="px-5 py-3 text-foreground">{APP_LABEL[r.app]}</td>
-                  <td className="px-5 py-3 font-medium text-foreground">{r.versionName}</td>
+                  <td className="px-5 py-3 font-medium text-foreground">{cleanVersion(r.versionName)}</td>
                   <td className="px-5 py-3 tabular-nums text-muted-foreground">{r.versionCode}</td>
                   <td className="px-5 py-3 tabular-nums font-medium text-foreground">{r.installs}</td>
                   <td className="px-5 py-3 tabular-nums font-medium text-foreground">{r.updates}</td>
@@ -284,6 +304,27 @@ export default function ReleasesPage() {
                       </span>
                     )}
                   </td>
+                  <td className="px-5 py-3">
+                    {r.reviewsTotal === 0 ? (
+                      <span className="text-muted-foreground">—</span>
+                    ) : (
+                      <button
+                        onClick={() => setViewTarget(r)}
+                        title="عرض الآراء"
+                        className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm hover:bg-accent"
+                      >
+                        <Star size={14} className="fill-amber-400 text-amber-400" />
+                        <span className="font-medium tabular-nums text-foreground">
+                          {r.reviewsVisible}
+                        </span>
+                        {r.reviewsTotal > r.reviewsVisible && (
+                          <span className="text-xs text-muted-foreground">
+                            من {r.reviewsTotal}
+                          </span>
+                        )}
+                      </button>
+                    )}
+                  </td>
                   <td className="px-5 py-3 whitespace-nowrap text-muted-foreground">
                     {new Date(r.createdAt).toLocaleDateString('ar-SA', {
                       year: 'numeric',
@@ -293,21 +334,35 @@ export default function ReleasesPage() {
                   </td>
                   <td className="px-5 py-3">
                     <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => setViewTarget(r)}
+                        title="عرض التفاصيل"
+                        className="rounded-lg p-2 text-muted-foreground hover:bg-accent hover:text-foreground"
+                      >
+                        <Eye size={16} />
+                      </button>
+                      <button
+                        onClick={() => setEditTarget(r)}
+                        title="تعديل"
+                        className="rounded-lg p-2 text-muted-foreground hover:bg-accent hover:text-foreground"
+                      >
+                        <Pencil size={16} />
+                      </button>
                       <a
                         href={r.downloadUrl}
                         target="_blank"
                         rel="noreferrer"
-                        title="تنزيل"
+                        title="تنزيل الملفّ"
                         className="rounded-lg p-2 text-muted-foreground hover:bg-accent hover:text-foreground"
                       >
                         <Download size={16} />
                       </a>
                       <button
-                        onClick={() => void togglePublished(r)}
-                        title={r.published ? 'إخفاء' : 'نشر'}
+                        onClick={() => setPublishTarget(r)}
+                        title={r.published ? 'إخفاء عن المستخدمات' : 'نشر للمستخدمات'}
                         className="rounded-lg p-2 text-muted-foreground hover:bg-accent hover:text-foreground"
                       >
-                        {r.published ? <EyeOff size={16} /> : <Eye size={16} />}
+                        {r.published ? <EyeOff size={16} /> : <CircleCheck size={16} />}
                       </button>
                       <button
                         onClick={() => setDeleteTarget(r)}
@@ -349,11 +404,47 @@ export default function ReleasesPage() {
         onClose={() => setDeleteTarget(null)}
       />
 
-      {modalOpen && (
+      <ActionDialog
+        open={publishTarget != null}
+        title={publishTarget?.published ? 'إخفاء الإصدار' : 'نشر الإصدار'}
+        description={
+          publishTarget ? (
+            publishTarget.published ? (
+              <>
+                سيختفي <b>{APP_LABEL[publishTarget.app]}</b> إصدار{' '}
+                <b>{publishTarget.versionName}</b> عن صفحة التحميل، وتتوقّف نافذة التحديث
+                عن الإشارة إليه. من ثبّتته مسبقًا لن يتأثّر.
+              </>
+            ) : (
+              <>
+                سيظهر <b>{APP_LABEL[publishTarget.app]}</b> إصدار{' '}
+                <b>{publishTarget.versionName}</b> على صفحة التحميل، وستظهر نافذة
+                «تحديث متاح» لكل من لديها رقم بناء أقلّ من {publishTarget.versionCode}.
+              </>
+            )
+          ) : null
+        }
+        variant={publishTarget?.published ? 'danger' : 'primary'}
+        confirmLabel={publishTarget?.published ? 'إخفاء' : 'نشر'}
+        loading={publishing}
+        onConfirm={() => void confirmTogglePublished()}
+        onClose={() => setPublishTarget(null)}
+      />
+
+      {viewTarget && (
+        <ReleaseDetailsModal release={viewTarget} onClose={() => setViewTarget(null)} />
+      )}
+
+      {(modalOpen || editTarget) && (
         <ReleaseModal
-          onClose={() => setModalOpen(false)}
+          initial={editTarget ?? undefined}
+          onClose={() => {
+            setModalOpen(false);
+            setEditTarget(null);
+          }}
           onSaved={() => {
             setModalOpen(false);
+            setEditTarget(null);
             void refresh();
           }}
         />
@@ -362,35 +453,301 @@ export default function ReleasesPage() {
   );
 }
 
-function ReleaseModal({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
-  const [app, setApp] = useState<ReleaseApp>('passenger');
-  const [versionCode, setVersionCode] = useState('');
+/* ─────────────────────── نافذة تفاصيل الإصدار ─────────────────────── */
 
-  // رقم البناء يُقترح آليًّا لكل تطبيق (آخر رقم + 1) ويبقى قابلًا للتعديل،
-  // فلا حاجة لتذكّره أو استخراجه من app.json في كل مرّة.
+function Row({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-start justify-between gap-4 border-b border-border/60 py-2.5 last:border-0">
+      <span className="shrink-0 text-sm text-muted-foreground">{label}</span>
+      <span className="min-w-0 text-end text-sm font-medium text-foreground">{children}</span>
+    </div>
+  );
+}
+
+function Stars({ value }: { value: number }) {
+  return (
+    <span className="flex gap-0.5" aria-label={`${value}/5`}>
+      {[1, 2, 3, 4, 5].map((n) => (
+        <Star
+          key={n}
+          size={13}
+          className={n <= value ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground/30'}
+        />
+      ))}
+    </span>
+  );
+}
+
+/**
+ * تفاصيل إصدار واحد + آراء مستخدمات التطبيق.
+ *
+ * الآراء مرتبطة بالتطبيق لا برقم البناء (المستخدمة تقيّم التطبيق لا الإصدار)،
+ * فتُعرض هنا كاملةً — بما فيها المخفيّة — مع إمكانية إظهار أيّ رأي أو إخفائه
+ * عن صفحة التحميل العامّة.
+ */
+function ReleaseDetailsModal({
+  release,
+  onClose,
+}: {
+  release: ReleaseRow;
+  onClose: () => void;
+}) {
+  const [reviews, setReviews] = useState<ReleaseReview[] | null>(null);
+
+  const load = useCallback(async () => {
+    setReviews(await listAppReviews(release.app));
+  }, [release.app]);
+
   useEffect(() => {
+    void load();
+  }, [load]);
+
+  async function toggleReview(r: ReleaseReview) {
+    const ok = await setReviewVisible(r.id, !r.visible);
+    if (!ok) return notify.error('تعذّر تغيير حالة الرأي');
+    notify.success(r.visible ? 'أُخفي الرأي' : 'أُظهر الرأي');
+    void load();
+  }
+
+  const notes = (release.notes ?? '')
+    .split('\n')
+    .map((l) => l.trim())
+    .filter(Boolean);
+  const shown = reviews?.filter((r) => r.visible) ?? [];
+  const avg = shown.length
+    ? (shown.reduce((a, r) => a + r.rating, 0) / shown.length).toFixed(1)
+    : '—';
+
+  return (
+    <div
+      dir="rtl"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      {/* الترويسة خارج منطقة التمرير: العمود المتدفّق يجعل الجسم وحده هو
+          الذي يمرّر، فيبقى العنوان وزرّ الإغلاق ثابتين مهما طال المحتوى. */}
+      <div
+        className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-xl duration-200 animate-in fade-in zoom-in"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex shrink-0 items-start justify-between gap-3 border-b border-border bg-card px-6 py-4">
+          <div>
+            <h2 className="text-lg font-bold text-foreground">
+              {APP_LABEL[release.app]} — {cleanVersion(release.versionName)}
+            </h2>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              رقم البناء {release.versionCode}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            aria-label="إغلاق"
+            className="rounded-lg p-2 text-muted-foreground transition hover:bg-accent hover:text-foreground"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-5 sm:p-6">
+        <div className="grid gap-4 sm:grid-cols-3">
+          <StatCard label="تثبيت أوّل" value={release.installs} icon={Download} />
+          <StatCard label="تحديث" value={release.updates} icon={CircleCheck} />
+          <div className="rounded-xl border border-border bg-card p-4">
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-400/10 text-amber-500">
+              <Star size={18} />
+            </span>
+            <p className="mt-3 text-2xl font-bold tabular-nums text-foreground">{avg}</p>
+            <p className="mt-0.5 text-sm text-muted-foreground">متوسّط التقييم</p>
+          </div>
+        </div>
+
+        <div className="mt-6">
+          <Row label="الحالة">
+            {release.mandatory && (
+              <span className="me-2 rounded-full bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-600">
+                إلزامي
+              </span>
+            )}
+            <span
+              className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                release.published
+                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                  : 'bg-muted text-muted-foreground'
+              }`}
+            >
+              {release.published ? 'منشور' : 'مخفي'}
+            </span>
+          </Row>
+          <Row label="تاريخ التسجيل">
+            {new Date(release.createdAt).toLocaleString('ar-SA', {
+              dateStyle: 'long',
+              timeStyle: 'short',
+            })}
+          </Row>
+          <Row label="رابط التنزيل">
+            <a
+              href={release.downloadUrl}
+              target="_blank"
+              rel="noreferrer"
+              dir="ltr"
+              className="inline-flex max-w-[22rem] items-center gap-1.5 truncate text-primary hover:underline"
+            >
+              <Link2 size={14} className="shrink-0" />
+              <span className="truncate">{release.downloadUrl}</span>
+              <ExternalLink size={13} className="shrink-0" />
+            </a>
+          </Row>
+        </div>
+
+        {notes.length > 0 && (
+          <div className="mt-5">
+            <h3 className="text-sm font-bold text-foreground">ما الجديد</h3>
+            <ul className="mt-2 flex flex-col gap-1.5">
+              {notes.map((n) => (
+                <li key={n} className="text-sm text-muted-foreground">
+                  · {n}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <div className="mt-6 border-t border-border pt-5">
+          <h3 className="flex items-center gap-2 text-sm font-bold text-foreground">
+            <Star size={15} className="fill-amber-400 text-amber-400" />
+            آراء مستخدمات {APP_LABEL[release.app]}
+            {reviews && reviews.length > 0 && (
+              <span className="font-normal text-muted-foreground">
+                — {shown.length} ظاهر من {reviews.length}
+              </span>
+            )}
+          </h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            الآراء المخفيّة لا تظهر للزوّار على صفحة التحميل، ولا تدخل في متوسّط التقييم.
+          </p>
+
+          {reviews === null ? (
+            <div className="flex justify-center py-8 text-muted-foreground">
+              <Loader2 size={22} className="animate-spin" />
+            </div>
+          ) : reviews.length === 0 ? (
+            <p className="py-6 text-center text-sm text-muted-foreground">لا توجد آراء بعد.</p>
+          ) : (
+            <ul className="mt-3 flex flex-col gap-3">
+              {reviews.map((r) => (
+                <li
+                  key={r.id}
+                  className={`rounded-xl border p-4 ${
+                    r.visible
+                      ? 'border-border bg-card'
+                      : 'border-dashed border-border bg-muted/40'
+                  }`}
+                >
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                    <span className="text-sm font-bold text-foreground">{r.name}</span>
+                    <Stars value={r.rating} />
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(r.createdAt).toLocaleDateString('ar-SA')}
+                    </span>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                        r.visible
+                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                          : 'bg-muted text-muted-foreground'
+                      }`}
+                    >
+                      {r.visible ? 'ظاهر للجميع' : 'مخفي'}
+                    </span>
+                  </div>
+
+                  {r.comment ? (
+                    <p className="mt-2.5 text-sm leading-relaxed text-foreground/90">
+                      {r.comment}
+                    </p>
+                  ) : (
+                    <p className="mt-2.5 text-sm italic text-muted-foreground">
+                      تقييم بلا تعليق
+                    </p>
+                  )}
+
+                  <div className="mt-3 flex justify-end border-t border-border/60 pt-3">
+                    <button
+                      onClick={() => void toggleReview(r)}
+                      className={`inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+                        r.visible
+                          ? 'text-muted-foreground hover:bg-destructive/10 hover:text-destructive'
+                          : 'bg-primary/10 text-primary hover:bg-primary/20'
+                      }`}
+                    >
+                      {r.visible ? <EyeOff size={15} /> : <Eye size={15} />}
+                      {r.visible ? 'إخفاء' : 'إظهار'}
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ReleaseModal({
+  initial,
+  onClose,
+  onSaved,
+}: {
+  /** عند تمريره تعمل النافذة في وضع التعديل بدل الإنشاء. */
+  initial?: ReleaseRow;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const editing = initial != null;
+  const [app, setApp] = useState<ReleaseApp>(initial?.app ?? 'passenger');
+  const [versionCode, setVersionCode] = useState(
+    initial ? String(initial.versionCode) : '',
+  );
+
+  // في الإنشاء يُقترح رقم البناء آليًّا (آخر رقم + 1) فلا حاجة لتذكّره؛
+  // وفي التعديل نُبقي رقم الإصدار كما هو حتى لا نكسر مطابقته للنسخ المثبَّتة.
+  useEffect(() => {
+    if (editing) return;
     let alive = true;
     void nextVersionCode(app).then((n) => {
-      if (alive) setVersionCode(String(n));
+      if (!alive) return;
+      setVersionCode(String(n.code));
+      setVersionName(n.name);
     });
     return () => {
       alive = false;
     };
-  }, [app]);
-  const [versionName, setVersionName] = useState('');
-  const [notes, setNotes] = useState('');
-  const [mandatory, setMandatory] = useState(false);
-  const [published, setPublished] = useState(true);
+  }, [app, editing]);
+  const [versionName, setVersionName] = useState(initial?.versionName ?? '');
+  const [notes, setNotes] = useState(initial?.notes ?? '');
+  const [mandatory, setMandatory] = useState(initial?.mandatory ?? false);
+  const [published, setPublished] = useState(initial?.published ?? true);
   const [file, setFile] = useState<File | null>(null);
-  const [mode, setMode] = useState<'upload' | 'link'>('upload');
-  const [link, setLink] = useState('');
+  const [mode, setMode] = useState<'upload' | 'link'>(editing ? 'link' : 'upload');
+  const [link, setLink] = useState(initial?.downloadUrl ?? '');
   const [busy, setBusy] = useState(false);
   const [stage, setStage] = useState('');
   const [confirmClose, setConfirmClose] = useState(false);
+  // يُرفع بأوّل تفاعل حقيقي فقط. المقارنة بالقيم وحدها لا تكفي: النموذج يُعبَّأ
+  // آليًّا (رقم البناء واسم الإصدار)، فيبدو «معدَّلًا» قبل أن تلمسه المستخدمة.
+  const [touched, setTouched] = useState(false);
 
   /** هل أدخلت المستخدمة شيئًا يستحقّ التحذير عند الإغلاق؟ */
-  const dirty =
-    versionName.trim() !== '' || notes.trim() !== '' || link.trim() !== '' || file != null;
+  const changed = editing
+    ? versionName !== initial.versionName ||
+      notes !== (initial.notes ?? '') ||
+      link !== initial.downloadUrl ||
+      mandatory !== initial.mandatory ||
+      published !== initial.published ||
+      file != null
+    : versionName.trim() !== '' || notes.trim() !== '' || link.trim() !== '' || file != null;
+  const dirty = touched && changed;
 
   /** الإغلاق يمرّ من هنا: يمنع الخروج أثناء الرفع، ويحذّر إن كان هناك عمل غير محفوظ. */
   function requestClose() {
@@ -453,7 +810,7 @@ function ReleaseModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
       }
 
       setStage('جارٍ حفظ الإصدار…');
-      const res = await createRelease({
+      const payload = {
         app,
         versionCode: Number(versionCode),
         versionName,
@@ -461,12 +818,15 @@ function ReleaseModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
         mandatory,
         published,
         downloadUrl,
-      });
+      };
+      const res = editing
+        ? await updateRelease(initial.id, payload)
+        : await createRelease(payload);
       if (!res.ok) {
         notify.error(res.error);
         return;
       }
-      notify.success('حُفظ الإصدار بنجاح');
+      notify.success(editing ? 'حُفظ التعديل' : 'حُفظ الإصدار بنجاح');
       onSaved();
     } catch (e) {
       notify.error(e instanceof Error ? e.message : 'حدث خطأ أثناء الرفع');
@@ -479,29 +839,32 @@ function ReleaseModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
   return (
     <div
       dir="rtl"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
       onClick={requestClose}
     >
       <div
-        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-border bg-card p-5 sm:p-6"
+        className="flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-xl duration-200 animate-in fade-in zoom-in"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-foreground">إصدار جديد</h2>
+        <div className="flex shrink-0 items-center justify-between border-b border-border bg-card px-6 py-4">
+          <h2 className="text-lg font-bold text-foreground">
+            {editing ? 'تعديل الإصدار' : 'إصدار جديد'}
+          </h2>
           <button
             onClick={requestClose}
             disabled={busy}
             aria-label="إغلاق"
-            className="rounded-lg p-2 text-muted-foreground hover:bg-accent disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded-lg p-2 text-muted-foreground transition hover:bg-accent hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
           >
             <X size={18} />
           </button>
         </div>
 
+        <div className="flex-1 overflow-y-auto p-5 sm:p-6">
         {/* fieldset يجمّد كل الحقول والأزرار داخله أثناء الرفع بلا تكرار disabled */}
         <fieldset
           disabled={busy}
-          className="mt-5 space-y-4 transition-opacity disabled:opacity-60"
+          className="space-y-4 transition-opacity disabled:opacity-60"
         >
           <div>
             <label className="mb-1.5 block text-sm font-medium text-foreground">التطبيق</label>
@@ -509,7 +872,8 @@ function ReleaseModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
               {(['passenger', 'driver'] as ReleaseApp[]).map((a) => (
                 <button
                   key={a}
-                  onClick={() => setApp(a)}
+                  onClick={() => !editing && setApp(a)}
+                  disabled={editing}
                   className={`flex-1 rounded-lg border px-3 py-2.5 text-sm transition-colors sm:px-4 ${
                     app === a
                       ? 'border-primary bg-primary/10 font-medium text-primary'
@@ -529,7 +893,7 @@ function ReleaseModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
               </label>
               <input
                 value={versionName}
-                onChange={(e) => setVersionName(e.target.value)}
+                onChange={(e) => { setTouched(true); setVersionName(e.target.value); }}
                 placeholder="0.2.0"
                 className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground"
               />
@@ -539,11 +903,14 @@ function ReleaseModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
               <label className="mb-1.5 block text-sm font-medium text-foreground">رقم البناء</label>
               <input
                 value={versionCode}
-                onChange={(e) => setVersionCode(e.target.value.replace(/\D/g, ''))}
+                onChange={(e) => { setTouched(true); setVersionCode(e.target.value.replace(/\D/g, '')); }}
                 inputMode="numeric"
-                className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground"
+                disabled={editing}
+                className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground disabled:opacity-60"
               />
-              <p className="mt-1.5 text-xs text-muted-foreground">مقترح آليًّا — يجب أن يطابق app.json</p>
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                {editing ? 'غير قابل للتعديل — تعتمد عليه النسخ المثبَّتة' : 'مقترح آليًّا — يجب أن يطابق app.json'}
+              </p>
             </div>
           </div>
 
@@ -553,7 +920,7 @@ function ReleaseModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
             </label>
             <textarea
               value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              onChange={(e) => { setTouched(true); setNotes(e.target.value); }}
               rows={4}
               placeholder={'تحسينات في الخريطة\nإصلاح إشعارات الطلبات'}
               className="w-full rounded-lg border border-input bg-background p-3 text-sm text-foreground"
@@ -581,14 +948,14 @@ function ReleaseModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
                   type="file"
                   accept=".apk"
                   className="hidden"
-                  onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                  onChange={(e) => { setTouched(true); setFile(e.target.files?.[0] ?? null); }}
                 />
               </label>
             ) : (
               <>
                 <input
                   value={link}
-                  onChange={(e) => setLink(e.target.value)}
+                  onChange={(e) => { setTouched(true); setLink(e.target.value); }}
                   dir="ltr"
                   placeholder="https://github.com/…/amana-passenger.apk"
                   className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground"
@@ -604,7 +971,7 @@ function ReleaseModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
             <input
               type="checkbox"
               checked={published}
-              onChange={(e) => setPublished(e.target.checked)}
+              onChange={(e) => { setTouched(true); setPublished(e.target.checked); }}
               className="h-4 w-4 accent-[var(--primary)]"
             />
             نشر الإصدار مباشرة
@@ -614,7 +981,7 @@ function ReleaseModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
             <input
               type="checkbox"
               checked={mandatory}
-              onChange={(e) => setMandatory(e.target.checked)}
+              onChange={(e) => { setTouched(true); setMandatory(e.target.checked); }}
               className="h-4 w-4 accent-[var(--primary)]"
             />
             تحديث إلزامي <span className="text-muted-foreground">(لا يمكن تأجيله)</span>
@@ -625,16 +992,18 @@ function ReleaseModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
           <p
             role="status"
             aria-live="polite"
-            className="mt-4 flex items-center justify-center gap-2 text-sm text-muted-foreground"
+            className="mt-4 flex items-center justify-center gap-2 pb-1 text-sm text-muted-foreground"
           >
             <Loader2 size={15} className="animate-spin" />
             {stage}
           </p>
         )}
 
-        <div className="mt-6 flex flex-col gap-2 sm:flex-row">
+        </div>
+
+        <div className="flex shrink-0 flex-col gap-2 border-t border-border bg-card px-6 py-4 sm:flex-row">
           <Button onClick={() => void submit()} loading={busy} fullWidth>
-            حفظ ورفع
+            {editing ? 'حفظ التعديل' : 'حفظ ورفع'}
           </Button>
           <Button variant="outline" onClick={requestClose} disabled={busy}>
             إلغاء

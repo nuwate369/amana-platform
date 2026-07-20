@@ -58,7 +58,9 @@ const STR = {
       driver: ['طلبات قريبة فورية', 'سجلّ رحلات ودخل', 'دعم فنّي مباشر'],
     },
     download: 'تحميل التطبيق',
-    downloading: 'جارٍ التحميل…',
+    downloading: 'جارٍ بدء التنزيل…',
+    downloadStarted: 'بدأ التنزيل',
+    checkNotifications: 'تابعي التنزيل من شريط الإشعارات، ثمّ افتحي الملفّ للتثبيت.',
     version: 'الإصدار',
     androidReq: 'أندرويد ٧ فأحدث',
     none: 'لا يوجد إصدار متاح بعد',
@@ -131,7 +133,9 @@ const STR = {
       driver: ['Instant nearby requests', 'Ride and earnings history', 'Direct support'],
     },
     download: 'Download app',
-    downloading: 'Downloading…',
+    downloading: 'Starting download…',
+    downloadStarted: 'Download started',
+    checkNotifications: 'Track it in your notifications, then open the file to install.',
     version: 'Version',
     androidReq: 'Android 7 and above',
     none: 'No release available yet',
@@ -377,8 +381,23 @@ function AppPanel({
   accent: { color: string; soft: string };
   lang: Lang;
 }) {
-  const [busy, setBusy] = useState(false);
+  // ثلاث حالات: جاهز ← جارٍ البدء ← بدأ التنزيل. المتصفّح لا يُعلم الصفحة
+  // باكتمال التنزيل (لا حدث لذلك)، فنُقفل الزرّ لمدّة قصيرة ثمّ نؤكّد البدء —
+  // فيمنع الضغط المتكرّر ولا يُوهم المستخدمة بأنّ شيئًا معلّق إلى الأبد.
+  const [phase, setPhase] = useState<'idle' | 'starting' | 'started'>('idle');
   const { release, stats, reviews } = bundle;
+
+  useEffect(() => {
+    if (phase !== 'starting') return;
+    const t = setTimeout(() => setPhase('started'), 2500);
+    return () => clearTimeout(t);
+  }, [phase]);
+
+  useEffect(() => {
+    if (phase !== 'started') return;
+    const t = setTimeout(() => setPhase('idle'), 8000);
+    return () => clearTimeout(t);
+  }, [phase]);
   const nf = new Intl.NumberFormat(lang === 'ar' ? 'ar-SA' : 'en-US');
 
   const notes = (release?.notes ?? '')
@@ -418,14 +437,42 @@ function AppPanel({
             {release ? (
               <>
                 <a
-                  href={`/api/download/${app}`}
-                  onClick={() => setBusy(true)}
-                  className="flex items-center justify-center gap-2.5 rounded-xl py-3.5 font-bold text-white transition hover:opacity-90"
-                  style={{ background: accent.color }}
+                  href={phase === 'idle' ? `/api/download/${app}` : undefined}
+                  aria-disabled={phase !== 'idle'}
+                  onClick={(e) => {
+                    if (phase !== 'idle') {
+                      e.preventDefault();
+                      return;
+                    }
+                    setPhase('starting');
+                  }}
+                  className={`flex items-center justify-center gap-2.5 rounded-xl py-3.5 font-bold text-white transition ${
+                    phase === 'idle' ? 'hover:opacity-90' : 'cursor-default opacity-80'
+                  }`}
+                  style={{ background: phase === 'started' ? '#2F7A55' : accent.color }}
                 >
-                  <Download size={19} />
-                  {busy ? t.downloading : t.download}
+                  {phase === 'starting' ? (
+                    <>
+                      <Loader2 size={18} className="animate-spin" />
+                      {t.downloading}
+                    </>
+                  ) : phase === 'started' ? (
+                    <>
+                      <CheckCircle2 size={19} />
+                      {t.downloadStarted}
+                    </>
+                  ) : (
+                    <>
+                      <Download size={19} />
+                      {t.download}
+                    </>
+                  )}
                 </a>
+                {phase === 'started' && (
+                  <p className="mt-2 text-center text-xs text-slate-500 dark:text-slate-400">
+                    {t.checkNotifications}
+                  </p>
+                )}
                 <p className="mt-2.5 text-center text-xs text-slate-400">
                   {t.version} {release.versionName} · {t.androidReq}
                 </p>

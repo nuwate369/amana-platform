@@ -1,5 +1,5 @@
 import '../global.css';
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { I18nextProvider } from 'react-i18next';
 import { ActivityIndicator, View } from 'react-native';
@@ -13,10 +13,11 @@ import {
 } from '@expo-google-fonts/ibm-plex-sans-arabic';
 import Toast from 'react-native-toast-message';
 import { UpdateGate } from '@amana/shared-ui/UpdateGate';
+import { usePushNotifications } from '@amana/shared-ui/usePushNotifications';
 import { driverNavy } from '@amana/shared-ui/tokens';
 import { supabase } from '@/lib/supabase';
 import { i18n } from '@/lib/i18n';
-import { AuthProvider } from '@/lib/auth';
+import { AuthProvider, useAuth } from '@/lib/auth';
 import { PreferencesProvider, usePreferences } from '@/lib/preferences';
 import { NotificationsProvider } from '@/lib/notifications';
 import { useProtectedRoute } from '@/lib/useProtectedRoute';
@@ -33,6 +34,15 @@ function LoadingScreen() {
 /** مكوّن داخلي يشغّل حارس المسارات ثم يعرض شجرة التنقّل. */
 function RootNavigator() {
   useProtectedRoute();
+
+  // الإشعارات الفورية — بعد تسجيل الدخول فقط.
+  const { session } = useAuth();
+  usePushNotifications({
+    supabase,
+    app: 'driver',
+    enabled: Boolean(session),
+    onOpen: () => router.push('/notifications'),
+  });
 
   return (
     <Stack screenOptions={{ headerShown: false }}>

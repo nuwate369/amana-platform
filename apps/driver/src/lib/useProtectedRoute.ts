@@ -21,8 +21,16 @@ export function destinationFor(driver: DriverRecord | null): Href {
   return isSubmitted(driver) ? '/pending' : '/kyc';
 }
 
-/** شاشات إضافية مسموح بها للسائقة المعتمدة خارج التبويبات (الدعم، حول). */
-const APPROVED_EXTRA_SEGMENTS = ['support', 'about'];
+/**
+ * المقاطع الممنوعة على السائقة المعتمدة — وهي شاشات دورة الاعتماد والمصادقة فقط.
+ *
+ * قائمة **منع** لا قائمة سماح: القائمة البيضاء السابقة كانت تطرد السائقة من أيّ
+ * شاشة جذرية غير مذكورة فيها (المحادثة، التقييم، الإشعارات)، فيقع `replace` يُعيد
+ * بناء مجموعة التبويبات كاملة — فيُفكَّك موفّر الحضور (فتنقطع السائقة فعليًّا عن
+ * النظام) وتُبنى الخريطة من جديد فيُعاد ضبط تقريبها. وكانت ستتكرّر مع كل شاشة
+ * جديدة تُضاف. المنع يعكس القاعدة: المعتمدة تصل كل شيء إلا ما يخصّ الاعتماد.
+ */
+const BLOCKED_FOR_APPROVED = ['(auth)', 'kyc', 'pending'];
 
 /** المقطع الأول من المسار المقابل لكل وجهة (لكشف «هل نحن في المكان الصحيح؟»). */
 function segmentOf(dest: Href): string {
@@ -60,11 +68,10 @@ export function useProtectedRoute() {
       return;
     }
 
-    // جلسة قائمة: السائقة المعتمدة تتنقّل بحرّية داخل التبويبات والشاشات الإضافية
-    // (الدعم/حول)؛ أما غير المعتمدة فمحصورة في وجهتها (kyc/pending).
+    // جلسة قائمة: السائقة المعتمدة تتنقّل بحرّية في كل الشاشات عدا شاشات الاعتماد
+    // والمصادقة؛ أمّا غير المعتمدة فمحصورة في وجهتها (kyc/pending).
     if (driver?.status === 'approved') {
-      const allowed = seg0 === '(tabs)' || APPROVED_EXTRA_SEGMENTS.includes(seg0 ?? '');
-      if (!allowed) router.replace('/(tabs)/home');
+      if (BLOCKED_FOR_APPROVED.includes(seg0 ?? '')) router.replace('/(tabs)/home');
       return;
     }
     const dest = destinationFor(driver);

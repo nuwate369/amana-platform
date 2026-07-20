@@ -3,7 +3,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import {
   X, User, Car, Phone, Mail, Calendar, Star, Ban, Lock, UserCog,
-  FileText, CreditCard, Navigation, ShieldCheck, ScrollText, Clock, MessageSquareQuote, ZoomIn, Check, FileSearch,
+  FileText, CreditCard, Navigation, ShieldCheck, ScrollText, Clock, MessageSquareQuote, ZoomIn, Check, FileSearch, ChevronDown,
 } from 'lucide-react';
 import { STAFF_TYPE_LABELS, STAFF_TYPE_COLORS, formatPlate } from '@amana/shared-types';
 import { getUserDetails, type UserDetails } from '@/app/actions/details';
@@ -21,10 +21,11 @@ import { auditActionMeta } from '@/lib/audit-meta';
 const RIDE_STATUS_LABELS: Record<string, { label: string; className: string }> = {
   requested: { label: 'مطلوبة', className: 'bg-primary/10 text-primary' },
   matched: { label: 'مُسنَدة', className: 'bg-blue-500/10 text-blue-600 dark:text-blue-400' },
-  accepted: { label: 'مقبولة', className: 'bg-blue-500/10 text-blue-600 dark:text-blue-400' },
+  arrived: { label: 'وصلت السائقة', className: 'bg-blue-500/10 text-blue-600 dark:text-blue-400' },
   in_progress: { label: 'جارية', className: 'bg-amber-500/10 text-amber-600 dark:text-amber-400' },
   completed: { label: 'مكتملة', className: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' },
   cancelled: { label: 'ملغاة', className: 'bg-destructive/10 text-destructive' },
+  no_show: { label: 'لم يتمّ اللقاء', className: 'bg-destructive/10 text-destructive' },
 };
 
 const KYC_STATUS_LABELS: Record<string, { label: string; className: string }> = {
@@ -278,6 +279,71 @@ export function UserDetailsModal({ userId, kind, onClose, onApprove, onReject }:
                   )}
                 </AsideCard>
 
+                {details.driver && (
+                  /* المستندات مطويّة افتراضيًّا: مرجع يُراجَع عند التوثيق لا بيانات
+                     تُقرأ كل مرّة، وعرضها مفتوحة كان يزاحم بيانات المركبة بصريًّا.
+                     العدّاد على الترويسة يُبقي المعلومة حاضرة دون فتحها. */
+                  <details className="group rounded-xl border border-border bg-card">
+                    <summary className="flex cursor-pointer list-none items-center gap-2 p-4 text-xs font-semibold text-muted-foreground">
+                      <FileSearch size={13} />
+                      المستندات المرفوعة
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary">
+                        {
+                          [
+                            details.driver.nationalIdUrl,
+                            details.driver.licenseUrl,
+                            details.driver.vehicleRegistrationUrl,
+                            details.driver.carPhotoUrl,
+                          ].filter(Boolean).length
+                        }
+                        /4
+                      </span>
+                      <ChevronDown
+                        size={15}
+                        className="ms-auto transition-transform group-open:rotate-180"
+                      />
+                    </summary>
+
+                    <div className="grid grid-cols-2 gap-2.5 border-t border-border p-4">
+                      {[
+                        { label: 'الهوية / الإقامة', url: details.driver.nationalIdUrl },
+                        { label: 'رخصة القيادة', url: details.driver.licenseUrl },
+                        { label: 'استمارة المركبة', url: details.driver.vehicleRegistrationUrl },
+                        { label: 'صورة السيارة', url: details.driver.carPhotoUrl },
+                      ].map((doc) => (
+                        <div key={doc.label} className="flex flex-col gap-1.5">
+                          {doc.url ? (
+                            <a
+                              href={doc.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="group/doc relative block aspect-[3/4] overflow-hidden rounded-lg border border-border bg-muted"
+                            >
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={doc.url}
+                                alt={doc.label}
+                                className="h-full w-full object-cover transition-transform duration-200 group-hover/doc:scale-105"
+                              />
+                              <span className="absolute inset-0 flex items-center justify-center bg-black/0 text-white opacity-0 transition-all group-hover/doc:bg-black/40 group-hover/doc:opacity-100">
+                                <ZoomIn size={20} />
+                              </span>
+                            </a>
+                          ) : (
+                            <div className="flex aspect-[3/4] flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-border bg-muted/30 text-muted-foreground">
+                              <FileText size={16} />
+                              <span className="text-[10px]">غير مرفوعة</span>
+                            </div>
+                          )}
+                          <span className="text-center text-[11px] font-medium text-foreground">
+                            {doc.label}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+                )}
+
                 {!details.isActive && (
                   <div className="rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-4">
                     <h3 className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-red-700 dark:text-red-300">
@@ -343,47 +409,6 @@ export function UserDetailsModal({ userId, kind, onClose, onApprove, onReject }:
                         label="رقم الهوية / الإقامة"
                         value={details.driver.nationalIdNumber ?? '—'}
                       />
-                    </div>
-                    {/* معاينة المستندات المرفوعة — اضغط الصورة لفتحها بالحجم الكامل */}
-                    <p className="mt-4 mb-2 text-xs font-medium text-muted-foreground">
-                      المستندات المرفوعة (اضغط للتكبير)
-                    </p>
-                    <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-                      {[
-                        { label: 'الهوية / الإقامة', url: details.driver.nationalIdUrl },
-                        { label: 'رخصة القيادة', url: details.driver.licenseUrl },
-                        { label: 'استمارة المركبة', url: details.driver.vehicleRegistrationUrl },
-                        { label: 'صورة السيارة', url: details.driver.carPhotoUrl },
-                      ].map((doc) => (
-                        <div key={doc.label} className="flex flex-col gap-1.5">
-                          {doc.url ? (
-                            <a
-                              href={doc.url}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="group relative block aspect-[3/4] overflow-hidden rounded-lg border border-border bg-muted"
-                            >
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={doc.url}
-                                alt={doc.label}
-                                className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
-                              />
-                              <span className="absolute inset-0 flex items-center justify-center bg-black/0 text-white opacity-0 transition-all group-hover:bg-black/40 group-hover:opacity-100">
-                                <ZoomIn size={22} />
-                              </span>
-                            </a>
-                          ) : (
-                            <div className="flex aspect-[3/4] flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-border bg-muted/30 text-muted-foreground">
-                              <FileText size={18} />
-                              <span className="text-[10px]">غير مرفوعة</span>
-                            </div>
-                          )}
-                          <span className="text-center text-[11px] font-medium text-foreground">
-                            {doc.label}
-                          </span>
-                        </div>
-                      ))}
                     </div>
                   </div>
                 )}

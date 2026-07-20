@@ -61,6 +61,19 @@ function LiveStatus({ status, label }: { status: ActiveRideStatus; label: string
       </span>
     );
   }
+  // الوصول مرحلة حرجة للمتابعة: السائقة بالموقع والراكبة لم تركب بعد،
+  // وأغلب مشاكل التواصل تقع هنا — فتُميَّز بلون خاص لا بلون «طلب جديد».
+  if (status === 'arrived') {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-500/10 px-2.5 py-0.5 text-xs font-medium text-blue-600 dark:text-blue-400">
+        <span className="relative flex h-2 w-2">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-500 opacity-75" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-500" />
+        </span>
+        {label}
+      </span>
+    );
+  }
   if (status === 'matched') {
     return (
       <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-600 dark:text-amber-400">
@@ -126,6 +139,7 @@ export default function RidesPage() {
 
   const statusLabel = (s: ActiveRideStatus): string => {
     if (s === 'in_progress') return t('rides.status.inProgress', 'جارية');
+    if (s === 'arrived') return t('rides.status.arrived', 'وصلت السائقة');
     if (s === 'matched') return t('rides.status.matched', 'في الطريق للراكبة');
     return t('rides.status.requested', 'طلب جديد');
   };

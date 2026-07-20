@@ -58,9 +58,12 @@ export default function MatchingScreen() {
     }
 
     const handleStatus = (status: string | null) => {
-      if (status === 'matched' || status === 'in_progress') {
+      // كل حالة نشطة بعد المطابقة تعني أنّ هناك سائقة — فالمكان الصحيح هو
+      // شاشة التتبّع. تركُ `arrived` بلا فرع كان يُبقي الراكبة على شاشة
+      // «جارٍ البحث» وسائقتها تنتظرها بالأسفل.
+      if (status === 'matched' || status === 'arrived' || status === 'in_progress') {
         router.replace(`/tracking?rideId=${rideId}`);
-      } else if (status === 'cancelled' || status === 'completed') {
+      } else if (status === 'cancelled' || status === 'completed' || status === 'no_show') {
         router.replace('/(tabs)/home');
       }
     };

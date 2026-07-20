@@ -18,6 +18,12 @@ web-build/
 .env.*.local
 !.env.example
 
+# أسرار خدمية — مفاتيح إرسال الإشعارات وحسابات الخدمة.
+# تسريب أحدها يعني أنّ أيّ جهة تستطيع إرسال إشعارات باسم أمانة لكل المستخدمات.
+*firebase-adminsdk*.json
+*service-account*.json
+secrets/
+
 # Native
 *.orig.*
 *.jks

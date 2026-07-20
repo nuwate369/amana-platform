@@ -93,7 +93,7 @@ export function DriverRidesProvider({ children }: { children: ReactNode }) {
       .from('rides')
       .select(SELECT)
       .eq('driver_id', id)
-      .in('status', ['matched', 'in_progress'])
+      .in('status', ['matched', 'arrived', 'in_progress'])
       .order('requested_at', { ascending: false })
       .limit(1);
     setActive(data && data.length ? toRide(data[0]) : null);
@@ -194,14 +194,18 @@ export function DriverRidesProvider({ children }: { children: ReactNode }) {
     setIncoming((prev) => prev.filter((r) => r.id !== rideId));
   }, []);
 
-  // السائقة وصلت لنقطة الالتقاط — تُعلِم الراكبة (الحالة تبقى matched).
+  // السائقة وصلت لنقطة الالتقاط.
+  //
+  // الوصول حالة صريحة (`arrived`) لا طابعًا زمنيًّا صامتًا: الراكبة تحتاج أن
+  // تعرف أنّ سائقتها بالأسفل، وإشعارات تغيّر الحالة مبنيّة على عمود `status`
+  // — فتسجيل الوصول في عمود جانبي كان يعني ألّا يصلها شيء إطلاقًا.
   const markArrived = useCallback(async () => {
     if (!active || busyId) return;
     setBusyId(active.id);
     try {
       await supabase
         .from('rides')
-        .update({ driver_arrived_at: new Date().toISOString() })
+        .update({ status: 'arrived', driver_arrived_at: new Date().toISOString() })
         .eq('id', active.id);
       refresh();
     } finally {

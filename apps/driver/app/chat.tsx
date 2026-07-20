@@ -12,6 +12,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useBottomInset, keyboardAvoiding } from '@amana/shared-ui/layout';
 import { driverNavy } from '@amana/shared-ui/tokens';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
@@ -56,6 +57,8 @@ export default function ChatScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rideId]);
 
+  const bottomInset = useBottomInset();
+
   async function onSend() {
     if (!rideId || !user || !text.trim() || sending) return;
     setSending(true);
@@ -89,8 +92,7 @@ export default function ChatScreen() {
       ) : (
         <KeyboardAvoidingView
           className="flex-1"
-          behavior="padding"
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 24}
+          {...keyboardAvoiding}
         >
           <ScrollView
             ref={scrollRef}
@@ -126,7 +128,10 @@ export default function ChatScreen() {
             )}
           </ScrollView>
 
-          <View className="flex-row items-end gap-2 border-t border-neutral-200 px-4 py-3 dark:border-neutral-800">
+          <View
+            className="flex-row items-end gap-2 border-t border-neutral-200 px-4 pt-3 dark:border-neutral-800"
+            style={bottomInset}
+          >
             <View className="max-h-28 flex-1 rounded-2xl border border-neutral-200 bg-white px-4 py-2 dark:border-neutral-700 dark:bg-neutral-800">
               <TextInput
                 className="font-plex text-base text-neutral-900 dark:text-neutral-50"

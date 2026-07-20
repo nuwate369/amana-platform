@@ -1,5 +1,7 @@
 'use server';
 
+import { ACTIVE_RIDE_STATUSES, type ActiveRideStatus } from '@amana/shared-types';
+
 import { getAdminSupabase } from '@/lib/supabase/admin';
 
 /**
@@ -10,9 +12,11 @@ import { getAdminSupabase } from '@/lib/supabase/admin';
  * (matched) أو جارية (in_progress). تُرسم مواقع الالتقاط/الوجهة على الخريطة.
  */
 
-export type ActiveRideStatus = 'requested' | 'matched' | 'in_progress';
+export type { ActiveRideStatus };
 
-const ACTIVE_STATUSES: ActiveRideStatus[] = ['requested', 'matched', 'in_progress'];
+// القائمة من المصدر المشترك: إسقاط `arrived` هنا كان يُخفي الرحلة عن الخريطة
+// الحيّة في اللحظة التي تحتاجها متابعة الدعم أكثر من غيرها.
+const ACTIVE_STATUSES = [...ACTIVE_RIDE_STATUSES];
 
 export interface ActiveRide {
   id: string;

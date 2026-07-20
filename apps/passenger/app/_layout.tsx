@@ -1,5 +1,5 @@
 import '../global.css';
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { I18nextProvider } from 'react-i18next';
 import { ActivityIndicator, View } from 'react-native';
@@ -13,16 +13,35 @@ import {
 } from '@expo-google-fonts/ibm-plex-sans-arabic';
 import Toast from 'react-native-toast-message';
 import { UpdateGate } from '@amana/shared-ui/UpdateGate';
+import { usePushNotifications } from '@amana/shared-ui/usePushNotifications';
+import { useAuth } from '@/lib/auth';
 import { passengerPurple } from '@amana/shared-ui/tokens';
 import { supabase } from '@/lib/supabase';
 import { i18n } from '@/lib/i18n';
 import { AuthProvider } from '@/lib/auth';
 import { NotificationsProvider } from '@/lib/notifications';
+import { ActiveRideProvider } from '@/lib/active-ride';
 import { useProtectedRoute } from '@/lib/useProtectedRoute';
 
 /** مكوّن داخلي يشغّل حارس المسارات ثم يعرض شجرة التنقّل. */
 function RootNavigator() {
   useProtectedRoute();
+
+  // الإشعارات الفورية — بعد تسجيل الدخول فقط، فطلب الإذن قبله بلا معنى.
+  const { session } = useAuth();
+  usePushNotifications({
+    supabase,
+    app: 'passenger',
+    enabled: Boolean(session),
+    onOpen: (data) => {
+      // إشعار مرتبط برحلة يفتح متابعتها مباشرةً بدل الرئيسية.
+      if (data.entityType === 'ride' && typeof data.entityId === 'string') {
+        router.push(`/tracking?rideId=${data.entityId}`);
+      } else {
+        router.push('/notifications');
+      }
+    },
+  });
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
@@ -65,12 +84,14 @@ export default function RootLayout() {
     <I18nextProvider i18n={i18n}>
       <AuthProvider>
         <NotificationsProvider>
+          <ActiveRideProvider>
           <SafeAreaProvider>
             <StatusBar style="auto" />
             <RootNavigator />
             <UpdateGate app="passenger" supabase={supabase} accent={passengerPurple[600]} />
             <Toast />
           </SafeAreaProvider>
+          </ActiveRideProvider>
         </NotificationsProvider>
       </AuthProvider>
     </I18nextProvider>

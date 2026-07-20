@@ -3,7 +3,7 @@
     "name": "أمانة",
     "slug": "amana-passenger",
     "scheme": "amana-passenger",
-    "version": "0.1.0",
+    "version": "0.4.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -12,7 +12,10 @@
     },
     "updates": {
       "url": "https://u.expo.dev/7a1783e9-7335-4e19-ac70-d7bee695799d",
-      "fallbackToCacheTimeout": 0
+      "fallbackToCacheTimeout": 0,
+      "requestHeaders": {
+        "expo-channel-name": "production"
+      }
     },
     "icon": "./assets/images/app-icon.png",
     "splash": {
@@ -26,7 +29,8 @@
     },
     "android": {
       "package": "sa.amana.passenger",
-      "versionCode": 2,
+      "googleServicesFile": "./google-services.json",
+      "versionCode": 4,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/app-icon-adaptive.png",
         "backgroundColor": "#ffffff"
@@ -34,6 +38,13 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-notifications",
+        {
+          "color": "#7838bf",
+          "defaultChannel": "default"
+        }
+      ],
       [
         "@amana/expo-plugins/with-release-signing",
         {

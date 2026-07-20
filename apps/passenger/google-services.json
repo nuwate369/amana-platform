@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "295211433467",
+    "project_id": "amana-app-2a9ed",
+    "storage_bucket": "amana-app-2a9ed.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:295211433467:android:ff131fec0e25868c48df5e",
+        "android_client_info": {
+          "package_name": "sa.amana.driver"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC9hWskPWzA5kO79ekZCp3UkKvoNBVQ3JQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:295211433467:android:0162adb6494ae4a348df5e",
+        "android_client_info": {
+          "package_name": "sa.amana.passenger"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC9hWskPWzA5kO79ekZCp3UkKvoNBVQ3JQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

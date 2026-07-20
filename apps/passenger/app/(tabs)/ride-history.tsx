@@ -1,4 +1,5 @@
 import { MaterialIcons } from '@expo/vector-icons';
+import { isActiveRideStatus } from '@amana/shared-types';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
@@ -114,8 +115,10 @@ export default function RideHistoryScreen() {
   const filtered = useMemo(() => {
     if (activeFilter === 'all') return rides;
     if (activeFilter === 'completed') return rides.filter((r) => r.status === 'completed');
-    if (activeFilter === 'cancelled') return rides.filter((r) => r.status === 'cancelled');
-    return rides.filter((r) => ['requested', 'matched', 'in_progress'].includes(r.status));
+    // `no_show` انتهاء غير مكتمل — مكانها مع الملغاة لا خارج كل التبويبات.
+    if (activeFilter === 'cancelled')
+      return rides.filter((r) => r.status === 'cancelled' || r.status === 'no_show');
+    return rides.filter((r) => isActiveRideStatus(r.status));
   }, [rides, activeFilter]);
 
   return (

@@ -8,6 +8,8 @@
     ".": "./src/index.ts",
     "./tailwind-preset": "./tailwind-preset.js",
     "./tokens": "./src/tokens.ts",
+    "./layout": "./src/layout.ts",
+    "./usePushNotifications": "./src/usePushNotifications.ts",
     "./validation": "./src/validation.ts",
     "./MapView": "./src/MapView.tsx",
     "./UpdateGate": "./src/UpdateGate.tsx"

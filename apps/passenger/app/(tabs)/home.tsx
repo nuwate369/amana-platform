@@ -7,6 +7,8 @@ import { passengerPurple } from '@amana/shared-ui/tokens';
 import { AmanaMap, type AmanaMapHandle } from '@amana/shared-ui/MapView';
 import { useAuth } from '@/lib/auth';
 import { useNotifications } from '@/lib/notifications';
+import { useActiveRide, activeStatusLabel } from '@/lib/active-ride';
+import { useBottomInset } from '@amana/shared-ui/layout';
 
 /**
  * شاشة «الرئيسية» — خريطة حيّة حقيقية (موقع الراكبة) + ترحيب باسمها الحقيقي +
@@ -27,6 +29,8 @@ export default function HomeScreen() {
   const mapRef = useRef<AmanaMapHandle>(null);
   const { user } = useAuth();
   const { unread } = useNotifications();
+  const { ride: activeRide } = useActiveRide();
+  const bottomInset = useBottomInset(20);
 
   const fullName =
     (user?.user_metadata?.full_name as string | undefined)?.trim() || '';
@@ -91,30 +95,82 @@ export default function HomeScreen() {
         <MaterialIcons name="my-location" size={22} color={passengerPurple[700]} />
       </Pressable>
 
-      {/* البطاقة السفلية: مدخل طلب الرحلة */}
+      {/* البطاقة السفلية — رحلة جارية إن وُجدت، وإلّا مدخل طلب رحلة.
+          لا يُعرض الاثنان معًا: طلب رحلة ثانية فوق قائمة يُربك الراكبة
+          ويترك رحلتين مفتوحتين على سائقتين. */}
       <View
-        className="absolute inset-x-0 bottom-0 gap-3 rounded-t-3xl bg-white px-5 pb-8 pt-5 shadow-2xl dark:bg-neutral-800"
-        style={{ elevation: 24 }}
+        className="absolute inset-x-0 bottom-0 gap-3 rounded-t-3xl bg-white px-5 pt-5 shadow-2xl dark:bg-neutral-800"
+        style={{ elevation: 24, ...bottomInset }}
       >
-        <Pressable
-          onPress={() => router.push('/request-ride')}
-          className="flex-row items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 p-4 active:scale-[0.99] dark:border-neutral-700 dark:bg-neutral-900"
-        >
-          <MaterialIcons name="search" size={22} color={passengerPurple[600]} />
-          <Text className="flex-1 font-plex-medium text-lg text-neutral-400">إلى أين؟</Text>
-          <View className="flex-row items-center gap-1">
-            <MaterialIcons name="schedule" size={18} color={passengerPurple[700]} />
-            <Text className="font-plex-medium text-xs text-brand-700 dark:text-brand-200">الآن</Text>
-          </View>
-        </Pressable>
+        {activeRide ? (
+          <>
+            <View className="flex-row items-center gap-2">
+              <View
+                className={`h-2.5 w-2.5 rounded-full ${
+                  activeRide.needsPayment ? 'bg-amber-500' : 'bg-green-500'
+                }`}
+              />
+              <Text className="flex-1 font-plex-bold text-base text-neutral-900 dark:text-neutral-50">
+                {activeRide.needsPayment ? 'بانتظار الدفع' : 'رحلة جارية'}
+              </Text>
+              {(activeRide.fareTotal ?? activeRide.priceEstimate) != null && (
+                <Text className="font-plex-bold text-base text-brand-700 dark:text-brand-200">
+                  {activeRide.fareTotal ?? activeRide.priceEstimate} ر.س
+                </Text>
+              )}
+            </View>
 
-        <Pressable
-          onPress={() => router.push('/request-ride')}
-          className="h-14 flex-row items-center justify-center gap-2 rounded-xl bg-brand-600 active:scale-[0.98]"
-        >
-          <MaterialIcons name="local-taxi" size={22} color="#ffffff" />
-          <Text className="font-plex-bold text-lg text-white">اطلبي رحلة</Text>
-        </Pressable>
+            <Text className="font-plex text-sm text-neutral-500 dark:text-neutral-400">
+              {activeStatusLabel(activeRide)}
+            </Text>
+
+            <Pressable
+              onPress={() =>
+                router.push(
+                  activeRide.needsPayment
+                    ? `/payment?rideId=${activeRide.id}`
+                    : activeRide.status === 'requested'
+                      ? `/matching?rideId=${activeRide.id}`
+                      : `/tracking?rideId=${activeRide.id}`,
+                )
+              }
+              className={`h-14 flex-row items-center justify-center gap-2 rounded-xl active:scale-[0.98] ${
+                activeRide.needsPayment ? 'bg-amber-500' : 'bg-brand-600'
+              }`}
+            >
+              <MaterialIcons
+                name={activeRide.needsPayment ? 'payment' : 'navigation'}
+                size={22}
+                color="#ffffff"
+              />
+              <Text className="font-plex-bold text-lg text-white">
+                {activeRide.needsPayment ? 'إتمام الدفع' : 'متابعة الرحلة'}
+              </Text>
+            </Pressable>
+          </>
+        ) : (
+          <>
+            <Pressable
+              onPress={() => router.push('/request-ride')}
+              className="flex-row items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 p-4 active:scale-[0.99] dark:border-neutral-700 dark:bg-neutral-900"
+            >
+              <MaterialIcons name="search" size={22} color={passengerPurple[600]} />
+              <Text className="flex-1 font-plex-medium text-lg text-neutral-400">إلى أين؟</Text>
+              <View className="flex-row items-center gap-1">
+                <MaterialIcons name="schedule" size={18} color={passengerPurple[700]} />
+                <Text className="font-plex-medium text-xs text-brand-700 dark:text-brand-200">الآن</Text>
+              </View>
+            </Pressable>
+
+            <Pressable
+              onPress={() => router.push('/request-ride')}
+              className="h-14 flex-row items-center justify-center gap-2 rounded-xl bg-brand-600 active:scale-[0.98]"
+            >
+              <MaterialIcons name="local-taxi" size={22} color="#ffffff" />
+              <Text className="font-plex-bold text-lg text-white">اطلبي رحلة</Text>
+            </Pressable>
+          </>
+        )}
       </View>
     </View>
   );

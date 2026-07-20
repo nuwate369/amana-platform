@@ -66,7 +66,7 @@ const STR = {
       ],
     },
     dl: { h: 'جاهزة لرحلتكِ الأولى؟', sub: 'حمّلي تطبيق أمانة الآن وابدئي التنقّل بثقة وطمأنينة.' },
-    store: { hint: 'تحميل مباشر', passenger: 'تطبيق الراكبة', driver: 'تطبيق السائقة', soon: 'قريبًا على' },
+    store: { passenger: 'تطبيق الراكبة', driver: 'تطبيق السائقة', sub: 'تحميل مباشر · أندرويد' },
     footer: {
       tagline: 'منصّة تنقّل ذكيّة ونسائية مصمّمة للمرأة — رحلتكِ بأمان وراحة.',
       cPlatform: 'المنصّة', cCompany: 'الشركة', cLegal: 'قانونيّ',
@@ -126,7 +126,7 @@ const STR = {
       ],
     },
     dl: { h: 'Ready for your first ride?', sub: 'Download the Amana app now and start moving with confidence and peace of mind.' },
-    store: { hint: 'Direct download', passenger: 'Passenger app', driver: 'Driver app', soon: 'Coming soon to' },
+    store: { passenger: 'Passenger app', driver: 'Driver app', sub: 'Direct download · Android' },
     footer: {
       tagline: 'A smart, women-only ride-hailing platform — your ride, safe and comfortable.',
       cPlatform: 'Platform', cCompany: 'Company', cLegal: 'Legal',
@@ -173,59 +173,58 @@ const SAFETY_ICONS = [ICONS.women, ICONS.bell, ICONS.share, ICONS.star];
  * زرّ تنزيل حقيقي — يشير إلى `/api/download/<app>` الذي يعيد التوجيه إلى أحدث
  * إصدار منشور، فلا يحتاج الرابط تحديثًا يدويًّا مع كل بناء جديد.
  */
-function DownloadButton({
+/**
+ * بطاقة تنزيل لكل تطبيق. البطاقة تحمل لون هويّة تطبيقها (أرجواني للراكبة،
+ * كحلي للسائقة) فيُميّزها الزائر قبل قراءة النصّ، والسهم يوضّح أنّها تقود لمكان.
+ */
+function DownloadCard({
   app,
   label,
-  hint,
+  sub,
   onDark = false,
 }: {
   app: 'passenger' | 'driver';
   label: string;
-  hint: string;
+  sub: string;
   onDark?: boolean;
 }) {
+  const accent = app === 'passenger' ? '#7C3AED' : '#254594';
+
   return (
     <a
       href={`/download#${app}`}
-      className={`group flex items-center gap-3 rounded-2xl px-5 py-3 shadow-sm ring-1 transition ${
+      className={`group flex flex-1 items-center gap-4 rounded-2xl border p-4 transition sm:min-w-[15rem] sm:flex-none ${
         onDark
-          ? 'bg-white text-slate-900 ring-black/5 hover:bg-white/90'
-          : 'bg-slate-900 text-white ring-white/10 hover:bg-slate-800 dark:bg-white/10 dark:hover:bg-white/20'
+          ? 'border-white/15 bg-white/10 backdrop-blur hover:bg-white/20'
+          : 'border-slate-200 bg-white hover:-translate-y-0.5 hover:shadow-lg dark:border-slate-700 dark:bg-slate-900'
       }`}
     >
-      <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-        <polyline points="7 10 12 15 17 10" />
-        <line x1="12" y1="15" x2="12" y2="3" />
-      </svg>
-      <span className="flex flex-col items-start leading-tight">
-        <span className="text-[10px] opacity-70">{hint}</span>
-        <span className="text-sm font-bold">{label}</span>
+      <span
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition group-hover:scale-105"
+        style={{ background: onDark ? 'rgba(255,255,255,.16)' : `${accent}18`, color: onDark ? '#fff' : accent }}
+      >
+        <svg viewBox="0 0 24 24" className="h-6 w-6 fill-current" aria-hidden>
+          <path d="M17.6 9.5H6.4v8.1c0 .6.5 1.1 1.1 1.1h1v3c0 .7.6 1.3 1.3 1.3s1.3-.6 1.3-1.3v-3h1.8v3c0 .7.6 1.3 1.3 1.3s1.3-.6 1.3-1.3v-3h1c.6 0 1.1-.5 1.1-1.1V9.5zM4.3 9.4c-.7 0-1.3.6-1.3 1.3v5.4c0 .7.6 1.3 1.3 1.3s1.3-.6 1.3-1.3v-5.4c0-.7-.6-1.3-1.3-1.3zm15.4 0c-.7 0-1.3.6-1.3 1.3v5.4c0 .7.6 1.3 1.3 1.3s1.3-.6 1.3-1.3v-5.4c0-.7-.6-1.3-1.3-1.3zM15.3 3.5l.9-1.6a.3.3 0 0 0-.5-.3l-.9 1.6a6.4 6.4 0 0 0-4.6 0L9.3 1.6a.3.3 0 1 0-.5.3l.9 1.6A5.3 5.3 0 0 0 6.4 8.2h11.2a5.3 5.3 0 0 0-2.3-4.7zM9.6 6.2a.6.6 0 1 1 0-1.2.6.6 0 0 1 0 1.2zm4.8 0a.6.6 0 1 1 0-1.2.6.6 0 0 1 0 1.2z" />
+        </svg>
       </span>
-    </a>
-  );
-}
 
-/** شارة متجر «قريبًا» — غير قابلة للضغط، للإشارة إلى النشر الرسمي لاحقًا. */
-function StoreSoon({ store, soon }: { store: 'apple' | 'google'; soon: string }) {
-  return (
-    <span
-      aria-disabled
-      className="flex cursor-default items-center gap-2 rounded-xl border border-current px-3.5 py-2 text-current opacity-50"
-    >
-      {store === 'apple' ? (
-        <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current" aria-hidden>
-          <path d="M16.7 12.6c0-2.2 1.8-3.3 1.9-3.4-1-1.5-2.6-1.7-3.2-1.7-1.4-.1-2.6.8-3.3.8s-1.7-.8-2.9-.8c-1.5 0-2.9.9-3.6 2.2-1.6 2.7-.4 6.7 1.1 8.9.7 1.1 1.6 2.3 2.7 2.2 1.1 0 1.5-.7 2.8-.7s1.7.7 2.9.7c1.2 0 1.9-1.1 2.6-2.1.8-1.2 1.2-2.4 1.2-2.5-.1 0-2.3-.9-2.3-3.5zM14.6 5.9c.6-.7 1-1.7.9-2.7-.9 0-1.9.6-2.5 1.3-.6.6-1 1.6-.9 2.6 1 .1 2-.5 2.5-1.2z" />
-        </svg>
-      ) : (
-        <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current" aria-hidden>
-          <path d="M3.6 2.4l10.3 9.6-2.6 2.5L3.6 2.4zM3.6 21.6l7.7-11.7 2.6 2.5L3.6 21.6zM17.9 9.3l2.9 1.7c.9.5.9 1.5 0 2l-2.9 1.7-3-2.7 3-2.7z" />
-        </svg>
-      )}
-      <span className="text-xs font-medium">
-        {soon} {store === 'apple' ? 'App Store' : 'Google Play'}
+      <span className="flex min-w-0 flex-1 flex-col leading-tight">
+        <span className={`truncate text-[15px] font-bold ${onDark ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
+          {label}
+        </span>
+        <span className={`truncate text-xs ${onDark ? 'text-white/70' : 'text-slate-500 dark:text-slate-400'}`}>
+          {sub}
+        </span>
       </span>
-    </span>
+
+      <svg
+        viewBox="0 0 24 24"
+        className={`h-5 w-5 shrink-0 transition group-hover:-translate-x-1 ${onDark ? 'text-white/60' : 'text-slate-300 dark:text-slate-600'}`}
+        fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden
+      >
+        <polyline points="15 18 9 12 15 6" />
+      </svg>
+    </a>
   );
 }
 
@@ -326,13 +325,9 @@ export default function LandingClient() {
               </span>
             </h1>
             <p className="mt-5 max-w-lg text-lg leading-relaxed text-slate-500 dark:text-slate-400">{t.hero.sub}</p>
-            <div className="mt-8 flex flex-wrap gap-4">
-              <DownloadButton app="passenger" label={t.store.passenger} hint={t.store.hint} />
-              <DownloadButton app="driver" label={t.store.driver} hint={t.store.hint} />
-            </div>
-            <div className="mt-4 flex flex-wrap gap-3 text-slate-500 dark:text-slate-400">
-              <StoreSoon store="apple" soon={t.store.soon} />
-              <StoreSoon store="google" soon={t.store.soon} />
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:gap-4">
+              <DownloadCard app="passenger" label={t.store.passenger} sub={t.store.sub} />
+              <DownloadCard app="driver" label={t.store.driver} sub={t.store.sub} />
             </div>
             <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-3 text-sm text-slate-500 dark:text-slate-400">
               {[t.hero.c1, t.hero.c2, t.hero.c3].map((c) => (
@@ -487,13 +482,9 @@ export default function LandingClient() {
           <div className="relative mx-auto max-w-xl text-white">
             <h2 className="text-3xl font-extrabold md:text-4xl">{t.dl.h}</h2>
             <p className="mt-4 text-white/85">{t.dl.sub}</p>
-            <div className="mt-8 flex flex-wrap justify-center gap-4">
-              <DownloadButton app="passenger" label={t.store.passenger} hint={t.store.hint} onDark />
-              <DownloadButton app="driver" label={t.store.driver} hint={t.store.hint} onDark />
-            </div>
-            <div className="mt-5 flex flex-wrap justify-center gap-3 text-white">
-              <StoreSoon store="apple" soon={t.store.soon} />
-              <StoreSoon store="google" soon={t.store.soon} />
+            <div className="mx-auto mt-8 flex max-w-xl flex-col gap-3 sm:flex-row sm:gap-4">
+              <DownloadCard app="passenger" label={t.store.passenger} sub={t.store.sub} onDark />
+              <DownloadCard app="driver" label={t.store.driver} sub={t.store.sub} onDark />
             </div>
           </div>
         </div>

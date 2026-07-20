@@ -36,7 +36,9 @@ export default function TrackingScreen() {
         setLoading(false);
         if (!r) return;
         // الرحلة تقودها السائقة: إلغاء ⇒ الرئيسية؛ إنهاء ⇒ الانتقال التلقائي للتقييم.
-        if (r.status === 'cancelled') {
+        // `no_show` حالة نهائية أيضًا — بدون فرعها تبقى الراكبة على خريطة
+        // حيّة لرحلة انتهت، ولا تصلها تحديثات بعدها إطلاقًا.
+        if (r.status === 'cancelled' || r.status === 'no_show') {
           router.replace('/(tabs)/home');
         } else if (r.status === 'completed') {
           router.replace(`/rating?rideId=${rideId}${r.driverId ? `&driverId=${r.driverId}` : ''}`);

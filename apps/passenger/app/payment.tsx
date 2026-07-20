@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useBottomInset, useScrollBottomPadding } from '@amana/shared-ui/layout';
 import { passengerPurple } from '@amana/shared-ui/tokens';
 import { computeInvoice, getRide, payRide, type Invoice } from '@/lib/rides';
 
@@ -31,6 +32,8 @@ export default function PaymentScreen() {
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
+  const bottomInset = useBottomInset(16);
+  const scrollPad = useScrollBottomPadding(120);
 
   useEffect(() => {
     let alive = true;
@@ -89,7 +92,7 @@ export default function PaymentScreen() {
         <>
           <ScrollView
             className="flex-1 px-5"
-            contentContainerStyle={{ paddingTop: 8, paddingBottom: 120 }}
+            contentContainerStyle={{ paddingTop: 8, ...scrollPad }}
             showsVerticalScrollIndicator={false}
           >
             {/* بطاقة الإجمالي بتدرّج لوني */}
@@ -177,7 +180,10 @@ export default function PaymentScreen() {
           </ScrollView>
 
           {/* زر التأكيد الثابت أسفل الشاشة */}
-          <View className="absolute bottom-0 left-0 right-0 rounded-t-xl bg-white px-5 pb-8 pt-4 dark:bg-neutral-800">
+          <View
+        className="absolute bottom-0 left-0 right-0 rounded-t-xl bg-white px-5 pt-4 dark:bg-neutral-800"
+        style={bottomInset}
+      >
             <Pressable
               onPress={onConfirm}
               disabled={paying}

@@ -27,6 +27,9 @@ export interface ReleaseRow {
   /** عدد التثبيتات الأولى والتحديثات المسجَّلة لهذا الإصدار. */
   installs: number;
   updates: number;
+  /** آراء التطبيق ككلّ (الظاهرة/الإجمالي) — التقييم يخصّ التطبيق لا رقم البناء. */
+  reviewsVisible: number;
+  reviewsTotal: number;
 }
 
 export interface ReleaseInput {
@@ -64,6 +67,16 @@ export async function listReleases(): Promise<ReleaseRow[]> {
     tally.set(key, acc);
   }
 
+  // الآراء تخصّ التطبيق لا الإصدار، فنعدّها مرّة واحدة لكل تطبيق.
+  const { data: revs } = await db.from('app_reviews').select('app, visible');
+  const reviewTally = new Map<string, { shown: number; total: number }>();
+  for (const r of revs ?? []) {
+    const acc = reviewTally.get(r.app as string) ?? { shown: 0, total: 0 };
+    acc.total += 1;
+    if (r.visible) acc.shown += 1;
+    reviewTally.set(r.app as string, acc);
+  }
+
   return data.map((r) => ({
     id: r.id as string,
     app: r.app as ReleaseApp,
@@ -76,6 +89,8 @@ export async function listReleases(): Promise<ReleaseRow[]> {
     createdAt: r.created_at as string,
     installs: tally.get(`${r.app}:${r.version_code}`)?.installs ?? 0,
     updates: tally.get(`${r.app}:${r.version_code}`)?.updates ?? 0,
+    reviewsVisible: reviewTally.get(r.app as string)?.shown ?? 0,
+    reviewsTotal: reviewTally.get(r.app as string)?.total ?? 0,
   }));
 }
 
@@ -84,18 +99,32 @@ export async function listReleases(): Promise<ReleaseRow[]> {
  *
  * لكل تطبيق تسلسله المستقلّ، فرقم بناء الراكبة لا علاقة له برقم السائقة.
  */
-export async function nextVersionCode(app: ReleaseApp): Promise<number> {
+export async function nextVersionCode(app: ReleaseApp): Promise<{
+  code: number;
+  name: string;
+}> {
   const db = getAdminSupabase();
   const { data } = await db
     .from('app_versions')
-    .select('version_code')
+    .select('version_code, version_name')
     .eq('app', app)
     .eq('platform', 'android')
     .order('version_code', { ascending: false })
     .limit(1)
     .maybeSingle();
 
-  return ((data?.version_code as number | undefined) ?? 0) + 1;
+  const code = ((data?.version_code as number | undefined) ?? 0) + 1;
+
+  // اسم الإصدار مقترح برفع الرقم الأوسط (0.2.0 ← 0.3.0)، وهو العُرف حين يتغيّر
+  // الكود الأصلي — وهي الحالة الوحيدة التي تستدعي تسجيل إصدار هنا أصلًا.
+  const previous = (data?.version_name as string | undefined) ?? '';
+  const parts = previous.split('.').map((n) => Number.parseInt(n, 10));
+  const name =
+    parts.length === 3 && parts.every(Number.isFinite)
+      ? `${parts[0]}.${parts[1]! + 1}.0`
+      : '0.1.0';
+
+  return { code, name };
 }
 
 /**
@@ -165,6 +194,68 @@ export async function createRelease(
   );
   if (error) return { ok: false, error: `تعذّر حفظ الإصدار: ${error.message}` };
 
+  return { ok: true };
+}
+
+export interface ReleaseReview {
+  id: string;
+  name: string;
+  rating: number;
+  comment: string | null;
+  visible: boolean;
+  createdAt: string;
+}
+
+/** آراء المستخدمات على تطبيق معيّن — تُعرض داخل نافذة تفاصيل الإصدار. */
+export async function listAppReviews(app: ReleaseApp): Promise<ReleaseReview[]> {
+  const db = getAdminSupabase();
+  const { data } = await db
+    .from('app_reviews')
+    .select('id, name, rating, comment, visible, created_at')
+    .eq('app', app)
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  return (data ?? []).map((r) => ({
+    id: r.id as string,
+    name: r.name as string,
+    rating: r.rating as number,
+    comment: (r.comment as string | null) ?? null,
+    visible: Boolean(r.visible),
+    createdAt: r.created_at as string,
+  }));
+}
+
+/** إظهار رأي أو إخفاؤه عن صفحة التحميل العامّة. */
+export async function setReviewVisible(id: string, visible: boolean): Promise<boolean> {
+  const db = getAdminSupabase();
+  const { error } = await db.from('app_reviews').update({ visible }).eq('id', id);
+  return !error;
+}
+
+/** تعديل بيانات إصدار مسجَّل (دون رفع ملفّ جديد بالضرورة). */
+export async function updateRelease(
+  id: string,
+  patch: Omit<ReleaseInput, 'app'> & { app: ReleaseApp },
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (!patch.versionName.trim()) return { ok: false, error: 'اسم الإصدار مطلوب.' };
+  if (!patch.downloadUrl.trim()) return { ok: false, error: 'رابط التنزيل مطلوب.' };
+
+  const db = getAdminSupabase();
+  const { error } = await db
+    .from('app_versions')
+    .update({
+      app: patch.app,
+      version_code: patch.versionCode,
+      version_name: patch.versionName.trim(),
+      download_url: patch.downloadUrl.trim(),
+      notes: patch.notes.trim() || null,
+      mandatory: patch.mandatory,
+      published: patch.published,
+    })
+    .eq('id', id);
+
+  if (error) return { ok: false, error: `تعذّر حفظ التعديل: ${error.message}` };
   return { ok: true };
 }
 

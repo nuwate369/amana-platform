@@ -452,3 +452,35 @@ export function rideClassLabel(id: string | null | undefined, locale: AppLocale 
   if (!cls) return '—';
   return locale === 'en' ? cls.labelEn : cls.labelAr;
 }
+
+/**
+ * حالات الرحلة — مصدر واحد لكل التطبيقات.
+ *
+ * تُقرأ هذه القوائم في سبعة مواضع على الأقلّ (شاشتا السجلّ، الخريطة الحيّة،
+ * لوحة الإدارة، حارس الطلب الجديد…). إضافة حالة جديدة للقاعدة دون تحديثها
+ * جميعًا يجعل الرحلة تختفي من كل الفلاتر — وهو ما حدث فعلًا عند إضافة
+ * `arrived`. الثابت هنا يجعل الإضافة القادمة تصل الجميع دفعةً واحدة.
+ */
+export const ACTIVE_RIDE_STATUSES = ['requested', 'matched', 'arrived', 'in_progress'] as const;
+
+/** حالات نهائية لا تتغيّر بعدها الرحلة. */
+export const TERMINAL_RIDE_STATUSES = ['completed', 'cancelled', 'no_show'] as const;
+
+export type ActiveRideStatus = (typeof ACTIVE_RIDE_STATUSES)[number];
+export type TerminalRideStatus = (typeof TERMINAL_RIDE_STATUSES)[number];
+export type RideStatus = ActiveRideStatus | TerminalRideStatus;
+
+/** تسمية عربية لكل حالة — تمنع ظهور القيمة الخام في الواجهات. */
+export const RIDE_STATUS_AR: Record<RideStatus, string> = {
+  requested: 'طلب جديد',
+  matched: 'في الطريق إليكِ',
+  arrived: 'وصلت السائقة',
+  in_progress: 'جارية',
+  completed: 'مكتملة',
+  cancelled: 'ملغاة',
+  no_show: 'لم يتمّ اللقاء',
+};
+
+export function isActiveRideStatus(s: string): s is ActiveRideStatus {
+  return (ACTIVE_RIDE_STATUSES as readonly string[]).includes(s);
+}

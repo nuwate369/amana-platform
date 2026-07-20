@@ -12,6 +12,7 @@ import {
   type RideClassId,
 } from '@amana/shared-types';
 import { createRide, estimatePrice, haversineKm, type Coord } from '@/lib/rides';
+import { useActiveRide } from '@/lib/active-ride';
 
 /**
  * شاشة «تحديد الرحلة» — حقيقية: خريطة Mapbox، نقطة الانطلاق = الموقع الحالي،
@@ -30,6 +31,7 @@ const CLASS_ICONS: Record<RideClassId, keyof typeof MaterialIcons.glyphMap> = {
 export default function RequestRideScreen() {
   const mapRef = useRef<AmanaMapHandle>(null);
   const insets = useSafeAreaInsets();
+  const { ride: existing } = useActiveRide();
   const [pickup, setPickup] = useState<Coord | null>(null);
   const [dropoff, setDropoff] = useState<Coord | null>(null);
   const [selected, setSelected] = useState<RideClassId>(DEFAULT_RIDE_CLASS);
@@ -53,6 +55,34 @@ export default function RequestRideScreen() {
 
   async function onRequest() {
     if (!pickup || (!dropoff && !noDestination) || busy) return;
+
+    // الحارس هنا لا في الشاشة الرئيسية وحدها: هذه الشاشة مسار مسجَّل يُفتح
+    // من السجلّ ومن الروابط العميقة. ورحلة ثانية تُزيح الأولى في استعلام
+    // «رحلتي الجارية» فتفقد الراكبة طريقها إلى سائقة تنتظرها فعلًا.
+    if (existing) {
+      Alert.alert(
+        'لديكِ رحلة قائمة',
+        existing.needsPayment
+          ? 'أكملي دفع رحلتك السابقة أوّلًا.'
+          : 'لا يمكن طلب رحلة جديدة قبل انتهاء الحالية.',
+        [
+          { text: 'إلغاء', style: 'cancel' },
+          {
+            text: existing.needsPayment ? 'إتمام الدفع' : 'متابعة رحلتي',
+            onPress: () =>
+              router.replace(
+                existing.needsPayment
+                  ? `/payment?rideId=${existing.id}`
+                  : existing.status === 'requested'
+                    ? `/matching?rideId=${existing.id}`
+                    : `/tracking?rideId=${existing.id}`,
+              ),
+          },
+        ],
+      );
+      return;
+    }
+
     const cls = getRideClass(selected);
     setBusy(true);
     const res = await createRide({
