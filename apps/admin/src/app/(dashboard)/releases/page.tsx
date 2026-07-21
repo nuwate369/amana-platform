@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Smartphone,
   Upload,
-  Plus,
   X,
   Loader2,
   Eye,
@@ -17,6 +16,8 @@ import {
   ExternalLink,
   Star,
   Link2,
+  RotateCcw,
+  ChevronDown,
 } from 'lucide-react';
 import {
   listReleases,
@@ -29,6 +30,7 @@ import {
   updateRelease,
   listAppReviews,
   setReviewVisible,
+  rollbackRelease,
   type ReleaseRow,
   type ReleaseApp,
   type ReleaseReview,
@@ -80,6 +82,105 @@ function StatCard({
   );
 }
 
+/* ───────────────────── بطاقة «المباشر الآن» ───────────────────── */
+
+/**
+ * ما يصل المستخدمة فعلًا — سؤال واحد بإجابة واحدة.
+ *
+ * الجدول وحده كان يعرض ستّة إصدارات بشارة «منشور» متطابقة، فلا يُجيب عن
+ * السؤال الوحيد المهمّ. البطاقتان تجيبانه في نظرة، والأرشيف يبقى خلفهما
+ * لمن يحتاج التراجع أو التشخيص.
+ */
+function LiveCard({
+  app,
+  release,
+  onPublishNew,
+  onRollback,
+  hasPrevious,
+}: {
+  app: ReleaseApp;
+  release: ReleaseRow | undefined;
+  onPublishNew: () => void;
+  onRollback: () => void;
+  hasPrevious: boolean;
+}) {
+  const accent = app === 'passenger' ? '#7C3AED' : '#254594';
+
+  return (
+    <div className="rounded-xl border border-border bg-card p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <span
+            className="flex h-10 w-10 items-center justify-center rounded-lg"
+            style={{ background: `${accent}1A`, color: accent }}
+          >
+            <Smartphone size={20} />
+          </span>
+          <div>
+            <p className="font-bold text-foreground">{APP_LABEL[app]}</p>
+            {release ? (
+              <p className="text-sm text-muted-foreground">
+                {cleanVersion(release.versionName)} · بناء {release.versionCode}
+              </p>
+            ) : (
+              <p className="text-sm text-muted-foreground">لا يوجد إصدار منشور</p>
+            )}
+          </div>
+        </div>
+
+        {release && (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+            </span>
+            مباشر
+          </span>
+        )}
+      </div>
+
+      {release && (
+        <dl className="mt-4 grid grid-cols-3 gap-px overflow-hidden rounded-lg bg-border text-center">
+          <div className="bg-card py-2.5">
+            <dd className="text-lg font-bold tabular-nums text-foreground">{release.installs}</dd>
+            <dt className="text-[11px] text-muted-foreground">تثبيت</dt>
+          </div>
+          <div className="bg-card py-2.5">
+            <dd className="text-lg font-bold tabular-nums text-foreground">{release.updates}</dd>
+            <dt className="text-[11px] text-muted-foreground">تحديث</dt>
+          </div>
+          <div className="bg-card py-2.5">
+            <dd className="text-lg font-bold tabular-nums text-foreground">
+              {release.reviewsVisible}
+            </dd>
+            <dt className="text-[11px] text-muted-foreground">رأي</dt>
+          </div>
+        </dl>
+      )}
+
+      {/* الإجراء اليومي يقود، والطوارئ تبقى في متناول اليد بلا مزاحمة:
+          التراجع لا يُستعمل إلا حين ينكسر إصدار منشور. */}
+      <div className="mt-4 flex items-center gap-3">
+        <Button size="sm" onClick={onPublishNew}>
+          <Upload size={15} className="ms-1.5" />
+          رفع إصدار جديد
+        </Button>
+
+        {hasPrevious && (
+          <button
+            onClick={onRollback}
+            title="إعادة نشر الإصدار السابق — لإيقاف انتشار إصدار معطوب"
+            className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive"
+          >
+            <RotateCcw size={14} />
+            تراجع
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /** بداية/نهاية اليوم — لجعل مدى التاريخ شاملًا لطرفيه. */
 const dayStart = (d: Date) => new Date(d).setHours(0, 0, 0, 0);
 const dayEnd = (d: Date) => new Date(d).setHours(23, 59, 59, 999);
@@ -94,6 +195,9 @@ export default function ReleasesPage() {
   const [editTarget, setEditTarget] = useState<ReleaseRow | null>(null);
   const [publishTarget, setPublishTarget] = useState<ReleaseRow | null>(null);
   const [publishing, setPublishing] = useState(false);
+  const [rollbackTarget, setRollbackTarget] = useState<ReleaseApp | null>(null);
+  const [rollingBack, setRollingBack] = useState(false);
+  const [newFor, setNewFor] = useState<ReleaseApp | null>(null);
 
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState<'date' | 'versionCode' | 'downloads'>('date');
@@ -169,6 +273,33 @@ export default function ReleasesPage() {
     });
   }, [rows, search, appFilter, statusFilter, dateRange, sortBy, sortDir]);
 
+  // المنشور فعليًّا لكل تطبيق — أعلى رقم بناء منشور.
+  const live = useMemo(() => {
+    const map: Partial<Record<ReleaseApp, ReleaseRow>> = {};
+    for (const r of rows) {
+      if (!r.published) continue;
+      const cur = map[r.app];
+      if (!cur || r.versionCode > cur.versionCode) map[r.app] = r;
+    }
+    return map;
+  }, [rows]);
+
+  const hasPrevious = useCallback(
+    (app: ReleaseApp) => rows.filter((r) => r.app === app).length > 1,
+    [rows],
+  );
+
+  async function confirmRollback() {
+    if (!rollbackTarget) return;
+    setRollingBack(true);
+    const res = await rollbackRelease(rollbackTarget);
+    setRollingBack(false);
+    if (!res.ok) return notify.error(res.error);
+    notify.success(`عاد الإصدار ${cleanVersion(res.versionName)} للنشر`);
+    setRollbackTarget(null);
+    void refresh();
+  }
+
   const totals = useMemo(
     () =>
       visible.reduce(
@@ -214,20 +345,38 @@ export default function ReleasesPage() {
             رفع ملفّات APK وإدارة نافذة التحديث
           </span>
         </h1>
-        <Button onClick={() => setModalOpen(true)}>
-          <Plus size={18} className="ms-1" />
-          إصدار جديد
-        </Button>
       </div>
 
-      {/* إجماليات المدى المعروض */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="إصدارات معروضة" value={visible.length} icon={Tag} />
-        <StatCard label="تثبيت أوّل" value={totals.installs} icon={Download} />
-        <StatCard label="تحديث" value={totals.updates} icon={CircleCheck} />
+      {/* المباشر الآن — الإجابة عن السؤال الوحيد المهمّ */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        {(['passenger', 'driver'] as ReleaseApp[]).map((app) => (
+          <LiveCard
+            key={app}
+            app={app}
+            release={live[app]}
+            hasPrevious={hasPrevious(app)}
+            onPublishNew={() => setNewFor(app)}
+            onRollback={() => setRollbackTarget(app)}
+          />
+        ))}
       </div>
 
-      {/* شريط الفلاتر — بطاقة مستقلّة عن الجدول كي تطفو القوائم بلا قصّ */}
+      {/* الأرشيف — مطويّ افتراضيًّا: يُفتح للتشخيص أو لنشر إصدار أقدم يدويًّا */}
+      <details className="group rounded-xl border border-border bg-card">
+        <summary className="flex cursor-pointer list-none items-center gap-2 p-4 text-sm font-bold text-foreground">
+          <Tag size={16} className="text-muted-foreground" />
+          سجلّ الإصدارات
+          <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+            {rows.length}
+          </span>
+          <span className="me-auto flex items-center gap-3 text-xs font-normal text-muted-foreground">
+            <span className="tabular-nums">{totals.installs} تثبيت</span>
+            <span className="tabular-nums">{totals.updates} تحديث</span>
+          </span>
+          <ChevronDown size={16} className="text-muted-foreground transition-transform group-open:rotate-180" />
+        </summary>
+
+        <div className="space-y-4 border-t border-border p-4">
       <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
         <FilterToolbar
           search={search}
@@ -404,6 +553,9 @@ export default function ReleasesPage() {
         onClose={() => setDeleteTarget(null)}
       />
 
+        </div>
+      </details>
+
       <ActionDialog
         open={publishTarget != null}
         title={publishTarget?.published ? 'إخفاء الإصدار' : 'نشر الإصدار'}
@@ -435,16 +587,39 @@ export default function ReleasesPage() {
         <ReleaseDetailsModal release={viewTarget} onClose={() => setViewTarget(null)} />
       )}
 
-      {(modalOpen || editTarget) && (
+      <ActionDialog
+        open={rollbackTarget != null}
+        title="التراجع للإصدار السابق"
+        description={
+          rollbackTarget ? (
+            <>
+              سيعود <b>{APP_LABEL[rollbackTarget]}</b> إلى الإصدار الأقدم مباشرةً:
+              صفحة التحميل ونافذة التحديث ستشيران إليه خلال ثوانٍ.
+              <br />
+              من ثبّتت الإصدار الحالي يبقى عندها — التراجع يمنع انتشاره لا يسحبه.
+            </>
+          ) : null
+        }
+        variant="danger"
+        confirmLabel="تراجع"
+        loading={rollingBack}
+        onConfirm={() => void confirmRollback()}
+        onClose={() => setRollbackTarget(null)}
+      />
+
+      {(modalOpen || editTarget || newFor) && (
         <ReleaseModal
           initial={editTarget ?? undefined}
+          lockedApp={newFor ?? undefined}
           onClose={() => {
             setModalOpen(false);
             setEditTarget(null);
+            setNewFor(null);
           }}
           onSaved={() => {
             setModalOpen(false);
             setEditTarget(null);
+            setNewFor(null);
             void refresh();
           }}
         />
@@ -696,16 +871,20 @@ function ReleaseDetailsModal({
 
 function ReleaseModal({
   initial,
+  lockedApp,
   onClose,
   onSaved,
 }: {
   /** عند تمريره تعمل النافذة في وضع التعديل بدل الإنشاء. */
   initial?: ReleaseRow;
+  /** التطبيق حين تُفتح النافذة من بطاقته — فلا يُختار مرّة أخرى. */
+  lockedApp?: ReleaseApp;
   onClose: () => void;
   onSaved: () => void;
 }) {
   const editing = initial != null;
-  const [app, setApp] = useState<ReleaseApp>(initial?.app ?? 'passenger');
+  const locked = editing || lockedApp != null;
+  const [app, setApp] = useState<ReleaseApp>(initial?.app ?? lockedApp ?? 'passenger');
   const [versionCode, setVersionCode] = useState(
     initial ? String(initial.versionCode) : '',
   );
@@ -713,7 +892,7 @@ function ReleaseModal({
   // في الإنشاء يُقترح رقم البناء آليًّا (آخر رقم + 1) فلا حاجة لتذكّره؛
   // وفي التعديل نُبقي رقم الإصدار كما هو حتى لا نكسر مطابقته للنسخ المثبَّتة.
   useEffect(() => {
-    if (editing) return;
+    if (editing) return;  // التعديل يُبقي الرقم كما هو — تعتمد عليه النسخ المثبَّتة
     let alive = true;
     void nextVersionCode(app).then((n) => {
       if (!alive) return;
@@ -872,8 +1051,8 @@ function ReleaseModal({
               {(['passenger', 'driver'] as ReleaseApp[]).map((a) => (
                 <button
                   key={a}
-                  onClick={() => !editing && setApp(a)}
-                  disabled={editing}
+                  onClick={() => !locked && setApp(a)}
+                  disabled={locked}
                   className={`flex-1 rounded-lg border px-3 py-2.5 text-sm transition-colors sm:px-4 ${
                     app === a
                       ? 'border-primary bg-primary/10 font-medium text-primary'

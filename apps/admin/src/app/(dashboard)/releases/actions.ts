@@ -194,7 +194,70 @@ export async function createRelease(
   );
   if (error) return { ok: false, error: `تعذّر حفظ الإصدار: ${error.message}` };
 
+  if (input.published) await unpublishSiblings(input.app, input.versionCode);
+
   return { ok: true };
+}
+
+/**
+ * إصدار منشور واحد لكل تطبيق.
+ *
+ * كانت كل الإصدارات تحمل شارة «منشور» معًا، فلا تدلّ على شيء: النظام يختار
+ * أعلى رقم بناء بصمت، واللوحة تعرض ستّة صفوف متساوية. الآن النشر يُخفي ما
+ * قبله، فتصبح الشارة إجابةً صادقة عن سؤال واحد: ماذا يصل المستخدمة الآن؟
+ */
+async function unpublishSiblings(app: ReleaseApp, keepVersionCode: number): Promise<void> {
+  const db = getAdminSupabase();
+  await db
+    .from('app_versions')
+    .update({ published: false })
+    .eq('app', app)
+    .eq('platform', 'android')
+    .neq('version_code', keepVersionCode);
+}
+
+/** أحدث إصدار منشور لكل تطبيق — ما يصل المستخدمات فعلًا. */
+export async function liveReleases(): Promise<Partial<Record<ReleaseApp, ReleaseRow>>> {
+  const all = await listReleases();
+  const live: Partial<Record<ReleaseApp, ReleaseRow>> = {};
+  for (const r of all) {
+    if (!r.published) continue;
+    const current = live[r.app];
+    if (!current || r.versionCode > current.versionCode) live[r.app] = r;
+  }
+  return live;
+}
+
+/**
+ * التراجع إلى الإصدار السابق — شبكة الأمان حين يظهر عطل في المنشور.
+ *
+ * لا يحذف شيئًا: يُخفي الحالي ويُظهر أعلى إصدار أقدم منه. المستخدمات اللواتي
+ * ثبّتن الجديد يبقى عندهنّ، لكن التنزيلات الجديدة ونافذة التحديث تعودان
+ * للمستقرّ خلال ثوانٍ بدل انتظار بناء جديد.
+ */
+export async function rollbackRelease(
+  app: ReleaseApp,
+): Promise<{ ok: true; versionName: string } | { ok: false; error: string }> {
+  const all = (await listReleases())
+    .filter((r) => r.app === app)
+    .sort((a, b) => b.versionCode - a.versionCode);
+
+  const current = all.find((r) => r.published);
+  if (!current) return { ok: false, error: 'لا يوجد إصدار منشور للتراجع عنه.' };
+
+  const previous = all.find((r) => r.versionCode < current.versionCode);
+  if (!previous) return { ok: false, error: 'لا يوجد إصدار أقدم للعودة إليه.' };
+
+  const db = getAdminSupabase();
+  const { error } = await db
+    .from('app_versions')
+    .update({ published: true })
+    .eq('id', previous.id);
+  if (error) return { ok: false, error: `تعذّر التراجع: ${error.message}` };
+
+  await db.from('app_versions').update({ published: false }).eq('id', current.id);
+
+  return { ok: true, versionName: previous.versionName };
 }
 
 export interface ReleaseReview {
@@ -256,14 +319,27 @@ export async function updateRelease(
     .eq('id', id);
 
   if (error) return { ok: false, error: `تعذّر حفظ التعديل: ${error.message}` };
+
+  if (patch.published) await unpublishSiblings(patch.app, patch.versionCode);
+
   return { ok: true };
 }
 
 /** ينشر إصدارًا أو يخفيه. */
 export async function setReleasePublished(id: string, published: boolean): Promise<boolean> {
   const db = getAdminSupabase();
-  const { error } = await db.from('app_versions').update({ published }).eq('id', id);
-  return !error;
+  const { data, error } = await db
+    .from('app_versions')
+    .update({ published })
+    .eq('id', id)
+    .select('app, version_code')
+    .maybeSingle();
+  if (error) return false;
+
+  if (published && data) {
+    await unpublishSiblings(data.app as ReleaseApp, data.version_code as number);
+  }
+  return true;
 }
 
 /** يحذف إصدارًا من السجلّ (الملفّ يبقى في المستودع). */
