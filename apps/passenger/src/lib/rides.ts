@@ -97,8 +97,38 @@ export async function createRide(d: RideDraft): Promise<CreateRideResult> {
 }
 
 /** إلغاء طلب رحلة (من الراكبة) — يضبط الحالة إلى cancelled. */
-export async function cancelRide(rideId: string): Promise<{ ok: boolean; error?: string }> {
-  const { error } = await supabase.from('rides').update({ status: 'cancelled' }).eq('id', rideId);
+export interface CancelOutcome {
+  ok: boolean;
+  /** رسم الإلغاء المحتسب بالريال (صفر إن كان ضمن المهلة المجانية). */
+  fee: number;
+  wasFree: boolean;
+  error?: string;
+}
+
+/**
+ * إلغاء الراكبة لرحلتها.
+ *
+ * يمرّ عبر دالّة في قاعدة البيانات لا بتحديث مباشر للحالة: «متى يُسمح
+ * بالإلغاء وبكم» قاعدةُ مال. لو عاشت في التطبيق لكفى تعديل نسخة واحدة
+ * لتجاوزها — والتحديث المباشر كان يسمح بإلغاء رحلة جارية والراكبة بداخلها.
+ */
+export async function cancelRide(
+  rideId: string,
+  reasonCode = 'passenger_changed_mind',
+): Promise<CancelOutcome> {
+  const { data, error } = await supabase
+    .rpc('cancel_ride_by_passenger', { p_ride_id: rideId, p_reason_code: reasonCode })
+    .maybeSingle<{ cancelled: boolean; fee: number; was_free: boolean }>();
+
+  if (error) return { ok: false, fee: 0, wasFree: true, error: error.message };
+  return { ok: true, fee: Number(data?.fee ?? 0), wasFree: data?.was_free ?? true };
+}
+
+/** إعلان الراكبة أنّها ستدفع نقدًا. الدفع لا يكتمل إلّا بتأكيد السائقة. */
+export async function declareCashPayment(
+  rideId: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const { error } = await supabase.rpc('declare_cash_payment', { p_ride_id: rideId });
   return error ? { ok: false, error: error.message } : { ok: true };
 }
 
@@ -116,14 +146,19 @@ export interface RideDetails {
   priceEstimate: number | null;
   /** وصلت السائقة لنقطة الالتقاط؟ (null ⇒ لم تصل بعد). */
   driverArrivedAt: string | null;
+  /** وقت قبول السائقة — منه تُحسب المهلة المجانية للإلغاء. */
+  acceptedAt: string | null;
 }
+
+/** المهلة المجانية للإلغاء بعد قبول السائقة، بالثواني (تطابق قاعدة البيانات). */
+export const CANCEL_GRACE_SECONDS = 120;
 
 /** تفاصيل الرحلة — تُقرأ كلّها من صفّ الرحلة (بيانات السائقة لقطة، بلا انتهاك RLS). */
 export async function getRide(rideId: string): Promise<RideDetails | null> {
   const { data, error } = await supabase
     .from('rides')
     .select(
-      'id, status, driver_id, pickup_lat, pickup_lng, dropoff_lat, dropoff_lng, driver_lat, driver_lng, driver_name, driver_vehicle, driver_plate, price_estimate, driver_arrived_at',
+      'id, status, driver_id, pickup_lat, pickup_lng, dropoff_lat, dropoff_lng, driver_lat, driver_lng, driver_name, driver_vehicle, driver_plate, price_estimate, driver_arrived_at, accepted_at',
     )
     .eq('id', rideId)
     .single();
@@ -142,6 +177,7 @@ export async function getRide(rideId: string): Promise<RideDetails | null> {
     plate: data.driver_plate ?? null,
     priceEstimate: data.price_estimate ?? null,
     driverArrivedAt: data.driver_arrived_at ?? null,
+    acceptedAt: data.accepted_at ?? null,
   };
 }
 

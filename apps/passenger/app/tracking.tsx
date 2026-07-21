@@ -1,12 +1,18 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { passengerPurple } from '@amana/shared-ui/tokens';
 import { AmanaMap, type AmanaMapHandle, type MapMarker } from '@amana/shared-ui/MapView';
 import { supabase } from '@/lib/supabase';
-import { getRide, haversineKm, type RideDetails } from '@/lib/rides';
+import {
+  CANCEL_GRACE_SECONDS,
+  cancelRide,
+  getRide,
+  haversineKm,
+  type RideDetails,
+} from '@/lib/rides';
 
 /**
  * شاشة «تتبع الرحلة» — حقيقية: تعرض السائقة المطابَقة (لقطة على صفّ الرحلة) وموقعها
@@ -22,6 +28,15 @@ export default function TrackingScreen() {
   const [loading, setLoading] = useState(true);
   // الورقة السفلية قابلة للطيّ (الضغط على المقبض) — لإظهار/إخفاء التفاصيل.
   const [collapsed, setCollapsed] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  // نبضة كل ثانية لعدّاد المهلة المجانية. بدونها يبقى العدّاد جامدًا على
+  // قيمته لحظةَ فتح الشاشة، فتظنّ الراكبة أنّ أمامها وقتًا وقد انتهى.
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
 
   useEffect(() => {
     if (!rideId) {
@@ -84,6 +99,51 @@ export default function TrackingScreen() {
       : ride.driverArrivedAt
         ? 'سائقتك وصلت — بانتظارك عند نقطة الالتقاط'
         : 'سائقتك في الطريق إليك';
+
+  // الإلغاء ممكن حتى بدء الرحلة فقط: بعد الانطلاق تكون الراكبة داخل المركبة،
+  // وإنهاء الرحلة عندها حدثٌ آخر له تسويته المالية.
+  const canCancel = ride?.status === 'matched' || ride?.status === 'arrived';
+  const freeSecondsLeft = ride?.acceptedAt
+    ? Math.max(
+        0,
+        CANCEL_GRACE_SECONDS -
+          Math.floor((now - new Date(ride.acceptedAt).getTime()) / 1000),
+      )
+    : CANCEL_GRACE_SECONDS;
+
+  const onCancel = () => {
+    if (!rideId || cancelling) return;
+    const warning =
+      freeSecondsLeft > 0
+        ? 'الإلغاء الآن مجاني.'
+        : 'انتهت المهلة المجانية، وقد يُحتسب رسم إلغاء لأنّ سائقتك في الطريق إليك.';
+
+    Alert.alert('إلغاء الرحلة', `${warning}
+
+هل تريدين المتابعة؟`, [
+      { text: 'تراجع', style: 'cancel' },
+      {
+        text: 'نعم، ألغي',
+        style: 'destructive',
+        onPress: () => {
+          setCancelling(true);
+          cancelRide(rideId)
+            .then((res) => {
+              if (!res.ok) {
+                Alert.alert('تعذّر الإلغاء', 'حاولي مرّة أخرى بعد قليل.');
+                return;
+              }
+              if (res.fee > 0) {
+                Alert.alert('أُلغيت الرحلة', `احتُسب رسم إلغاء قدره ${res.fee} ر.س.`);
+              }
+              router.replace('/(tabs)/home');
+            })
+            // بدون هذا الفرع يبقى الزرّ معطّلًا للأبد إن انقطع الاتصال.
+            .finally(() => setCancelling(false));
+        },
+      },
+    ]);
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-900" edges={['top']}>
@@ -228,6 +288,32 @@ export default function TrackingScreen() {
                 {statusText}
               </Text>
             </View>
+
+            {/* الانسحاب حقٌّ للراكبة لا استثناء. غيابه كان يحبسها في رحلة
+                لم تعد تريدها بلا مخرج داخل التطبيق. */}
+            {canCancel && (
+              <Pressable
+                onPress={onCancel}
+                disabled={cancelling}
+                className="mt-3 h-12 flex-row items-center justify-center gap-2 rounded-xl border border-red-200 active:scale-95 dark:border-red-900"
+              >
+                {cancelling ? (
+                  <ActivityIndicator size="small" color="#DC2626" />
+                ) : (
+                  <>
+                    <MaterialIcons name="close" size={18} color="#DC2626" />
+                    <Text className="font-plex-semibold text-sm text-red-600">
+                      إلغاء الرحلة
+                    </Text>
+                    <Text className="font-plex text-xs text-neutral-400">
+                      {freeSecondsLeft > 0
+                        ? `مجانًا خلال ${freeSecondsLeft} ث`
+                        : 'قد يُحتسب رسم'}
+                    </Text>
+                  </>
+                )}
+              </Pressable>
+            )}
           </>
         )}
       </View>

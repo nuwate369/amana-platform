@@ -4,6 +4,7 @@ import { useEffect, useState, type ComponentProps } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useKeyboardPush } from '@amana/shared-ui/layout';
 import { driverNavy } from '@amana/shared-ui/tokens';
 import type { AppLocale } from '@amana/i18n';
 import { useAuth } from '@/lib/auth';
@@ -21,6 +22,7 @@ const SAUDI_PHONE_RE = /^05\d{8}$/;
  * الاسم والجوال قابلان للتعديل (يُحفظان في profiles + بيانات المصادقة).
  */
 export default function AccountScreen() {
+  const keyboardPush = useKeyboardPush();
   const { t } = useTranslation();
   const { user, signOut } = useAuth();
   const { theme, setTheme, language, setLanguage } = usePreferences();
@@ -128,7 +130,11 @@ export default function AccountScreen() {
   const avatarLetter = fullName.trim().charAt(0) || 'أ';
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-900" edges={['top']}>
+    <SafeAreaView
+      className="flex-1 bg-neutral-50 dark:bg-neutral-900"
+      edges={['top']}
+      style={keyboardPush}
+    >
       {/* الشريط العلوي */}
       <View className="h-16 flex-row items-center justify-center border-b border-neutral-200 px-5 dark:border-neutral-800">
         <Text className="font-plex-bold text-xl text-neutral-900 dark:text-neutral-50">

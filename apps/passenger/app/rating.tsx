@@ -3,7 +3,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useBottomInset, useScrollBottomPadding } from '@amana/shared-ui/layout';
+import { useBottomInset, useScrollBottomPadding, useKeyboardPush } from '@amana/shared-ui/layout';
 import { passengerPurple } from '@amana/shared-ui/tokens';
 import { submitRating } from '@/lib/rides';
 
@@ -17,6 +17,7 @@ import { submitRating } from '@/lib/rides';
 const FEEDBACK_CHIPS = ['احترافية', 'قيادة آمنة', 'سيارة نظيفة', 'التزام بالموعد', 'خلوقة'];
 
 export default function RatingScreen() {
+  const keyboardPush = useKeyboardPush();
   const { rideId, driverId } = useLocalSearchParams<{ rideId?: string; driverId?: string }>();
   const [rating, setRating] = useState(0);
   const [selectedChips, setSelectedChips] = useState<string[]>([]);
@@ -46,7 +47,11 @@ export default function RatingScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-900" edges={['top']}>
+    <SafeAreaView
+      className="flex-1 bg-neutral-50 dark:bg-neutral-900"
+      edges={['top']}
+      style={keyboardPush}
+    >
       {/* الشريط العلوي */}
       <View className="h-14 flex-row items-center justify-between px-5">
         <Pressable

@@ -13,6 +13,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useKeyboardPush } from '@amana/shared-ui/layout';
 import { driverNavy } from '@amana/shared-ui/tokens';
 import { useAuth } from '@/lib/auth';
 import { notify } from '@/lib/toast';
@@ -20,6 +21,7 @@ import { createTicket, type TicketCategory } from '@/lib/support';
 
 /** شاشة «تذكرة جديدة» — الموضوع + النوع + الوصف. */
 export default function NewTicketScreen() {
+  const keyboardPush = useKeyboardPush();
   const { t } = useTranslation();
   const { user } = useAuth();
 
@@ -51,7 +53,11 @@ export default function NewTicketScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-900" edges={['top']}>
+    <SafeAreaView
+      className="flex-1 bg-neutral-50 dark:bg-neutral-900"
+      edges={['top']}
+      style={keyboardPush}
+    >
       <View className="h-16 flex-row items-center justify-between border-b border-neutral-200 px-4 dark:border-neutral-800">
         <Pressable
           onPress={() => router.back()}

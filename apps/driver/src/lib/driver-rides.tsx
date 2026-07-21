@@ -28,6 +28,22 @@ export interface DriverRide {
   arrivedAt: string | null;
 }
 
+/**
+ * أسباب اعتذار السائقة — محصورة لا نصّ حرّ.
+ *
+ * النصّ الحرّ لا يُحصى ولا يُحاسَب عليه. القائمة تطابق
+ * `driver_cancel_reasons()` في قاعدة البيانات؛ أيّ سبب خارجها يُرفض هناك.
+ */
+export const DRIVER_CANCEL_REASONS = [
+  { code: 'vehicle_issue', label: 'عطل في المركبة' },
+  { code: 'emergency', label: 'ظرف طارئ' },
+  { code: 'passenger_no_show', label: 'الراكبة لم تحضر' },
+  { code: 'unsafe_situation', label: 'دواعي سلامة' },
+  { code: 'wrong_location', label: 'تعذّر الوصول لنقطة الالتقاء' },
+] as const;
+
+export type DriverCancelReason = (typeof DRIVER_CANCEL_REASONS)[number]['code'];
+
 interface DriverRidesValue {
   incoming: DriverRide[];
   active: DriverRide | null;
@@ -35,6 +51,8 @@ interface DriverRidesValue {
   accept: (ride: DriverRide) => Promise<void>;
   dismiss: (rideId: string) => void;
   markArrived: () => Promise<void>;
+  /** اعتذار السائقة عن رحلة قبلتها — بسبب مُصرَّح لا غير. */
+  cancelActive: (reasonCode: DriverCancelReason) => Promise<{ ok: boolean; error?: string }>;
   startRide: () => Promise<void>;
   completeRide: () => Promise<void>;
 }
@@ -229,11 +247,37 @@ export function DriverRidesProvider({ children }: { children: ReactNode }) {
     [active, busyId, refresh],
   );
 
+  /**
+   * الاعتذار عن رحلة مقبولة.
+   *
+   * يمرّ عبر دالّة في قاعدة البيانات لا بتحديث مباشر: انسحاب السائقة يترك
+   * الراكبة في الشارع، فلا يكون بلا سبب مُصرَّح ولا بلا أثر على معدّل السائقة.
+   */
+  const cancelActive = useCallback(
+    async (reasonCode: DriverCancelReason) => {
+      if (!active || busyId) return { ok: false, error: 'busy' };
+      setBusyId(active.id);
+      try {
+        const { error } = await supabase.rpc('cancel_ride_by_driver', {
+          p_ride_id: active.id,
+          p_reason_code: reasonCode,
+        });
+        if (error) return { ok: false, error: error.message };
+        setActive(null);
+        return { ok: true };
+      } finally {
+        setBusyId(null);
+        refresh();
+      }
+    },
+    [active, busyId, refresh],
+  );
+
   const startRide = useCallback(() => setActiveStatus('in_progress'), [setActiveStatus]);
   const completeRide = useCallback(() => setActiveStatus('completed'), [setActiveStatus]);
 
   return (
-    <Ctx.Provider value={{ incoming, active, busyId, accept, dismiss, markArrived, startRide, completeRide }}>
+    <Ctx.Provider value={{ incoming, active, busyId, accept, dismiss, markArrived, cancelActive, startRide, completeRide }}>
       {children}
     </Ctx.Provider>
   );

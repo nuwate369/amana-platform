@@ -7,7 +7,7 @@ import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'rea
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useBottomInset, useScrollBottomPadding } from '@amana/shared-ui/layout';
 import { passengerPurple } from '@amana/shared-ui/tokens';
-import { computeInvoice, getRide, payRide, type Invoice } from '@/lib/rides';
+import { declareCashPayment, computeInvoice, getRide, payRide, type Invoice } from '@/lib/rides';
 
 /**
  * شاشة «تفاصيل الدفع» — أسعار حقيقية (محسوبة من مسافة الرحلة) ودفع **محاكى**
@@ -48,6 +48,10 @@ export default function PaymentScreen() {
     };
   }, [rideId]);
 
+  // الطريقة صارت اختيارًا لا ثابتًا في الشيفرة. كانت `'demo_card'` مكتوبة
+  // داخل الاستدعاء، فلم يكن للراكبة خيار ولا للسائقة علم بما جرى.
+  const [method, setMethod] = useState<'cash' | 'demo_card'>('cash');
+
   const currency = t('payment.currency');
   const money = useMemo(
     () => (n: number) => `${n.toFixed(2)} ${currency}`,
@@ -58,11 +62,23 @@ export default function PaymentScreen() {
     if (paying) return;
     setPaying(true);
     if (rideId && invoice) {
-      const res = await payRide(rideId, invoice.total, 'demo_card');
+      // النقد لا يُقفل هنا: مَن يقبض المال هو مَن يؤكّده. نُعلن النيّة فقط،
+      // ويصل إشعارٌ للسائقة لتؤكّد الاستلام. غير ذلك كان يُغلق الرحلة ماليًّا
+      // بضغطة الراكبة وحدها، والسائقة لا تعلم أنّها قُبضت.
+      const res = method === 'cash'
+        ? await declareCashPayment(rideId)
+        : await payRide(rideId, invoice.total, 'demo_card');
+
       if (res.error) {
         Alert.alert('تعذّر تسجيل الدفع', res.error);
         setPaying(false);
         return;
+      }
+      if (method === 'cash') {
+        Alert.alert(
+          'سلّمي المبلغ لسائقتك',
+          `المبلغ ${invoice.total.toFixed(2)} ${t('payment.currency')}. تكتمل الرحلة بتأكيد السائقة استلامه.`,
+        );
       }
     }
     router.replace('/(tabs)/home');
@@ -120,8 +136,36 @@ export default function PaymentScreen() {
                 {t('payment.methodTitle')}
               </Text>
 
-              {/* وسيلة تجريبية نشطة */}
-              <View className="mb-3 flex-row items-center gap-3 rounded-xl border-2 border-brand-600 bg-white p-4 dark:bg-neutral-800">
+              {/* نقدًا — الطريقة الحقيقية الوحيدة حتى تُربط بوابة دفع */}
+              <Pressable
+                onPress={() => setMethod('cash')}
+                className={`mb-3 flex-row items-center gap-3 rounded-xl border-2 bg-white p-4 dark:bg-neutral-800 ${
+                  method === 'cash' ? 'border-brand-600' : 'border-neutral-200 dark:border-neutral-700'
+                }`}
+              >
+                <View className="h-8 w-12 items-center justify-center rounded bg-neutral-100 dark:bg-neutral-700">
+                  <MaterialIcons name="payments" size={20} color={passengerPurple[700]} />
+                </View>
+                <View className="flex-1">
+                  <Text className="font-plex text-base text-neutral-900 dark:text-neutral-50">
+                    نقدًا
+                  </Text>
+                  <Text className="font-plex-medium text-xs text-neutral-400">
+                    تسلّمين المبلغ للسائقة وتؤكّده هي
+                  </Text>
+                </View>
+                {method === 'cash' && (
+                  <MaterialIcons name="check-circle" size={24} color={passengerPurple[600]} />
+                )}
+              </Pressable>
+
+              {/* وسيلة تجريبية */}
+              <Pressable
+                onPress={() => setMethod('demo_card')}
+                className={`mb-3 flex-row items-center gap-3 rounded-xl border-2 bg-white p-4 dark:bg-neutral-800 ${
+                  method === 'demo_card' ? 'border-brand-600' : 'border-neutral-200 dark:border-neutral-700'
+                }`}
+              >
                 <View className="h-8 w-12 items-center justify-center rounded bg-neutral-100 dark:bg-neutral-700">
                   <MaterialIcons name="credit-card" size={20} color={passengerPurple[700]} />
                 </View>
@@ -133,8 +177,10 @@ export default function PaymentScreen() {
                     {t('payment.defaultCard')}
                   </Text>
                 </View>
-                <MaterialIcons name="check-circle" size={24} color={passengerPurple[600]} />
-              </View>
+                {method === 'demo_card' && (
+                  <MaterialIcons name="check-circle" size={24} color={passengerPurple[600]} />
+                )}
+              </Pressable>
 
               {/* إضافة بطاقة جديدة (تُفعَّل عند ربط بوابة حقيقية) */}
               <Pressable

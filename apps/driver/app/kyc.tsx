@@ -13,6 +13,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useKeyboardPush } from '@amana/shared-ui/layout';
 import { driverNavy } from '@amana/shared-ui/tokens';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
@@ -57,6 +58,7 @@ function parsePlate(plate: string): { letters: string; digits: string } {
  * الصور تُرفع لحظة اختيارها؛ زر «إرسال للتدقيق» يُفعَّل بعد اكتمال كل الحقول والصور.
  */
 export default function KycScreen() {
+  const keyboardPush = useKeyboardPush();
   const { user, driver, refreshDriver, signOut } = useAuth();
 
   const initialPlate = parsePlate(driver?.vehicle_plate ?? '');
@@ -206,7 +208,11 @@ export default function KycScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-900" edges={['top']}>
+    <SafeAreaView
+      className="flex-1 bg-neutral-50 dark:bg-neutral-900"
+      edges={['top']}
+      style={keyboardPush}
+    >
       {/* الشريط العلوي */}
       <View className="h-16 flex-row items-center justify-between border-b border-neutral-200 px-5 dark:border-neutral-800">
         <Pressable

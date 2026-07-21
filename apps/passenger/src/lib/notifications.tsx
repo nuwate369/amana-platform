@@ -7,6 +7,8 @@ import {
   type ReactNode,
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Toast from 'react-native-toast-message';
+import { router, type Href } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 
 /**
@@ -154,7 +156,30 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'system_notifications' },
-        () => refresh(),
+        (payload) => {
+          refresh();
+
+          // شريط مرئي عند وصول إشعار جديد والتطبيق مفتوح.
+          //
+          // إشعار النظام لا يظهر ما دام التطبيق في المقدّمة، وتحديث رقم فوق
+          // الجرس وحده لا يُلاحَظ: تصل رسالة من الطرف الآخر فلا يعلم بها أحد.
+          // الرسالة هنا تُرى فورًا وتقود إلى مكانها بضغطة.
+          if (payload.eventType !== 'INSERT') return;
+          const row = payload.new as { title_ar?: string; body_ar?: string } | null;
+          if (!row?.title_ar) return;
+
+          Toast.show({
+            type: 'info',
+            text1: row.title_ar,
+            text2: row.body_ar ?? undefined,
+            position: 'top',
+            visibilityTime: 4000,
+            onPress: () => {
+              Toast.hide();
+              router.push('/notifications' as Href);
+            },
+          });
+        },
       )
       .subscribe();
     return () => {

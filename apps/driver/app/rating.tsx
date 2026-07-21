@@ -3,7 +3,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useBottomInset, useScrollBottomPadding } from '@amana/shared-ui/layout';
+import { useBottomInset, useScrollBottomPadding, useKeyboardPush } from '@amana/shared-ui/layout';
 import { driverNavy } from '@amana/shared-ui/tokens';
 import { ratePassenger } from '@/lib/driver-rides';
 
@@ -16,6 +16,7 @@ import { ratePassenger } from '@/lib/driver-rides';
 const FEEDBACK_CHIPS = ['حسن التعامل', 'الالتزام بالموعد', 'دقة نقطة الالتقاط', 'هادئة', 'محترمة'];
 
 export default function RatePassengerScreen() {
+  const keyboardPush = useKeyboardPush();
   const { rideId, passengerId } = useLocalSearchParams<{ rideId?: string; passengerId?: string }>();
   const [rating, setRating] = useState(0);
   const [selectedChips, setSelectedChips] = useState<string[]>([]);
@@ -49,7 +50,11 @@ export default function RatePassengerScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-900" edges={['top']}>
+    <SafeAreaView
+      className="flex-1 bg-neutral-50 dark:bg-neutral-900"
+      edges={['top']}
+      style={keyboardPush}
+    >
       {/* الشريط العلوي */}
       <View className="h-14 flex-row items-center justify-between px-5">
         <Pressable

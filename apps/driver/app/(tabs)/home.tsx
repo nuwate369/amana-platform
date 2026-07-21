@@ -1,7 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { router, type Href } from 'expo-router';
 import { Component, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { ActivityIndicator, Pressable, Switch, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Modal, Pressable, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { driverNavy } from '@amana/shared-ui/tokens';
 import { AmanaMap, type AmanaMapHandle, type MapMarker } from '@amana/shared-ui/MapView';
@@ -9,6 +9,7 @@ import { rideClassLabel } from '@amana/shared-types';
 import { supabase } from '@/lib/supabase';
 import { usePresence } from '@/lib/presence';
 import { useNotifications } from '@/lib/notifications';
+import { DRIVER_CANCEL_REASONS, type DriverCancelReason } from '@/lib/driver-rides';
 import { useDriverRides, type Coord, type DriverRide } from '@/lib/driver-rides';
 
 /**
@@ -46,7 +47,7 @@ export default function HomeScreen() {
   const mapRef = useRef<AmanaMapHandle>(null);
   const { online, busy, setOnline } = usePresence();
   const { unread } = useNotifications();
-  const { incoming, active, busyId, accept, dismiss, markArrived, startRide, completeRide } =
+  const { incoming, active, busyId, accept, dismiss, markArrived, cancelActive, startRide, completeRide } =
     useDriverRides();
 
   const request = !active && online ? incoming[0] : undefined;
@@ -67,7 +68,11 @@ export default function HomeScreen() {
     passengerId: string | null;
     passengerName: string | null;
     paid: boolean;
+    /** اختارت الراكبة الدفع نقدًا وتنتظر تأكيد السائقة استلامه. */
+    cashPending: boolean;
+    amount: number | null;
   } | null>(null);
+  const [confirmingCash, setConfirmingCash] = useState(false);
 
   async function handleComplete() {
     if (!active) return;
@@ -76,6 +81,8 @@ export default function HomeScreen() {
       passengerId: active.passengerId,
       passengerName: active.passengerName,
       paid: false,
+      cashPending: false,
+      amount: active.priceEstimate,
     };
     await completeRide();
     setAwaitingRating(info); // لا ننتقل للتقييم الآن — ننتظر الدفع
@@ -86,10 +93,22 @@ export default function HomeScreen() {
     if (!awaitingRating || awaitingRating.paid) return;
     const rid = awaitingRating.rideId;
     const check = async () => {
-      const { data } = await supabase.from('rides').select('paid_at').eq('id', rid).maybeSingle();
-      if (data?.paid_at) {
-        setAwaitingRating((prev) => (prev && prev.rideId === rid ? { ...prev, paid: true } : prev));
-      }
+      const { data } = await supabase
+        .from('rides')
+        .select('paid_at, cash_pending_at, fare_total, price_estimate')
+        .eq('id', rid)
+        .maybeSingle();
+      if (!data) return;
+      setAwaitingRating((prev) =>
+        prev && prev.rideId === rid
+          ? {
+              ...prev,
+              paid: data.paid_at != null,
+              cashPending: data.cash_pending_at != null && data.paid_at == null,
+              amount: data.fare_total ?? data.price_estimate ?? prev.amount,
+            }
+          : prev,
+      );
     };
     void check();
     const ch = supabase
@@ -104,6 +123,34 @@ export default function HomeScreen() {
       supabase.removeChannel(ch);
     };
   }, [awaitingRating]);
+
+  // لوحة أسباب الاعتذار. السبب إلزامي: انسحاب بلا سبب لا يُحاسَب عليه أحد،
+  // ويترك الراكبة بلا تفسير لِمَ اختفت سائقتها.
+  const [cancelOpen, setCancelOpen] = useState(false);
+
+  function onPickCancelReason(code: DriverCancelReason) {
+    setCancelOpen(false);
+    void cancelActive(code).then((res) => {
+      if (!res.ok) Alert.alert('تعذّر الإلغاء', 'حاولي مرّة أخرى بعد قليل.');
+    });
+  }
+
+  /** تأكيد السائقة قبضَ المبلغ — هي وحدها من يملكه، فهي وحدها من يؤكّده. */
+  async function confirmCash() {
+    const a = awaitingRating;
+    if (!a || confirmingCash) return;
+    setConfirmingCash(true);
+    try {
+      const { error } = await supabase.rpc('confirm_cash_received', {
+        p_ride_id: a.rideId,
+        p_amount: a.amount,
+      });
+      if (error) Alert.alert('تعذّر تأكيد الاستلام', 'حاولي مرّة أخرى بعد قليل.');
+    } finally {
+      // بدون هذا الفرع يبقى الزرّ معطّلًا للأبد إن انقطع الاتصال.
+      setConfirmingCash(false);
+    }
+  }
 
   function openPassengerRating() {
     const a = awaitingRating;
@@ -212,11 +259,42 @@ export default function HomeScreen() {
         onPress={() => mapRef.current?.recenter()}
         style={{ elevation: 12, zIndex: 12 }}
         className={`absolute right-5 h-12 w-12 items-center justify-center rounded-full bg-white shadow-md active:scale-95 dark:bg-neutral-800 ${
-          active || request || awaitingRating?.paid ? 'bottom-52' : 'bottom-8'
+          active || request || awaitingRating?.paid || awaitingRating?.cashPending
+            ? 'bottom-52'
+            : 'bottom-8'
         }`}
       >
         <MaterialIcons name="my-location" size={22} color={driverNavy[600]} />
       </Pressable>
+
+      {/* لوحة أسباب الاعتذار */}
+      <Modal visible={cancelOpen} transparent animationType="slide" onRequestClose={() => setCancelOpen(false)}>
+        <Pressable className="flex-1 justify-end bg-black/50" onPress={() => setCancelOpen(false)}>
+          <Pressable className="rounded-t-3xl bg-white px-5 pb-10 pt-5 dark:bg-neutral-800">
+            <Text className="mb-1 text-center font-plex-bold text-lg text-neutral-900 dark:text-neutral-50">
+              سبب الاعتذار
+            </Text>
+            <Text className="mb-4 text-center font-plex text-xs leading-5 text-neutral-500 dark:text-neutral-400">
+              الراكبة بانتظارك الآن. السبب يصلها، ويُسجَّل في سجلّك.
+            </Text>
+            {DRIVER_CANCEL_REASONS.map((r) => (
+              <Pressable
+                key={r.code}
+                onPress={() => onPickCancelReason(r.code)}
+                className="mb-2 h-13 flex-row items-center justify-between rounded-xl border border-neutral-200 px-4 py-3 active:scale-[0.98] dark:border-neutral-700"
+              >
+                <Text className="font-plex-medium text-sm text-neutral-800 dark:text-neutral-100">
+                  {r.label}
+                </Text>
+                <MaterialIcons name="chevron-left" size={20} color="#9CA3AF" />
+              </Pressable>
+            ))}
+            <Pressable onPress={() => setCancelOpen(false)} className="mt-2 h-12 items-center justify-center">
+              <Text className="font-plex-semibold text-sm text-neutral-500">تراجع</Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
 
       {/* بطاقة الرحلة النشطة */}
       {active ? (
@@ -247,6 +325,18 @@ export default function HomeScreen() {
             <MaterialIcons name="chat-bubble-outline" size={18} color={driverNavy[600]} />
             <Text className="font-plex-medium text-sm text-brand-700 dark:text-brand-300">مراسلة الراكبة</Text>
           </Pressable>
+          {/* الاعتذار متاح قبل انطلاق الرحلة فقط: بعد الانطلاق تكون الراكبة
+              داخل المركبة، ولا يُترك مصيرها لزرّ واحد. */}
+          {(active.status === 'matched' || active.status === 'arrived') && (
+            <Pressable
+              onPress={() => setCancelOpen(true)}
+              disabled={busyId === active.id}
+              className="mb-3 h-11 flex-row items-center justify-center gap-2 rounded-xl border border-red-200 active:scale-[0.98] dark:border-red-900"
+            >
+              <MaterialIcons name="cancel" size={18} color="#DC2626" />
+              <Text className="font-plex-medium text-sm text-red-600">الاعتذار عن الرحلة</Text>
+            </Pressable>
+          )}
           {phase ? (
             <Pressable
               onPress={() => void PHASE_UI[phase].run()}
@@ -263,6 +353,33 @@ export default function HomeScreen() {
               )}
             </Pressable>
           ) : null}
+        </View>
+      ) : awaitingRating?.cashPending ? (
+        /* الراكبة أعلنت الدفع نقدًا — السائقة تؤكّد القبض */
+        <View className="absolute inset-x-0 bottom-0 rounded-t-3xl bg-white px-5 pb-8 pt-4 shadow-2xl dark:bg-neutral-800">
+          <Text className="text-center font-plex-bold text-lg text-neutral-900 dark:text-neutral-50">
+            استلمي المبلغ نقدًا
+          </Text>
+          <Text className="mb-1 mt-1 text-center font-plex-bold text-3xl text-green-600">
+            {awaitingRating.amount != null ? `${awaitingRating.amount} ر.س` : '—'}
+          </Text>
+          <Text className="mb-4 text-center font-plex text-xs leading-5 text-neutral-500 dark:text-neutral-400">
+            لا تؤكّدي إلّا بعد استلام المبلغ فعليًّا من {awaitingRating.passengerName ?? 'الراكبة'}.
+          </Text>
+          <Pressable
+            onPress={() => void confirmCash()}
+            disabled={confirmingCash}
+            className="h-14 flex-row items-center justify-center gap-2 rounded-2xl bg-green-600 active:scale-[0.98]"
+          >
+            {confirmingCash ? (
+              <ActivityIndicator color="#ffffff" />
+            ) : (
+              <>
+                <MaterialIcons name="check" size={22} color="#ffffff" />
+                <Text className="font-plex-bold text-lg text-white">أكّدي استلام المبلغ</Text>
+              </>
+            )}
+          </Pressable>
         </View>
       ) : awaitingRating?.paid ? (
         /* بطاقة تقييم الراكبة بعد اكتمال الدفع */

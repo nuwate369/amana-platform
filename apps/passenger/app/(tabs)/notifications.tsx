@@ -2,6 +2,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { usePushStatus } from '@amana/shared-ui/usePushNotifications';
 import { passengerPurple } from '@amana/shared-ui/tokens';
 import {
   listNotifications,
@@ -32,6 +33,7 @@ function iconFor(type: string): keyof typeof MaterialIcons.glyphMap {
 }
 
 export default function NotificationsScreen() {
+  const pushStatus = usePushStatus();
   const [items, setItems] = useState<AppNotification[]>([]);
   const [loading, setLoading] = useState(true);
   const { refresh, unread } = useNotifications();
@@ -80,6 +82,26 @@ export default function NotificationsScreen() {
         )}
       </View>
 
+
+      {/* سبب صمت الإشعارات — بدل أن يبقى المستخدم يظنّ أنّ لا أحد راسله */}
+      {pushStatus.status !== 'registered' && pushStatus.status !== 'idle' && (
+        <View className="mx-4 mb-3 flex-row items-start gap-3 rounded-xl bg-amber-50 p-3 dark:bg-amber-900/20">
+          <MaterialIcons name="notifications-off" size={20} color="#B45309" />
+          <View className="flex-1">
+            <Text className="font-plex-semibold text-sm text-amber-800 dark:text-amber-200">
+              الإشعارات الفورية غير مفعّلة
+            </Text>
+            <Text className="mt-0.5 font-plex text-xs leading-5 text-amber-700 dark:text-amber-300">
+              {pushStatus.status === 'denied'
+                ? 'أذني للتطبيق بالإشعارات من إعدادات الجهاز كي تصلك الرسائل وتحديثات الرحلة.'
+                : pushStatus.status === 'unsupported'
+                  ? 'الإشعارات الفورية لا تعمل على المحاكي — جرّبيها على جهاز حقيقي.'
+                  : 'تعذّر تسجيل الجهاز. ستصلك الإشعارات داخل التطبيق فقط.'}
+            </Text>
+          </View>
+        </View>
+      )}
+
       {loading ? (
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator color={passengerPurple[600]} />
@@ -92,6 +114,7 @@ export default function NotificationsScreen() {
           </Text>
         </View>
       ) : (
+
         <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, gap: 10 }}>
           {items.map((n) => (
             <Pressable

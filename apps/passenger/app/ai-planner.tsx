@@ -1,6 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useKeyboardPush } from '@amana/shared-ui/layout';
 import { passengerPurple } from '@amana/shared-ui/tokens';
 
 /**
@@ -39,8 +40,13 @@ function BottomNav() {
 }
 
 export default function AiPlannerScreen() {
+  const keyboardPush = useKeyboardPush();
   return (
-    <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-900" edges={['top']}>
+    <SafeAreaView
+      className="flex-1 bg-neutral-50 dark:bg-neutral-900"
+      edges={['top']}
+      style={keyboardPush}
+    >
       {/* الشريط العلوي */}
       <View className="h-14 flex-row items-center justify-between px-5">
         <Pressable className="h-10 w-10 items-center justify-center rounded-full active:bg-neutral-200 dark:active:bg-neutral-800">

@@ -3,8 +3,6 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -12,7 +10,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useBottomInset, keyboardAvoiding } from '@amana/shared-ui/layout';
+import { useBottomInset, useKeyboardPush } from '@amana/shared-ui/layout';
 import { driverNavy } from '@amana/shared-ui/tokens';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
@@ -58,6 +56,7 @@ export default function ChatScreen() {
   }, [rideId]);
 
   const bottomInset = useBottomInset();
+  const keyboardPush = useKeyboardPush();
 
   async function onSend() {
     if (!rideId || !user || !text.trim() || sending) return;
@@ -71,7 +70,11 @@ export default function ChatScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-900" edges={['top']}>
+    <SafeAreaView
+      className="flex-1 bg-neutral-50 dark:bg-neutral-900"
+      edges={['top']}
+      style={keyboardPush}
+    >
       <View className="h-16 flex-row items-center justify-between border-b border-neutral-200 px-4 dark:border-neutral-800">
         <Pressable
           onPress={() => router.back()}
@@ -90,10 +93,7 @@ export default function ChatScreen() {
           <ActivityIndicator color={driverNavy[500]} />
         </View>
       ) : (
-        <KeyboardAvoidingView
-          className="flex-1"
-          {...keyboardAvoiding}
-        >
+        <View className="flex-1">
           <ScrollView
             ref={scrollRef}
             className="flex-1 px-5"
@@ -157,7 +157,7 @@ export default function ChatScreen() {
               )}
             </Pressable>
           </View>
-        </KeyboardAvoidingView>
+        </View>
       )}
     </SafeAreaView>
   );

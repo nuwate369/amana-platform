@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useSyncExternalStore } from 'react';
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
@@ -47,7 +47,10 @@ function projectId(): string | undefined {
 
 async function requestToken(): Promise<string | null> {
   // المحاكي لا يملك جهازًا حقيقيًّا يستقبل الإشعارات.
-  if (!Device.isDevice) return null;
+  if (!Device.isDevice) {
+    setPushStatus('unsupported');
+    return null;
+  }
 
   const existing = await Notifications.getPermissionsAsync();
   let granted = existing.granted;
@@ -55,7 +58,10 @@ async function requestToken(): Promise<string | null> {
   if (!granted && existing.canAskAgain) {
     granted = (await Notifications.requestPermissionsAsync()).granted;
   }
-  if (!granted) return null;
+  if (!granted) {
+    setPushStatus('denied');
+    return null;
+  }
 
   if (Platform.OS === 'android') {
     // أندرويد يحتاج قناة معرَّفة، وإلّا وصل الإشعار صامتًا بلا اهتزاز.
@@ -72,6 +78,39 @@ async function requestToken(): Promise<string | null> {
   return data ?? null;
 }
 
+/**
+ * حالة تسجيل الجهاز للإشعارات الفورية.
+ *
+ * لماذا حالة معلنة لا `catch {}` صامت؟ لأنّ الفشل هنا غير مرئي تمامًا: لا
+ * إشعارات تصل، ولا رسالة خطأ، ولا سجلّ. كنّا نخمّن السبب بدل أن نقرأه.
+ * `denied` إذن مرفوض · `unsupported` محاكٍ · `failed` تعذّر إصدار الرمز
+ * (غالبًا إعداد FCM أو مُعرّف المشروع) · `registered` يعمل.
+ */
+export type PushStatus = 'idle' | 'registered' | 'denied' | 'unsupported' | 'failed';
+
+let pushStatus: PushStatus = 'idle';
+let pushError: string | null = null;
+const listeners = new Set<() => void>();
+
+function setPushStatus(status: PushStatus, error: string | null = null): void {
+  pushStatus = status;
+  pushError = error;
+  listeners.forEach((l) => l());
+}
+
+/** يُقرأ في شاشة الإشعارات لعرض سبب عدم وصول الإشعارات بدل الصمت. */
+export function usePushStatus(): { status: PushStatus; error: string | null } {
+  const status = useSyncExternalStore(
+    (l) => {
+      listeners.add(l);
+      return () => listeners.delete(l);
+    },
+    () => pushStatus,
+    () => pushStatus,
+  );
+  return { status, error: pushError };
+}
+
 export function usePushNotifications({ supabase, app, enabled, onOpen }: PushOptions): void {
   const token = useRef<string | null>(null);
 
@@ -85,9 +124,16 @@ export function usePushNotifications({ supabase, app, enabled, onOpen }: PushOpt
         const t = await requestToken();
         if (!alive || !t) return;
         token.current = t;
-        await supabase.rpc('register_push_token', { p_token: t, p_app: app });
-      } catch {
-        // رفض الإذن أو تعذّر الاتصال — التطبيق يعمل بلا إشعارات فورية.
+        const { error } = await supabase.rpc('register_push_token', { p_token: t, p_app: app });
+        if (error) {
+          setPushStatus('failed', error.message);
+          return;
+        }
+        setPushStatus('registered');
+      } catch (error) {
+        // الفشل هنا لا يُعطّل التطبيق، لكنّه يُسجَّل: بدونه تختفي الإشعارات
+        // بلا أثر ولا نعرف أهو الإذن أم إعداد FCM أم انقطاع الشبكة.
+        setPushStatus('failed', error instanceof Error ? error.message : String(error));
       }
     })();
 
@@ -96,21 +142,32 @@ export function usePushNotifications({ supabase, app, enabled, onOpen }: PushOpt
     };
   }, [enabled, app, supabase]);
 
-  // الضغط على الإشعار — يفتح الشاشة المعنيّة.
-  useEffect(() => {
-    if (!onOpen) return;
+  // مرجع للمعالِج بدل الاعتماد عليه في مصفوفة الاعتماديات: `onOpen` يُمرَّر
+  // كدالّة سهمية داخل الشاشة، فتتغيّر هويّتها مع كل إعادة رسم. ربطُ الأثر بها
+  // كان يُعيد تشغيله في كل رسم، فيُقرأ آخر إشعار مضغوط ويُفتح مجددًا —
+  // فيعلق التطبيق على شاشة الإشعارات ولا يعمل زرّ الرجوع.
+  const openRef = useRef(onOpen);
+  openRef.current = onOpen;
 
+  useEffect(() => {
     const sub = Notifications.addNotificationResponseReceivedListener((res) => {
-      onOpen((res.notification.request.content.data ?? {}) as Record<string, unknown>);
+      openRef.current?.((res.notification.request.content.data ?? {}) as Record<string, unknown>);
     });
 
-    // الإشعار الذي فتح التطبيق من حالة الإغلاق الكامل.
+    // الإشعار الذي فتح التطبيق من حالة الإغلاق الكامل. يُعالَج مرّة واحدة فقط،
+    // وبشرط أن يكون حديثًا: هذه الواجهة تحتفظ بآخر استجابة إلى ما لا نهاية،
+    // فبدون شرط الحداثة يخطف إشعارٌ من الأمس كلَّ إقلاع للتطبيق.
+    let handled = false;
     void Notifications.getLastNotificationResponseAsync().then((res) => {
-      if (res) onOpen((res.notification.request.content.data ?? {}) as Record<string, unknown>);
+      if (!res || handled) return;
+      handled = true;
+      const age = Date.now() - (res.notification.date ?? 0);
+      if (age > 60_000) return;
+      openRef.current?.((res.notification.request.content.data ?? {}) as Record<string, unknown>);
     });
 
     return () => sub.remove();
-  }, [onOpen]);
+  }, []);
 }
 
 /** يُستدعى قبل تسجيل الخروج كي لا تصل إشعارات المستخدمة السابقة للجهاز. */
