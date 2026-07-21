@@ -1,6 +1,6 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { isActiveRideStatus } from '@amana/shared-types';
-import { useFocusEffect } from 'expo-router';
+import { router, useFocusEffect, type Href } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -18,7 +18,10 @@ const FILTERS: { key: string; label: string }[] = [
 
 function fmt(iso: string | null): string {
   if (!iso) return '—';
-  return new Date(iso).toLocaleDateString('ar-SA', { day: 'numeric', month: 'long', year: 'numeric' });
+  const d = new Date(iso);
+  const date = d.toLocaleDateString('ar-SA', { day: 'numeric', month: 'long', year: 'numeric' });
+  const time = d.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+  return `${date} · ${time}`;
 }
 
 function RouteIndicator({ muted }: { muted?: boolean }) {
@@ -35,8 +38,9 @@ function RouteIndicator({ muted }: { muted?: boolean }) {
 function RideCard({ ride }: { ride: DriverRideHistoryItem }) {
   const cancelled = ride.status === 'cancelled';
   return (
-    <View
-      className={`rounded-xl border p-4 ${
+    <Pressable
+      onPress={() => router.push(`/ride-details?rideId=${ride.id}` as Href)}
+      className={`rounded-xl border p-4 active:opacity-80 ${
         cancelled
           ? 'border-neutral-200 bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800/60'
           : 'border-neutral-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-neutral-800'
@@ -61,7 +65,7 @@ function RideCard({ ride }: { ride: DriverRideHistoryItem }) {
           </View>
         </View>
         <Text className={`font-plex-semibold text-base ${cancelled ? 'text-neutral-400' : 'text-brand-700 dark:text-brand-300'}`}>
-          {ride.fare != null ? `${ride.fare.toFixed(2)} ر.س` : '—'}
+          {cancelled ? 'لم تُحتسب أجرة' : ride.fare != null ? `${ride.fare.toFixed(2)} ر.س` : '—'}
         </Text>
       </View>
 
@@ -81,7 +85,7 @@ function RideCard({ ride }: { ride: DriverRideHistoryItem }) {
         <MaterialIcons name="calendar-today" size={16} color="#9ca3af" />
         <Text className="font-plex text-xs text-neutral-500 dark:text-neutral-400">{fmt(ride.at)}</Text>
       </View>
-    </View>
+    </Pressable>
   );
 }
 

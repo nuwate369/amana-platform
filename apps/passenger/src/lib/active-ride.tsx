@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
+import { AppState } from 'react-native';
 import { supabase } from '@/lib/supabase';
 
 /**
@@ -95,6 +96,19 @@ export function ActiveRideProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     void load();
 
+    // إعادة القراءة عند توفّر الجلسة.
+    //
+    // عند الإقلاع البارد تُركَّب هذه الشاشة قبل أن تُستعاد جلسة Supabase من
+    // التخزين، فتصل القراءة الأولى بلا هويّة وتُرجع لا شيء. والاشتراك أدناه
+    // يستمع لـ«تغيّر» الرحلات — ورحلة قائمة لم تتغيّر لا تُطلقه — فتبقى
+    // الراكبة بلا شريط رغم أنّ لديها رحلة. هذا المستمع يسدّ تلك الفجوة.
+    const { data: authSub } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        void load();
+      }
+      if (event === 'SIGNED_OUT') setRide(null);
+    });
+
     // اشتراك واحد على مستوى التطبيق — يعمل مهما كانت الشاشة المعروضة.
     const channel = supabase
       .channel(`active-ride-${Math.random().toString(36).slice(2)}`)
@@ -103,7 +117,14 @@ export function ActiveRideProvider({ children }: { children: ReactNode }) {
       })
       .subscribe();
 
+    // العودة من الخلفية: قد تكون الرحلة تغيّرت والتطبيق نائم.
+    const appSub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') void load();
+    });
+
     return () => {
+      authSub.subscription.unsubscribe();
+      appSub.remove();
       supabase.removeChannel(channel);
     };
   }, [load]);

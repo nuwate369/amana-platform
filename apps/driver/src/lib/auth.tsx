@@ -80,17 +80,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   /** يجلب صف السائقة لمعرّف مستخدم معيّن. */
   const fetchDriver = useCallback(async (userId: string): Promise<DriverRecord | null> => {
-    const { data, error } = await supabase
-      .from('drivers')
-      .select(DRIVER_COLUMNS)
-      .eq('id', userId)
-      .maybeSingle();
-    if (error) {
-      // لا نُسقط التطبيق: نُعيد null فتوجّه البوابة للسائقة إلى شاشة رفع المستندات.
-      console.warn('[driver] تعذّر جلب صف السائقة:', error.message);
+    try {
+      // مهلة صريحة: طلب الشبكة قد لا يستقرّ أبدًا على اتصال ضعيف، وبقاؤه
+      // معلّقًا يُبقي `isLoading` مرفوعًا فتتجمّد شاشة البدء بلا مخرج.
+      const query = supabase
+        .from('drivers')
+        .select(DRIVER_COLUMNS)
+        .eq('id', userId)
+        .maybeSingle();
+
+      const result = await Promise.race([
+        query,
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('timeout')), 12_000),
+        ),
+      ]);
+
+      const { data, error } = result as { data: unknown; error: { message: string } | null };
+      if (error) {
+        // لا نُسقط التطبيق: نُعيد null فتوجّه البوابة للسائقة إلى شاشة رفع المستندات.
+        console.warn('[driver] تعذّر جلب صف السائقة:', error.message);
+        return null;
+      }
+      return (data as DriverRecord | null) ?? null;
+    } catch (e) {
+      console.warn('[driver] تعذّر جلب صف السائقة:', e);
       return null;
     }
-    return (data as DriverRecord | null) ?? null;
   }, []);
 
   /** يعيد جلب صف السائقة الحالية (يُستدعى بعد الرفع/الإرسال). */
@@ -143,11 +159,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!uid) return;
     let active = true;
     setIsLoading(true);
-    fetchDriver(uid).then((rec) => {
-      if (!active || !mounted.current) return;
-      setDriver(rec);
-      setIsLoading(false);
-    });
+    // `finally` لا `then` وحدها: أيّ رفض كان يترك `isLoading` مرفوعًا للأبد،
+    // فيعود حارس المسارات مبكّرًا ولا يغادر المستخدم شاشة البدء إطلاقًا.
+    fetchDriver(uid)
+      .then((rec) => {
+        if (!active || !mounted.current) return;
+        setDriver(rec);
+      })
+      .finally(() => {
+        if (active && mounted.current) setIsLoading(false);
+      });
     return () => {
       active = false;
     };

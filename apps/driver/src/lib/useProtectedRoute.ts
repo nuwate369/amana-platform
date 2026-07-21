@@ -71,7 +71,10 @@ export function useProtectedRoute() {
     // جلسة قائمة: السائقة المعتمدة تتنقّل بحرّية في كل الشاشات عدا شاشات الاعتماد
     // والمصادقة؛ أمّا غير المعتمدة فمحصورة في وجهتها (kyc/pending).
     if (driver?.status === 'approved') {
-      if (BLOCKED_FOR_APPROVED.includes(seg0 ?? '')) router.replace('/(tabs)/home');
+      // `!seg0` = مسار الجذر «/» عند الإقلاع (شاشة البدء). لا بدّ من توجيهه
+      // صراحةً: قائمة المنع لا تشمله، فتُترك السائقة على شاشة «جارٍ التحميل»
+      // بلا نهاية — وهو ما كانت قائمة السماح السابقة تعالجه بالمصادفة.
+      if (!seg0 || BLOCKED_FOR_APPROVED.includes(seg0)) router.replace('/(tabs)/home');
       return;
     }
     const dest = destinationFor(driver);

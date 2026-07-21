@@ -9,9 +9,11 @@
     "./tailwind-preset": "./tailwind-preset.js",
     "./tokens": "./src/tokens.ts",
     "./layout": "./src/layout.ts",
+    "./ride-details": "./src/ride-details.ts",
     "./usePushNotifications": "./src/usePushNotifications.ts",
     "./validation": "./src/validation.ts",
     "./MapView": "./src/MapView.tsx",
+    "./RideDetailView": "./src/RideDetailView.tsx",
     "./UpdateGate": "./src/UpdateGate.tsx"
   },
   "scripts": {

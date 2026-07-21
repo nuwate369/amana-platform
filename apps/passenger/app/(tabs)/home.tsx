@@ -1,6 +1,6 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { Component, useRef, type ReactNode } from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import { Component, useCallback, useRef, type ReactNode } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { passengerPurple } from '@amana/shared-ui/tokens';
@@ -29,7 +29,16 @@ export default function HomeScreen() {
   const mapRef = useRef<AmanaMapHandle>(null);
   const { user } = useAuth();
   const { unread } = useNotifications();
-  const { ride: activeRide } = useActiveRide();
+  const { ride: activeRide, refresh: refreshRide } = useActiveRide();
+
+  // تحديث عند كل دخول للشاشة. الاعتماد على الاشتراك اللحظي وحده يترك الشريط
+  // على حالة قديمة إن فات الحدث (إلغاء، دفع، انقطاع شبكة لحظة التغيير) —
+  // فتظهر «بانتظار الدفع» لرحلة أُلغيت فعلًا.
+  useFocusEffect(
+    useCallback(() => {
+      refreshRide();
+    }, [refreshRide]),
+  );
   const bottomInset = useBottomInset(20);
 
   const fullName =
