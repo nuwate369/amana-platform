@@ -437,7 +437,10 @@ function AppPanel({
             {release ? (
               <>
                 <a
-                  href={phase === 'idle' ? `/api/download/${app}` : undefined}
+                  // الرابط ثابت دائمًا: إزالته عند الضغط كانت تسحبه من تحت
+                  // المتصفّح قبل أن يتبعه — فيبدو الزرّ عاملًا ولا ينزل شيء.
+                  // منع التكرار يقع في المعالِج وحده، بلا مساس بالرابط.
+                  href={`/api/download/${app}`}
                   aria-disabled={phase !== 'idle'}
                   onClick={(e) => {
                     if (phase !== 'idle') {
