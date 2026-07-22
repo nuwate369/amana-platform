@@ -67,22 +67,35 @@ export function UpdateGate({ app, supabase, accent }: UpdateGateProps) {
 
   if (!latest || (dismissed && !latest.mandatory)) return null;
 
+  // تنظيف صيغة Markdown: النافذة تعرض نصًّا عاديًّا لا Markdown، فلو نُسخت
+  // ملاحظات الإصدار من صفحة GitHub ظهرت رموزها (## و** و-) حرفيًّا للمستخدمة.
+  // نحذف العناوين ونجرّد الأسطر من الرموز فتُقرأ نظيفةً أيًّا كان مصدرها.
   const notes = (latest.notes ?? '')
     .split('\n')
     .map((line) => line.trim())
+    .filter((line) => line && !line.startsWith('#')) // نتخطّى أسطر العناوين
+    .map((line) =>
+      line
+        .replace(/^[-*•]\s*/, '') // رمز التعداد في البداية
+        .replace(/\*\*(.+?)\*\*/g, '$1') // التغميق
+        .replace(/\*(.+?)\*/g, '$1') // الميل
+        .trim(),
+    )
     .filter(Boolean);
 
   async function download() {
     if (!latest) return;
     setOpening(true);
 
-    // نمرّ عبر مسار لوحة الإدارة كي تُحتسب الضغطة «تحديثًا» لا تثبيتًا أوّل،
-    // ونسقط إلى الرابط المباشر إن لم يكن عنوان اللوحة مضبوطًا.
-    const adminUrl = process.env.EXPO_PUBLIC_ADMIN_API_URL?.replace(/\/$/, '');
-    const target = adminUrl ? `${adminUrl}/api/download/${app}?k=update` : latest.download_url;
-
+    // الرابط المباشر لملفّ APK (رابط GitHub Releases) — يُنزَّل فورًا بلا
+    // صفحة وسيطة، وهو أحدث نسخة لهذا التطبيق تحديدًا لأنّ `latest_app_version`
+    // تُرجعها حسب العمود `app`.
+    //
+    // كنّا نمرّ عبر لوحة الإدارة لأجل إحصاء التحديثات، لكنّها غير منشورة
+    // فكان الرابط يشير إلى `localhost` — عنوانٌ لا وجود له على جهاز المستخدمة.
+    // نعود إليه حين تُنشر اللوحة على نطاق حقيقي (https)، لا localhost.
     try {
-      await Linking.openURL(target);
+      await Linking.openURL(latest.download_url);
     } catch {
       // المتصفّح غير متاح — نترك النافذة مفتوحة لتعيد المحاولة.
     }
